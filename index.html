@@ -101,6 +101,46 @@ h1{
 .note{font-size:12.5px;color:var(--dim);text-align:center;line-height:1.6}
 .note b{color:var(--brass);font-weight:400}
 
+/* ─── 开始页 ─── */
+#startSheet{position:fixed;inset:0;z-index:9;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:0;
+  background:radial-gradient(ellipse 70% 45% at 50% 30%, var(--felt-hi) 0%, var(--felt) 42%, var(--felt-lo) 100%);
+  transition:opacity .4s;padding:20px}
+#startSheet.gone{opacity:0;pointer-events:none}
+.sdeco{position:relative;width:120px;height:74px;margin-bottom:26px}
+.sdeco .bk{position:absolute;left:50%;top:0;margin-left:-23px;transform-origin:50% 130%}
+.sdeco .bk:nth-child(1){transform:rotate(-16deg)}
+.sdeco .bk:nth-child(2){transform:rotate(0deg) translateY(-4px)}
+.sdeco .bk:nth-child(3){transform:rotate(16deg)}
+.stitle{font-family:"Songti SC","STSong","SimSun",serif;font-size:52px;font-weight:700;
+  letter-spacing:.3em;text-indent:.3em;color:var(--ivory);text-shadow:0 3px 16px rgba(0,0,0,.55)}
+.srule{width:150px;height:3px;margin:16px 0 14px;opacity:.6;
+  background:linear-gradient(var(--brass-dim),var(--brass-dim)) top/100% 1px no-repeat,
+             linear-gradient(var(--brass-dim),var(--brass-dim)) bottom/100% 1px no-repeat}
+.ssub{font-size:13px;color:var(--dim);letter-spacing:.3em;text-indent:.3em;margin-bottom:44px}
+#startBtn{font-family:inherit;font-size:17px;letter-spacing:.2em;text-indent:.2em;cursor:pointer;
+  padding:14px 54px;border-radius:8px;border:1px solid var(--brass);
+  background:linear-gradient(#8A6B34,#6E5326);color:var(--ivory);
+  box-shadow:0 4px 16px rgba(0,0,0,.4)}
+#startBtn:active{transform:translateY(1px)}
+#startRules{background:none;border:none;color:var(--dim);font-family:inherit;font-size:13px;
+  margin-top:20px;cursor:pointer;border-bottom:1px solid transparent;padding:4px 2px}
+#startRules:hover{color:var(--brass);border-color:var(--brass-dim)}
+.sver{position:absolute;bottom:calc(16px + env(safe-area-inset-bottom));font-size:11px;
+  color:var(--brass-dim);letter-spacing:.15em}
+@media (max-height:620px){.stitle{font-size:40px}.ssub{margin-bottom:28px}.sdeco{margin-bottom:16px}}
+
+/* ─── 发牌动画：从桌心飞到各家 ─── */
+#dealfx{position:fixed;inset:0;pointer-events:none;z-index:8}
+#dealfx .bk{position:absolute;left:50%;top:40%;margin:-32px 0 0 -23px;opacity:0;
+  animation:fly .5s ease-in forwards}
+@keyframes fly{
+  0%{transform:translate(0,0) scale(1);opacity:0}
+  12%{opacity:1}
+  82%{opacity:1}
+  100%{transform:translate(var(--tx),var(--ty)) scale(.5) rotate(var(--rr));opacity:0}
+}
+
 /* 牌堆 */
 .pile{position:relative;height:66px;width:120px}
 .pile .bk{position:absolute;left:50%;top:0;margin-left:-23px}
@@ -218,6 +258,7 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
   .plaque{font-size:22px;padding:7px 16px}
   #log{margin:7px 2px 2px;min-height:46px;font-size:12px;line-height:1.65}
   #hint{font-size:11px;max-height:2.9em;margin-top:6px}
+  .reveal .card{width:40px;height:56px}  /* 翻牌那一下别把牌桌撑出屏 */
   .label{margin-bottom:6px}
 }
 @media (max-height:620px){
@@ -255,6 +296,16 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
     <div id="controls"></div>
     <div id="hint"></div>
   </div>
+</div>
+
+<div id="startSheet">
+  <div class="sdeco"><div class="bk"></div><div class="bk"></div><div class="bk"></div></div>
+  <div class="stitle">说瞎话</div>
+  <div class="srule"></div>
+  <div class="ssub">一副牌 · 四个人 · 全凭一张嘴</div>
+  <button id="startBtn">开 始 打 牌</button>
+  <button id="startRules">先看规则</button>
+  <div class="sver" id="sver"></div>
 </div>
 
 <div class="sheet" id="rulesSheet"><div class="panel">
@@ -304,6 +355,7 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
   <h2>这一轮报什么点数</h2>
   <p id="rankHint"></p>
   <div class="ranks" id="rankGrid"></div>
+  <button class="act" id="rankCancel" style="width:100%;margin-top:14px">先不出，回去改牌</button>
 </div></div>
 
 <div class="sheet" id="overSheet"><div class="panel">
@@ -326,7 +378,7 @@ const sortKey=c=>isJoker(c)?100+c:c;
 const nm=i=>i===0?'你':NAMES[i];
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.7';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const VERSION='1.10';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
 const SET={wild:1,max:4,burn:1,ai:1,sound:1,salty:1};
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
      if(_s&&typeof _s==='object') for(const k in SET) if(typeof _s[k]==='number') SET[k]=_s[k];
@@ -476,27 +528,23 @@ function humanTurn(){
   return new Promise(res=>{
     humanResolve=res;
     if(currentRank===null){
-      stage('<div class="who">该你出牌</div><div class="plaque">你来定点数</div>'+
-            '<div class="note">开新一轮，必须出牌</div>');
-      $('hint').textContent='选 1–'+SET.max+' 张牌，然后定一个点数。';
+      stage('<div class="who">该你出牌</div><div class="plaque">你来定点数</div>');
+      $('hint').textContent='';
     }else{
       stage(claimHTML(lastPlay.player,lastPlay.cards.length,currentRank)+pileHTML()+
-            '<div class="note">该你了 · 跟着报 <b>'+RANKS[currentRank]+'</b>、过、或者抓他</div>');
-      if(canCall()){
+            '<div class="note">该你了</div>');
+      let ev='';
+      if(canCall()){                              // 只留情报，不留教学
         const cap=4+(SET.wild?2:0), k=lastPlay.cards.length;
         const mine=hands[0].filter(c=>fits(c,currentRank)).length;
-        let ev='';
         if(k+mine>cap)
-          ev=' 你攥着 '+mine+' 张能当 '+RANKS[currentRank]+' 的 —— 他报 '+k+' 张，数不可能，<b>他一定在吹</b>！';
+          ev='你攥着 '+mine+' 张能当 '+RANKS[currentRank]+' 的 —— 他报 '+k+' 张，数不可能，<b>他一定在吹</b>！';
         else if(mine>0)
-          ev=' 你攥着 '+mine+' 张，他手里的 '+RANKS[currentRank]+' 最多还剩 '+(cap-mine-k)+' 张。';
+          ev='你攥着 '+mine+' 张，他手里的 '+RANKS[currentRank]+' 最多还剩 '+(cap-mine-k)+' 张。';
         if(hands[lastPlay.player].length===0)
-          ev+=' <b>他这一手出完就赢了</b> —— 是真的你抓不抓都输，是吹的只有抓才有救。';
-        $('hint').innerHTML='现在只有你能抓 '+nm(lastPlay.player)+'。你要是过了，就轮到 '+nm((0+1)%4)+' 抓。'+ev;
-      }else{
-        $('hint').textContent='报几张就出几张，是不是 '+RANKS[currentRank]+' 随你'+
-          (SET.wild?'，王当 '+RANKS[currentRank]+' 用不算骗':'')+'。';
+          ev+=(ev?' ':'')+'<b>他这一手出完就赢了</b> —— 是真的你抓不抓都输，是吹的只有抓才有救。';
       }
+      $('hint').innerHTML=ev;
     }
     updateControls();
   });
@@ -552,6 +600,10 @@ $('rankGrid').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return;
   $('rankSheet').classList.remove('on');
   commitPlay(+b.dataset.r);
+});
+$('rankCancel').onclick=()=>{$('rankSheet').classList.remove('on');};   // 牌还选着，回去随便改
+$('rankSheet').addEventListener('click',e=>{
+  if(e.target===$('rankSheet')) $('rankSheet').classList.remove('on'); // 点弹窗外面也算取消
 });
 function commitAct(a){
   selected.clear();
@@ -1074,13 +1126,52 @@ $('againBtn').onclick=()=>newGame();
 $('ver').textContent='v'+VERSION;
 $('verFull').textContent='说瞎话 v'+VERSION;
 
-function newGame(){
+async function dealAnim(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const fx=document.createElement('div'); fx.id='dealfx'; document.body.appendChild(fx);
+  const seats=[...document.querySelectorAll('#seats .seat')];
+  const hw=$('handwrap').getBoundingClientRect();
+  const targets=[{x:hw.left+hw.width/2,y:hw.top+50}].concat(
+    seats.map(el=>{const r=el.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};}));
+  const cx=innerWidth/2, cy=innerHeight*.4;
+  for(let i=0;i<16;i++){
+    const t=targets[i%targets.length]||targets[0];
+    const el=document.createElement('div');
+    el.className='bk';
+    el.style.setProperty('--tx',(t.x-cx)+'px');
+    el.style.setProperty('--ty',(t.y-cy)+'px');
+    el.style.setProperty('--rr',((i*47)%44-22)+'deg');
+    el.style.animationDelay=(i*55)+'ms';
+    fx.appendChild(el);
+  }
+  await sleep(16*55+540);
+  fx.remove();
+}
+
+let dealing=false;
+async function newGame(){
+  if(dealing) return;
+  dealing=true;
   $('overSheet').classList.remove('on');
   deal(); playControls(); paintRules(); render();
+  $('hand').innerHTML=''; $('handct').textContent='';   // 牌先扣着，飞完再亮
+  stage('<div class="who">洗牌</div><div class="plaque">发 牌</div>');
+  await dealAnim();
+  hands[0].forEach(c=>fresh.add(c));                    // 亮手牌时从下面滑进来
+  render();
+  dealing=false;
   say('发牌完毕，你先出');
   loop();
 }
-newGame();
+
+$('sver').textContent='v'+VERSION;
+$('startRules').onclick=()=>{paintRules();$('rulesSheet').classList.add('on');};
+$('startBtn').onclick=()=>{
+  Sfx.wake();                                           // 这一下点击顺便把 iOS 的声音解锁了
+  $('startSheet').classList.add('gone');
+  setTimeout(()=>$('startSheet').remove(),450);
+  newGame();
+};
 </script>
 </body>
 </html>
