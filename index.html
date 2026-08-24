@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>说瞎话</title>
+<meta name="theme-color" content="#0B211B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="说瞎话">
+<meta name="description" content="扑克牌游戏说瞎话，一个人对三个电脑对手">
+<style>
+:root{
+  --felt-hi:#27543F;
+  --felt:#143329;
+  --felt-lo:#07160F;
+  --brass:#C79A4E;
+  --brass-dim:#8A6B34;
+  --ivory:#F4EBD6;
+  --dim:#A8A08C;
+  --paper:#F1E6CC;
+  --red:#B0302A;
+  --ink:#1C1712;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{
+  background:
+    radial-gradient(ellipse 70% 45% at 50% 30%, var(--felt-hi) 0%, var(--felt) 42%, var(--felt-lo) 100%);
+  color:var(--ivory);
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",sans-serif;
+  display:flex;justify-content:center;overscroll-behavior:none;
+}
+body::after{ /* 绒面颗粒 */
+  content:"";position:fixed;inset:0;pointer-events:none;opacity:.4;
+  background-image:radial-gradient(rgba(255,255,255,.045) .5px, transparent .5px);
+  background-size:3px 3px;
+}
+#app{width:100%;max-width:480px;min-height:100%;display:flex;flex-direction:column;
+  padding:env(safe-area-inset-top) 14px calc(10px + env(safe-area-inset-bottom));position:relative;z-index:1}
+
+/* ─── 顶栏 ─── */
+header{padding:16px 0 12px;position:relative}
+.brand{display:flex;align-items:flex-end;justify-content:space-between}
+h1{
+  font-family:"Songti SC","STSong","SimSun",serif;
+  font-size:29px;letter-spacing:.34em;margin:0;font-weight:700;text-indent:.34em;
+  color:var(--ivory);text-shadow:0 2px 10px rgba(0,0,0,.5);
+}
+.tools{display:flex;gap:14px;padding-bottom:5px}
+.tools button{background:none;border:none;color:var(--dim);font-size:13px;font-family:inherit;
+  cursor:pointer;padding:4px 0;border-bottom:1px solid transparent}
+.tools button:hover{color:var(--brass);border-color:var(--brass-dim)}
+.rule2{margin-top:10px;height:3px;
+  background:linear-gradient(var(--brass-dim),var(--brass-dim)) top/100% 1px no-repeat,
+             linear-gradient(var(--brass-dim),var(--brass-dim)) bottom/100% 1px no-repeat;
+  opacity:.55}
+
+/* ─── 座位 ─── */
+#seats{display:flex;gap:9px;margin:14px 0 6px}
+.seat{flex:1;text-align:center;padding:9px 4px 8px;border-radius:9px;
+  border:1px solid rgba(199,154,78,.22);background:rgba(0,0,0,.22);
+  transition:border-color .3s,background .3s,transform .3s}
+.seat.active{border-color:var(--brass);background:rgba(199,154,78,.12);transform:translateY(-2px)}
+.seat .nm{font-size:13px;letter-spacing:.06em}
+.fan{height:16px;position:relative;margin:6px 0 4px}
+.fan i{position:absolute;top:0;width:9px;height:14px;border-radius:2px;
+  background:linear-gradient(150deg,#9C3129,#6E211B);border:.5px solid rgba(0,0,0,.45)}
+.seat .ct{font-size:11px;color:var(--dim);letter-spacing:.1em}
+.seat.low .ct{color:#E0806F}
+
+/* ─── 牌桌 ─── */
+#stage{
+  margin:6px 0 4px;border-radius:130px/70px;
+  border:1px solid rgba(199,154,78,.3);
+  background:radial-gradient(ellipse 80% 70% at 50% 40%, rgba(46,94,71,.55), rgba(6,20,14,.55));
+  box-shadow:inset 0 0 34px rgba(0,0,0,.55), 0 6px 20px rgba(0,0,0,.3);
+  min-height:200px;padding:20px 16px;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+}
+.who{font-size:12.5px;color:var(--dim);letter-spacing:.14em}
+.plaque{
+  padding:9px 20px;border-radius:4px;background:rgba(10,26,19,.55);
+  border:1px solid var(--brass-dim);box-shadow:0 0 0 3px rgba(10,26,19,.4);
+  font-family:"Songti SC","STSong",serif;font-size:25px;letter-spacing:.14em;
+  color:var(--ivory);text-align:center;line-height:1.2;white-space:nowrap;
+}
+.plaque em{font-style:normal;color:var(--brass)}
+.note{font-size:12.5px;color:var(--dim);text-align:center;line-height:1.6}
+.note b{color:var(--brass);font-weight:400}
+
+/* 牌堆 */
+.pile{position:relative;height:66px;width:120px}
+.pile .bk{position:absolute;left:50%;top:0;margin-left:-23px;animation:drop .32s ease-out backwards}
+@keyframes drop{from{transform:translateY(-34px) scale(1.06);opacity:0}}
+.bk{width:46px;height:64px;border-radius:5px;border:1px solid #5E1B16;
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.14) 25%,transparent 25%) 0 0/7px 7px,
+    linear-gradient(45deg,rgba(255,255,255,.14) 25%,transparent 25%) 0 0/7px 7px,
+    linear-gradient(160deg,#A83229,#7A231C);
+  box-shadow:0 2px 5px rgba(0,0,0,.4);position:relative}
+.bk::after{content:"";position:absolute;inset:7px;border:1px solid rgba(240,220,180,.5);border-radius:2px}
+.pilect{font-size:11.5px;color:var(--dim);letter-spacing:.12em}
+
+/* 明牌 */
+.card{width:46px;height:64px;border-radius:5px;background:linear-gradient(160deg,#FBF5E6,var(--paper));
+  color:var(--ink);border:1px solid #D9CBAB;position:relative;flex:none;
+  box-shadow:0 2px 5px rgba(0,0,0,.35);overflow:hidden}
+.card .idx{position:absolute;left:4px;top:3px;display:flex;flex-direction:column;align-items:center;
+  font-family:Georgia,"Times New Roman",serif;line-height:1}
+.card .idx b{font-size:15px;font-weight:700}
+.card .idx i{font-size:11px;font-style:normal;margin-top:1px}
+.card .mid{position:absolute;right:5px;bottom:4px;font-size:24px;opacity:.26}
+.card.red{color:var(--red)}
+.card.joker{background:linear-gradient(160deg,#FBF5E6,#EDD9A8);border-color:var(--brass)}
+.card.joker .mid{font-family:"Songti SC",serif;font-size:23px;opacity:.32;right:6px}
+.reveal{display:flex;gap:7px;justify-content:center;flex-wrap:wrap}
+.reveal .card{animation:flip .34s cubic-bezier(.2,.9,.3,1) backwards}
+.reveal .card:nth-child(2){animation-delay:.09s}
+.reveal .card:nth-child(3){animation-delay:.18s}
+.reveal .card:nth-child(4){animation-delay:.27s}
+@keyframes flip{from{transform:rotateY(94deg);opacity:0}}
+
+/* 印章 */
+.stamp{position:absolute;right:22px;top:26px;width:78px;height:78px;border-radius:50%;
+  border:3px double var(--red);color:var(--red);display:flex;align-items:center;justify-content:center;
+  font-family:"Songti SC","STSong",serif;font-size:24px;letter-spacing:.14em;text-indent:.14em;
+  font-weight:700;opacity:.9;transform:rotate(-13deg);
+  box-shadow:inset 0 0 0 4px rgba(176,48,42,.14);
+  animation:press .38s cubic-bezier(.2,1.7,.4,1) backwards}
+@keyframes press{from{transform:rotate(-13deg) scale(2.6);opacity:0}}
+
+/* ─── 日志 ─── */
+#log{font-size:12.5px;line-height:1.75;color:var(--dim);margin:10px 2px 4px;min-height:68px}
+#log div{opacity:.6}
+#log div:first-child{opacity:1;color:var(--ivory)}
+
+/* ─── 手牌 ─── */
+#handwrap{margin-top:auto;padding-top:6px}
+.label{font-size:11px;color:var(--brass);letter-spacing:.2em;margin-bottom:9px;
+  display:flex;justify-content:space-between;align-items:baseline}
+.label span{color:var(--dim);letter-spacing:.08em}
+#handscroll{overflow-x:auto;overflow-y:visible;padding:12px 0 4px;-webkit-overflow-scrolling:touch}
+#hand{position:relative;height:76px;margin:0 auto}
+#hand .card{position:absolute;top:12px;cursor:pointer;
+  transition:top .16s cubic-bezier(.2,1.4,.4,1),box-shadow .16s}
+#hand .card.sel{top:0;box-shadow:0 8px 14px rgba(0,0,0,.45),0 0 0 2px var(--brass)}
+#hand .card.fresh{animation:slidein .3s ease-out backwards}
+@keyframes slidein{from{transform:translateY(26px);opacity:0}}
+
+/* ─── 按钮 ─── */
+#controls{margin-top:10px}
+#controls .row{display:flex;gap:8px}
+button.act.wide{width:100%;margin-bottom:8px;padding:15px 6px}
+button.act{flex:1;padding:14px 6px;border-radius:9px;font-size:15px;font-family:inherit;cursor:pointer;
+  border:1px solid rgba(199,154,78,.5);background:rgba(0,0,0,.2);color:var(--ivory);
+  transition:opacity .2s,background .2s}
+button.act.primary{background:var(--brass);border-color:var(--brass);color:#20160A;font-weight:600}
+button.act.danger{background:var(--red);border-color:var(--red);color:#FFF3E8;font-weight:600}
+button.act:disabled{opacity:.3;cursor:default}
+button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+#hint{font-size:12.5px;color:var(--dim);text-align:center;margin-top:9px;min-height:17px;line-height:1.5}
+
+/* ─── 弹层 ─── */
+.sheet{position:fixed;inset:0;background:rgba(4,14,10,.82);display:none;
+  align-items:center;justify-content:center;padding:18px;z-index:10}
+.sheet.on{display:flex}
+.panel{background:linear-gradient(#17362B,#102822);border:1px solid rgba(199,154,78,.35);
+  border-radius:12px;padding:22px 20px;max-width:410px;width:100%;max-height:84vh;overflow:auto}
+.panel h2{font-family:"Songti SC","STSong",serif;font-size:20px;margin:0 0 14px;letter-spacing:.12em}
+.panel p{font-size:13px;line-height:1.8;color:var(--dim);margin:0 0 10px}
+.panel ol{padding-left:19px;margin:0 0 12px}
+.panel li{font-size:13.5px;line-height:1.9;color:var(--dim);margin-bottom:3px}
+.panel li b{color:var(--ivory);font-weight:600}
+.opt{margin-bottom:16px}
+.opt .q{font-size:13.5px;margin-bottom:8px;color:var(--ivory)}
+.seg{display:flex;gap:0;border:1px solid rgba(199,154,78,.4);border-radius:8px;overflow:hidden}
+.seg button{flex:1;padding:11px 4px;border:none;background:transparent;color:var(--dim);
+  font-family:inherit;font-size:13px;cursor:pointer;border-right:1px solid rgba(199,154,78,.25)}
+.seg button:last-child{border-right:none}
+.seg button.on{background:var(--brass);color:#20160A;font-weight:600}
+#keyInput{width:100%;padding:12px;border-radius:8px;border:1px solid rgba(199,154,78,.4);
+  background:rgba(0,0,0,.25);color:var(--ivory);font-family:Menlo,monospace;font-size:13px}
+.tip{font-size:11.5px;color:var(--dim);margin-top:7px;line-height:1.6}
+.thinking{font-size:12px;color:var(--brass);letter-spacing:.1em}
+.talk{color:var(--ivory);font-style:normal}
+.ranks{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:8px}
+.ranks button{padding:13px 0;border-radius:7px;border:1px solid rgba(199,154,78,.3);
+  background:rgba(0,0,0,.2);color:var(--ivory);font-family:Georgia,serif;font-size:16px;cursor:pointer}
+.ranks button.has{border-color:var(--brass);color:var(--brass);background:rgba(199,154,78,.1)}
+#winner{font-family:"Songti SC","STSong",serif;font-size:30px;letter-spacing:.16em;
+  text-align:center;margin:8px 0 14px;text-indent:.16em}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand">
+      <h1>说瞎话</h1>
+      <div class="tools">
+        <button id="rulesBtn">规则</button>
+        <button id="setBtn">设置</button>
+      </div>
+    </div>
+    <div class="rule2"></div>
+  </header>
+
+  <div id="seats"></div>
+  <div id="stage"></div>
+  <div id="log"></div>
+
+  <div id="handwrap">
+    <div class="label">你的手牌 <span id="handct"></span></div>
+    <div id="handscroll"><div id="hand"></div></div>
+    <div id="controls"></div>
+    <div id="hint"></div>
+  </div>
+</div>
+
+<div class="sheet" id="rulesSheet"><div class="panel">
+  <h2>玩法</h2>
+  <ol id="ruleList"></ol>
+  <p>规则跟你爸爸记的不一样？告诉我哪儿不对，我改。</p>
+  <button class="act primary" id="rulesClose" style="width:100%">知道了</button>
+</div></div>
+
+<div class="sheet" id="setSheet"><div class="panel">
+  <h2>设置</h2>
+  <div class="opt"><div class="q">牌里带不带大小王</div>
+    <div class="seg" data-k="wild">
+      <button data-v="1">带王，王算任意点数</button><button data-v="0">不带王</button></div></div>
+  <div class="opt"><div class="q">一手最多出几张</div>
+    <div class="seg" data-k="max">
+      <button data-v="3">3 张</button><button data-v="4">4 张</button><button data-v="5">5 张</button></div></div>
+  <div class="opt"><div class="q">三家都过之后，桌上那堆牌</div>
+    <div class="seg" data-k="burn">
+      <button data-v="1">作废不要</button><button data-v="0">最后出牌的人收走</button></div></div>
+  <div class="opt"><div class="q">谁由 DeepSeek 来打</div>
+    <div class="seg" data-k="ai1"><button data-v="0">老李 本地</button><button data-v="1">老李 DeepSeek</button></div>
+    <div class="seg" data-k="ai2" style="margin-top:7px"><button data-v="0">王姐 本地</button><button data-v="1">王姐 DeepSeek</button></div>
+    <div class="seg" data-k="ai3" style="margin-top:7px"><button data-v="0">小赵 本地</button><button data-v="1">小赵 DeepSeek</button></div>
+  </div>
+  <div class="opt"><div class="q">DeepSeek API Key</div>
+    <input id="keyInput" type="password" placeholder="sk-..." autocomplete="off">
+    <div class="tip" id="keyTip">不填就全部用本地 AI。只存在这台手机上，不写进文件。</div>
+  </div>
+  <p>改了下一局生效。</p>
+  <button class="act primary" id="setClose" style="width:100%">开新一局</button>
+</div></div>
+
+<div class="sheet" id="rankSheet"><div class="panel">
+  <h2>这一轮报什么点数</h2>
+  <p id="rankHint"></p>
+  <div class="ranks" id="rankGrid"></div>
+</div></div>
+
+<div class="sheet" id="overSheet"><div class="panel">
+  <div id="winner"></div>
+  <p id="overText" style="text-align:center"></p>
+  <button class="act primary" id="againBtn" style="width:100%;margin-top:8px">再来一局</button>
+</div></div>
+
+<script>
+/* ═══ 牌 ═══ */
+const RANKS=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const SUITS=['♠','♥','♣','♦'];
+const CN=['','一','二','三','四','五'];
+const NAMES=['你','老李','王姐','小赵'];
+const isJoker=c=>c>=52;
+const rk=c=>isJoker(c)?-1:c>>2;
+const st=c=>c&3;
+const isRed=c=>c===53||(!isJoker(c)&&(st(c)===1||st(c)===3));
+const sortKey=c=>isJoker(c)?100+c:c;
+const nm=i=>i===0?'你':NAMES[i];
+
+/* ═══ 可调规则 ═══ */
+const SET={wild:1,max:4,burn:1,ai1:0,ai2:0,ai3:0};
+const fits=(c,rank)=>(SET.wild&&isJoker(c))||rk(c)===rank;
+
+/* ═══ 状态 ═══ */
+let hands,pile,turn,currentRank,lastPlay,roundClaimed,passStreak,over,logs,selected,fresh,outQueue,
+    humanResolve;
+const $=id=>document.getElementById(id);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+function deal(){
+  const total=SET.wild?54:52;
+  const d=[...Array(total).keys()];
+  for(let i=total-1;i>0;i--){const j=Math.random()*(i+1)|0;[d[i],d[j]]=[d[j],d[i]];}
+  hands=[[],[],[],[]];
+  const off=Math.random()*4|0;
+  d.slice(0,52).forEach((c,i)=>hands[(i+off)%4].push(c));  // 每人 13 张
+  hands.forEach(h=>h.sort((a,b)=>sortKey(a)-sortKey(b)));
+  pile=[];currentRank=null;lastPlay=null;roundClaimed=0;passStreak=0;
+  over=false;logs=[];selected=new Set();fresh=new Set();outQueue=[];
+  turn=0;                          // 真人玩家开第一轮
+}
+function say(t){logs.unshift(t);logs=logs.slice(0,3);}
+
+/* ═══ 渲染 ═══ */
+function cardInner(c){
+  if(isJoker(c)) return '<span class="idx"><b>王</b><i>'+(c===53?'大':'小')+'</i></span><span class="mid">王</span>';
+  return '<span class="idx"><b>'+RANKS[rk(c)]+'</b><i>'+SUITS[st(c)]+'</i></span>'+
+         '<span class="mid">'+SUITS[st(c)]+'</span>';
+}
+const cls=c=>'card'+(isRed(c)?' red':'')+(isJoker(c)?' joker':'');
+const faceUp=c=>'<div class="'+cls(c)+'">'+cardInner(c)+'</div>';
+
+function render(){
+  $('seats').innerHTML=[1,2,3].map(i=>{
+    const n=hands[i].length, shown=Math.min(7,n);
+    let fan='<div class="fan">';
+    for(let k=0;k<shown;k++)
+      fan+='<i style="left:calc(50% - '+(shown*4)+'px + '+(k*8)+'px);transform:rotate('+((k-(shown-1)/2)*4)+'deg)"></i>';
+    return '<div class="seat'+(turn===i?' active':'')+(n<=3?' low':'')+'">'+
+      '<div class="nm">'+NAMES[i]+'</div>'+fan+'</div>'+
+      '<div class="ct">'+n+' 张</div></div>';
+  }).join('');
+
+  const h=hands[0], n=h.length;
+  const step = n<=1?0 : Math.min(34, Math.max(15, (Math.min(420,innerWidth-40)-46)/(n-1)));
+  $('hand').style.width=(46+step*(n-1))+'px';
+  $('hand').innerHTML=h.map((c,i)=>
+    '<div class="'+cls(c)+(selected.has(c)?' sel':'')+(fresh.has(c)?' fresh':'')+
+    '" data-c="'+c+'" tabindex="0" style="left:'+(i*step)+'px;z-index:'+i+'">'+cardInner(c)+'</div>').join('');
+  $('handct').textContent=n+' 张';
+  $('log').innerHTML=logs.map(t=>'<div>'+t+'</div>').join('');
+  fresh.clear();
+}
+
+function stage(html,stampText){
+  $('stage').innerHTML=html+(stampText?'<div class="stamp">'+stampText+'</div>':'');
+}
+function pileHTML(){
+  if(!pile.length) return '';
+  const s=Math.min(7,pile.length);
+  let h='<div class="pile">';
+  for(let i=0;i<s;i++){
+    const a=((i*37)%11-5), x=((i*53)%9-4), y=i*2;
+    h+='<div class="bk" style="transform:translate('+x+'px,'+y+'px) rotate('+a+'deg);z-index:'+i+'"></div>';
+  }
+  return h+'</div><div class="pilect">桌上扣着 '+pile.length+' 张</div>';
+}
+const claimHTML=(p,cnt,rank)=>
+  '<div class="who">'+nm(p)+' 报</div><div class="plaque">'+CN[cnt]+' 个 <em>'+RANKS[rank]+'</em></div>';
+
+/* ═══ 人类回合 ═══ */
+function canCall(){ return currentRank!==null && lastPlay && lastPlay.player!==0; }
+function humanTurn(){
+  return new Promise(res=>{
+    humanResolve=res;
+    if(currentRank===null){
+      stage('<div class="who">该你出牌</div><div class="plaque">你来定点数</div>'+
+            '<div class="note">开新一轮，必须出牌</div>');
+      $('hint').textContent='选 1–'+SET.max+' 张牌，然后定一个点数。';
+    }else{
+      stage(claimHTML(lastPlay.player,lastPlay.cards.length,currentRank)+pileHTML()+
+            '<div class="note">该你了 · 跟着报 <b>'+RANKS[currentRank]+'</b>、过、或者抓他</div>');
+      $('hint').textContent = canCall()
+        ? '现在只有你能抓 '+nm(lastPlay.player)+'。你要是过了，就轮到 '+nm((0+1)%4)+' 抓。'
+        : '报几张就出几张，是不是 '+RANKS[currentRank]+' 随你'+
+          (SET.wild?'，王当 '+RANKS[currentRank]+' 用不算骗':'')+'。';
+    }
+    updateControls();
+  });
+}
+function playControls(){
+  $('controls').innerHTML=
+    '<button class="act danger wide" id="callBtn">说瞎话！</button>'+
+    '<div class="row">'+
+      '<button class="act" id="clearBtn">取消</button>'+
+      '<button class="act" id="passBtn">过</button>'+
+      '<button class="act primary" id="playBtn">出牌</button>'+
+    '</div>';
+  $('clearBtn').onclick=()=>{selected.clear();render();updateControls();};
+  $('passBtn').onclick=()=>{if(!$('passBtn').disabled) commitAct('pass');};
+  $('callBtn').onclick=()=>{if(!$('callBtn').disabled) commitAct('call');};
+  $('playBtn').onclick=()=>{
+    if($('playBtn').disabled) return;
+    if(currentRank===null) openRankPicker(); else commitPlay(currentRank);
+  };
+  updateControls();
+}
+function updateControls(){
+  const n=selected.size, my=!!humanResolve;
+  const pb=$('playBtn'); if(!pb) return;
+  pb.disabled=!(my&&n>=1&&n<=SET.max);
+  pb.textContent=n?'出 '+n+' 张':'出牌';
+  $('clearBtn').disabled=!n;
+  $('passBtn').disabled=!(my&&currentRank!==null);
+  const cb=$('callBtn'), ok=my&&canCall();
+  cb.disabled=!ok;
+  cb.style.display=ok?'block':'none';
+  cb.textContent = ok? '说瞎话！抓 '+nm(lastPlay.player) : '说瞎话！';
+}
+$('hand').addEventListener('click',e=>{
+  const el=e.target.closest('.card'); if(!el||!humanResolve) return;
+  const c=+el.dataset.c;
+  if(selected.has(c)) selected.delete(c);
+  else if(selected.size<SET.max) selected.add(c);
+  render();updateControls();
+});
+function openRankPicker(){
+  const mine={},sel=[...selected];
+  sel.forEach(c=>{if(!isJoker(c))mine[rk(c)]=1;});
+  const wilds=SET.wild?sel.filter(isJoker).length:0;
+  $('rankHint').textContent = wilds
+    ? '金色的是你选中的牌里真有的。你带了 '+wilds+' 张王，报什么都算真话。'
+    : '金色的是你选中的牌里真有的点数。';
+  $('rankGrid').innerHTML=RANKS.map((r,i)=>
+    '<button data-r="'+i+'" class="'+(mine[i]?'has':'')+'">'+r+'</button>').join('');
+  $('rankSheet').classList.add('on');
+}
+$('rankGrid').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  $('rankSheet').classList.remove('on');
+  commitPlay(+b.dataset.r);
+});
+function commitAct(a){
+  selected.clear();
+  const r=humanResolve; humanResolve=null; render(); updateControls(); r(a);
+}
+function commitPlay(rank){
+  const cards=[...selected]; selected.clear();
+  hands[0]=hands[0].filter(c=>!cards.includes(c));
+  finishPlay(0,rank,cards);
+  const r=humanResolve; humanResolve=null; updateControls(); r('play');
+}
+
+
+/* ═══ DeepSeek 接管某个座位 ═══ */
+const MODEL='deepseek-v4-flash';
+const ENDPOINT='https://api.deepseek.com/chat/completions';
+const DEFAULT_KEY='';            // key 不写在文件里，去设置里填
+let KEY=DEFAULT_KEY, aiWarned=false;
+try{ const k=localStorage.getItem('ds_key'); if(k!==null) KEY=k; }catch(e){}
+
+const PERSONA={
+ 1:'你是老李，六十来岁，老实人，牌好就实话实说，很少诈唬；一被人抓到就上头，下一轮容易乱来。说话短促带点东北味。',
+ 2:'你是王姐，五十来岁，牌桌上的老手，特别爱诈唬，喜欢多报几张吓唬人，嘴上不饶人。说话带点调侃。',
+ 3:'你是小赵，三十来岁，话少，算得很准，专挑手牌快出完的人下手。说话简短、冷。'
+};
+const cardName=c=>isJoker(c)?(c===53?'大王':'小王'):RANKS[rk(c)]+SUITS[st(c)];
+
+function buildPrompt(p){
+  const hand=hands[p], cap=4+(SET.wild?2:0);
+  const sn=i=>i===p?'你自己':(i===0?'真人玩家':NAMES[i]);
+  const list=hand.map((c,i)=>(i+1)+'.'+cardName(c)).join(' ');
+  const canCallNow = currentRank!==null && lastPlay && lastPlay.player!==p;
+  const L=[];
+  L.push('【你的手牌】共 '+hand.length+' 张：'+list);
+  L.push('【各家剩牌】'+[0,1,2,3].map(i=>sn(i)+' '+hands[i].length+' 张').join('，'));
+  L.push('【桌上】扣着 '+pile.length+' 张');
+  if(currentRank===null){
+    L.push('【局面】新一轮，由你开局。你必须出牌，并且自己定一个点数。');
+  }else{
+    const R=RANKS[currentRank], lastN=lastPlay.cards.length;
+    const mine=hand.filter(c=>fits(c,currentRank)).length;
+    const before=roundClaimed-lastN;
+    const maxTrue=Math.max(0,cap-before-mine);
+    L.push('【局面】本轮点数是 '+R+'。上一手是 '+sn(lastPlay.player)+' 报的 '+lastN+' 个 '+R+'。');
+    L.push('【下面的数已经替你算好，别自己数】'+
+      '全场 '+R+' 总共最多 '+cap+' 张（4 张 '+R+(SET.wild?' 加 2 张王，王算任意点数':'')+'）。'+
+      '这一轮在最后那一手之前，各家已经声称打出 '+before+' 张。'+
+      '你自己手上能当 '+R+' 用的有 '+mine+' 张。'+
+      '所以最后那一手 '+lastN+' 张里，最多只可能有 '+maxTrue+' 张是真的。'+
+      (lastN>maxTrue? ' 数目对不上，那一手里一定有假牌。' : ''));
+    L.push(canCallNow? '【你的权利】现在只有你能抓 '+sn(lastPlay.player)+'。你要是过了，抓的机会就传给下一家。'
+                     : '【你的权利】上一手是你自己打的，不能抓自己。');
+  }
+  const hist=logs.slice().reverse().map(t=>t.replace(/^你 /,'真人玩家 ').replace(/ 你 /g,' 真人玩家 '));
+  L.push('【最近战况】'+(hist.length?hist.join('；'):'刚开局'));
+  L.push('');
+  L.push('可选动作：');
+  L.push('play — 出牌。cards 填手牌编号（1~'+hand.length+'），1 到 '+SET.max+' 张。'+
+         (currentRank===null?'rank 填你要报的点数。':'rank 必须是 '+RANKS[currentRank]+'。')+
+         '打出去的牌可以不是那个点数，那就是在说瞎话。');
+  if(currentRank!==null) L.push('pass — 过，这一手不出牌。');
+  if(canCallNow) L.push('call — 喊说瞎话，抓 '+sn(lastPlay.player)+'。抓错了桌上 '+pile.length+' 张全归你。');
+  L.push('');
+  L.push('只返回 JSON，不要别的：{"action":"play|pass|call","rank":"K","cards":[1,2],"talk":"一句话，10 字以内"}');
+  return L.join('\n');
+}
+
+async function askDeepSeek(p){
+  const ctl=new AbortController();
+  const timer=setTimeout(()=>ctl.abort(),6000);
+  try{
+    const r=await fetch(ENDPOINT,{method:'POST',signal:ctl.signal,
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+KEY},
+      body:JSON.stringify({
+        model:MODEL,
+        thinking:{type:'disabled'},
+        response_format:{type:'json_object'},
+        max_tokens:200, temperature:1.1,
+        messages:[
+          {role:'system',content:PERSONA[p]+' 你在玩扑克牌游戏「说瞎话」，目标是先把手牌出完。'+
+            '出牌时点数可以骗人，张数不能骗。有人喊说瞎话就翻开验：说谎的收走整桌牌，冤枉人的自己收走整桌牌。'+
+            '只输出 JSON，不要解释。talk 用中文口语，像牌桌上真人说的话。'},
+          {role:'user',content:buildPrompt(p)}
+        ]})});
+    clearTimeout(timer);
+    if(!r.ok) throw new Error('HTTP '+r.status+(r.status===401?'（key 不对）':r.status===402?'（余额不足）':''));
+    const d=await r.json();
+    return JSON.parse(d.choices[0].message.content);
+  }finally{ clearTimeout(timer); }
+}
+
+// 严格校验，不合法就退回本地 AI
+function applyLLM(p,d){
+  if(!d||typeof d!=='object') return null;
+  const hand=hands[p];
+  const canCallNow = currentRank!==null && lastPlay && lastPlay.player!==p;
+  const talk=typeof d.talk==='string'? d.talk.slice(0,24) : '';
+  const speak=()=>{ if(talk) say(NAMES[p]+'：「'+talk+'」'); };
+
+  if(d.action==='call'){ if(!canCallNow) return null; speak(); return 'call'; }
+  if(d.action==='pass'){ if(currentRank===null) return null; speak(); return 'pass'; }
+  if(d.action!=='play') return null;
+
+  let rank;
+  if(currentRank!==null) rank=currentRank;
+  else{
+    rank=RANKS.indexOf(String(d.rank).toUpperCase().trim());
+    if(rank<0) return null;
+  }
+  if(!Array.isArray(d.cards)) return null;
+  const idx=[...new Set(d.cards.map(n=>parseInt(n,10)-1))];
+  if(idx.length<1||idx.length>SET.max) return null;
+  if(idx.some(i=>!(i>=0&&i<hand.length))) return null;
+  const cards=idx.map(i=>hand[i]);
+  hands[p]=hand.filter(c=>!cards.includes(c));
+  speak();
+  finishPlay(p,rank,cards);
+  return 'play';
+}
+
+async function takeTurn(p){
+  if(SET['ai'+p]&&KEY){
+    try{
+      const d=await askDeepSeek(p);
+      const r=applyLLM(p,d);
+      if(r) return r;
+    }catch(e){
+      if(!aiWarned){ aiWarned=true;
+        const m=String(e.message||e);
+        say('DeepSeek 没接上（'+(m.includes('abort')?'超时':m)+'），先用本地 AI');
+      }
+    }
+  }
+  return aiAct(p);
+}
+
+/* ═══ 本地 AI ═══ */
+function aiAct(p){
+  const hand=hands[p],by={};
+  if(currentRank!==null&&lastPlay&&lastPlay.player!==p&&aiChallenge(p)) return 'call';
+  hand.forEach(c=>{if(!isJoker(c))(by[rk(c)]=by[rk(c)]||[]).push(c);});
+  const jokers=SET.wild?hand.filter(isJoker):[];
+
+  if(currentRank!==null){                       // 要不要过
+    const real=hand.filter(c=>fits(c,currentRank)).length;
+    let pp = real? .15 : .60;
+    if(pile.length>10) pp+=.18;
+    if(hand.length<=4) pp*=.3;
+    if(Math.random()<pp) return 'pass';
+  }
+  let rank=currentRank;
+  if(rank===null){
+    let best=-1,bc=0;
+    for(const r in by) if(by[r].length>bc){bc=by[r].length;best=+r;}
+    rank = best<0 ? (Math.random()*13|0) : best;
+  }
+  let truth=(by[rank]||[]).slice();
+  if(jokers.length&&(hand.length<=5||truth.length)&&Math.random()<.5) truth=truth.concat(jokers);
+
+  let cards;
+  if(hand.length<=SET.max&&Math.random()<.55){
+    cards=hand.slice(0,Math.min(SET.max,hand.length));
+  }else if(truth.length){
+    const n = Math.random()<.85 ? Math.min(truth.length,SET.max)
+                                : Math.min(truth.length,SET.max,1+(Math.random()*3|0));
+    cards=truth.slice(0,n);
+    if(Math.random()<.22&&cards.length<SET.max){
+      const junk=hand.filter(c=>!cards.includes(c)&&!(SET.wild&&isJoker(c)))
+                     .sort((a,b)=>by[rk(a)].length-by[rk(b)].length)[0];
+      if(junk!==undefined) cards.push(junk);
+    }
+  }else{
+    const pool=hand.filter(c=>!(SET.wild&&isJoker(c)));
+    const sorted=pool.sort((a,b)=>by[rk(a)].length-by[rk(b)].length);
+    cards=sorted.slice(0,Math.min(sorted.length,Math.random()<.7?1:2));
+    if(!cards.length) cards=hand.slice(0,1);
+  }
+  hands[p]=hand.filter(c=>!cards.includes(c));
+  finishPlay(p,rank,cards);
+  return 'play';
+}
+function aiChallenge(q){
+  const cap = 4 + (SET.wild?2:0);                       // 一个点数最多能有几张
+  const mine=hands[q].filter(c=>fits(c,lastPlay.rank)).length;
+  if(mine+roundClaimed>cap) return true;                // 数目不可能，稳抓
+  let prob=.05 + mine*.05;                             // 自己攥着几张，越多越可疑
+  const n=lastPlay.cards.length;
+  if(n===3) prob+=.12;
+  if(n>=4) prob+=.22;
+  if(hands[lastPlay.player].length===0) prob=.70;
+  else if(hands[lastPlay.player].length<=2) prob+=.22;
+  if(pile.length>16) prob*=.5;
+  return Math.random()<prob;
+}
+
+/* ═══ 出牌 ═══ */
+function finishPlay(p,rank,cards){
+  if(currentRank===null){currentRank=rank;roundClaimed=0;}
+  roundClaimed+=cards.length;
+  pile.push(...cards);
+  lastPlay={player:p,rank:rank,cards:cards};
+  if(hands[p].length===0&&!outQueue.includes(p)) outQueue.push(p);
+  say(nm(p)+' 报 '+cards.length+' 个 '+RANKS[rank]+(hands[p].length===0?' —— 手牌出完了！':''));
+  stage(claimHTML(p,cards.length,rank)+pileHTML());
+  render();
+}
+
+/* ═══ 出牌 ═══ */
+function finishPlay(p,rank,cards){
+  if(currentRank===null){currentRank=rank;roundClaimed=0;}
+  roundClaimed+=cards.length;
+  pile.push(...cards);
+  lastPlay={player:p,rank:rank,cards:cards};
+  if(hands[p].length===0&&!outQueue.includes(p)) outQueue.push(p);
+  say(nm(p)+' 报 '+cards.length+' 个 '+RANKS[rank]+(hands[p].length===0?' —— 手牌出完了！':''));
+  stage(claimHTML(p,cards.length,rank)+pileHTML());
+  render();
+}
+
+/* ═══ 翻牌 ═══ */
+async function resolveChallenge(q){
+  const p=lastPlay.player, cards=lastPlay.cards;
+  const truth=cards.every(c=>fits(c,lastPlay.rank));
+  say(nm(q)+' 喊了说瞎话');
+  stage('<div class="who">'+nm(q)+' 喊：说瞎话！</div>'+
+        '<div class="reveal">'+cards.map(faceUp).join('')+'</div>');
+  render(); await sleep(1000);
+  stage('<div class="who">'+nm(q)+' 喊：说瞎话！</div>'+
+        '<div class="reveal">'+cards.map(faceUp).join('')+'</div>', truth?'真话':'瞎话');
+  await sleep(1300);
+
+  const loser = truth? q : p;      // 输的收牌
+  const next  = truth? p : q;      // 赢的接着出
+  const n=pile.length;
+  pile.forEach(c=>fresh.add(c));
+  hands[loser].push(...pile); hands[loser].sort((a,b)=>sortKey(a)-sortKey(b));
+  outQueue=outQueue.filter(i=>hands[i].length===0);
+  pile=[];currentRank=null;roundClaimed=0;passStreak=0;turn=next;
+  say(truth ? nm(p)+' 说的是真话 — '+nm(loser)+' 收走 '+n+' 张'
+            : nm(p)+' 真在骗人 — 收走 '+n+' 张');
+  stage('<div class="who">'+nm(loser)+' 收走了 '+n+' 张</div>'+
+        '<div class="plaque">'+nm(next)+' 接着出</div>');
+  render(); await sleep(1000);
+}
+async function burnRound(){
+  const p=lastPlay.player, n=pile.length;
+  if(SET.burn){
+    pile=[];
+    say('三家都过 — 桌上 '+n+' 张作废，'+nm(p)+' 开新一轮');
+    stage('<div class="who">三家都过</div><div class="plaque">'+n+' 张作废</div>'+
+          '<div class="note">由 '+nm(p)+' 开新一轮</div>');
+  }else{
+    pile.forEach(c=>fresh.add(c));
+    hands[p].push(...pile); hands[p].sort((a,b)=>sortKey(a)-sortKey(b));
+    outQueue=outQueue.filter(i=>hands[i].length===0);
+    pile=[];
+    say('三家都过 — '+nm(p)+' 收走 '+n+' 张，开新一轮');
+    stage('<div class="who">三家都过</div><div class="plaque">'+nm(p)+' 收走 '+n+' 张</div>');
+  }
+  currentRank=null;roundClaimed=0;passStreak=0;turn=p;
+  render(); await sleep(1200);
+}
+function finish(p){
+  over=true;
+  $('winner').textContent = p===0?'你赢了':NAMES[p]+' 赢了';
+  $('overText').textContent = p===0?'最后一手没人敢抓。':NAMES[p]+' 的牌先走完，没人抓住。';
+  $('overSheet').classList.add('on');
+}
+
+/* ═══ 主循环 ═══ */
+// 出完牌的人，要等他那一手不再能被抓（有人盖过去 / 一轮作废 / 翻牌没抓着）才算赢
+function checkOut(){
+  const w=outQueue.find(i=>hands[i].length===0&&
+        !(lastPlay&&lastPlay.player===i&&currentRank!==null));
+  if(w===undefined) return false;
+  finish(w); return true;
+}
+async function loop(){
+  while(!over){
+    render();
+    let acted;
+    if(turn===0) acted=await humanTurn();
+    else{
+      stage((currentRank===null
+        ? '<div class="who">轮到</div><div class="plaque">'+NAMES[turn]+'</div><div class="note">他来定点数</div>'
+        : claimHTML(lastPlay.player,lastPlay.cards.length,currentRank)+pileHTML()+
+          '<div class="note">轮到 <b>'+NAMES[turn]+'</b> · 只有他能抓</div>'));
+      const viaAI=SET['ai'+turn]&&KEY;
+      $('hint').innerHTML = viaAI? '<span class="thinking">'+NAMES[turn]+' 在想…</span>' : '';
+      await sleep(viaAI?260:840);
+      acted=await takeTurn(turn);
+      $('hint').textContent='';
+    }
+
+    if(acted==='call'){
+      await resolveChallenge(turn);
+      if(checkOut()) break;
+      continue;
+    }
+    if(acted==='pass'){
+      passStreak++;
+      say(nm(turn)+' 过');
+      stage(claimHTML(lastPlay.player,lastPlay.cards.length,currentRank)+pileHTML()+
+            '<div class="note"><b>'+nm(turn)+'</b> 过了 · 轮到 '+nm((turn+1)%4)+' 抓</div>');
+      render(); await sleep(720);
+      if(passStreak>=3){ await burnRound(); if(checkOut()) break; }
+      else turn=(turn+1)%4;
+      continue;
+    }
+    passStreak=0;
+    turn=(turn+1)%4;
+    await sleep(560);
+    if(checkOut()) break;
+  }
+}
+
+/* ═══ 设置与规则文案 ═══ */
+function paintRules(){
+  const r=[
+    SET.wild? '一副牌带大小王，每人 13 张，剩 2 张扣在一边不用。'
+            : '一副牌 52 张，每人 13 张。',
+    '新一轮由出牌的人定点数，之后所有人都得报<b>同一个点数</b>。',
+    '轮到你可以出 1–'+SET.max+' 张扣着的牌，<b>也可以过</b>——手里有真牌照样能过。开新一轮的人必须出。',
+    '张数不能骗，点数可以骗。'+(SET.wild?'<b>大小王算任意点数</b>，翻开也不算骗。':''),
+    '三家连着都过，'+(SET.burn?'桌上这堆牌作废':'最后出牌的人收走这堆')+'，然后由最后出牌那人开新一轮。',
+    '<b>只有下家能抓</b>——轮到你的时候，你可以出牌、过、或者喊“说瞎话”抓上家。你要是过了，抓的机会就传给下一个人。',
+    '抓对了：出牌的人收走整桌，<b>抓的人接着出</b>。抓错了：抓的人收走整桌，<b>被抓的人接着出</b>。',
+    '先把手牌走完、且最后一手没被抓，就赢了。'
+  ];
+  $('ruleList').innerHTML=r.map(t=>'<li>'+t+'</li>').join('');
+}
+function paintSettings(){
+  document.querySelectorAll('.seg').forEach(seg=>{
+    const k=seg.dataset.k;
+    seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',+b.dataset.v===SET[k]));
+  });
+}
+document.querySelectorAll('.seg').forEach(seg=>{
+  seg.addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    SET[seg.dataset.k]=+b.dataset.v; paintSettings(); paintRules();
+  });
+});
+$('rulesBtn').onclick=()=>{paintRules();$('rulesSheet').classList.add('on');};
+$('rulesClose').onclick=()=>$('rulesSheet').classList.remove('on');
+$('setBtn').onclick=()=>{paintSettings();$('keyInput').value=KEY;$('setSheet').classList.add('on');};
+$('keyInput').addEventListener('input',e=>{
+  KEY=e.target.value.trim(); aiWarned=false;
+  try{ localStorage.setItem('ds_key',KEY); }catch(err){}
+  $('keyTip').textContent = KEY? '已填。只存在这台手机上，不写进文件。'
+                               : '不填就全部用本地 AI。只存在这台手机上，不写进文件。';
+});
+$('setClose').onclick=()=>{$('setSheet').classList.remove('on');newGame();};
+$('againBtn').onclick=()=>newGame();
+
+function newGame(){
+  $('overSheet').classList.remove('on');
+  deal(); playControls(); paintRules(); render();
+  say('发牌完毕，你先出');
+  loop();
+}
+newGame();
+</script>
+</body>
+</html>

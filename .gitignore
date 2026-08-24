@@ -1,0 +1,11 @@
+# 编辑器 / 系统
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# 临时
+_to_delete/
+*.tmp
+*.bak
