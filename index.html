@@ -24,7 +24,7 @@
   --ink:#1C1712;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%}
+html,body{margin:0;height:100%;height:100dvh}   /* dvh：跟着 Safari 地址栏伸缩，别把按钮压到栏底下 */
 body{
   background:
     radial-gradient(ellipse 70% 45% at 50% 30%, var(--felt-hi) 0%, var(--felt) 42%, var(--felt-lo) 100%);
@@ -37,7 +37,7 @@ body::after{ /* 绒面颗粒 */
   background-image:radial-gradient(rgba(255,255,255,.045) .5px, transparent .5px);
   background-size:3px 3px;
 }
-#app{width:100%;max-width:480px;min-height:100%;display:flex;flex-direction:column;
+#app{width:100%;max-width:480px;min-height:100%;min-height:100dvh;display:flex;flex-direction:column;
   padding:env(safe-area-inset-top) 14px calc(10px + env(safe-area-inset-bottom));position:relative;z-index:1}
 
 /* ─── 顶栏 ─── */
@@ -74,8 +74,8 @@ h1{
 .bub{position:absolute;top:calc(100% + 6px);left:50%;z-index:5;
   max-width:150px;width:max-content;padding:5px 9px;border-radius:9px;
   background:var(--paper);color:var(--ink);font-size:11.5px;line-height:1.45;
-  box-shadow:0 3px 11px rgba(0,0,0,.45);transform:translateX(-50%);
-  animation:bubin .2s ease-out backwards}
+  box-shadow:0 3px 11px rgba(0,0,0,.45);transform:translateX(-50%)}
+.bub.pop{animation:bubin .2s ease-out backwards}
 .bub::after{content:"";position:absolute;bottom:100%;left:50%;margin-left:-5px;
   border:5px solid transparent;border-bottom-color:var(--paper)}
 @keyframes bubin{from{transform:translateX(-50%) translateY(-5px) scale(.92);opacity:0}}
@@ -181,7 +181,8 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
   align-items:center;justify-content:center;padding:18px;z-index:10}
 .sheet.on{display:flex}
 .panel{background:linear-gradient(#17362B,#102822);border:1px solid rgba(199,154,78,.35);
-  border-radius:12px;padding:22px 20px;max-width:410px;width:100%;max-height:84vh;overflow:auto}
+  border-radius:12px;padding:22px 20px;max-width:410px;width:100%;
+  max-height:84vh;max-height:84dvh;overflow:auto}
 .panel h2{font-family:"Songti SC","STSong",serif;font-size:20px;margin:0 0 14px;letter-spacing:.12em}
 .panel p{font-size:13px;line-height:1.8;color:var(--dim);margin:0 0 10px}
 .panel ol{padding-left:19px;margin:0 0 12px}
@@ -206,7 +207,7 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
 #winner{font-family:"Songti SC","STSong",serif;font-size:30px;letter-spacing:.16em;
   text-align:center;margin:8px 0 14px;text-indent:.16em}
 /* 矮屏幕（iPhone SE、小安卓这类）整体收紧，保证手牌和按钮always在屏幕里 */
-@media (max-height:730px){
+@media (max-height:800px){
   header{padding:10px 0 8px}
   h1{font-size:25px}
   #seats{margin:9px 0 4px;padding-bottom:42px}
@@ -276,6 +277,9 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
     <div class="seg" data-k="ai2" style="margin-top:7px"><button data-v="0">王姐 本地</button><button data-v="1">王姐 DeepSeek</button></div>
     <div class="seg" data-k="ai3" style="margin-top:7px"><button data-v="0">小赵 本地</button><button data-v="1">小赵 DeepSeek</button></div>
   </div>
+  <div class="opt"><div class="q">他仨嘴里干不干净</div>
+    <div class="seg" data-k="salty">
+      <button data-v="1">带脏字，过瘾</button><button data-v="0">文明点</button></div></div>
   <div class="opt"><div class="q">音效</div>
     <div class="seg" data-k="sound">
       <button data-v="1">开</button><button data-v="0">关</button></div></div>
@@ -317,8 +321,8 @@ const sortKey=c=>isJoker(c)?100+c:c;
 const nm=i=>i===0?'你':NAMES[i];
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.3';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
-const SET={wild:1,max:4,burn:1,ai1:0,ai2:0,ai3:0,sound:1};
+const VERSION='1.5';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const SET={wild:1,max:4,burn:1,ai1:0,ai2:0,ai3:0,sound:1,salty:1};
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
      if(_s&&typeof _s==='object') for(const k in SET) if(typeof _s[k]==='number') SET[k]=_s[k];
 }catch(e){}
@@ -423,7 +427,7 @@ function render(){
     let fan='<div class="fan">';
     for(let k=0;k<shown;k++)
       fan+='<i style="left:calc(50% - '+(shown*4)+'px + '+(k*8)+'px);transform:rotate('+((k-(shown-1)/2)*4)+'deg)"></i>';
-    const bub=(bubble&&bubble.p===i)? '<div class="bub">'+esc(bubble.text)+'</div>' : '';
+    const bub=(bubble&&bubble.p===i)? '<div class="bub'+(bubble.pop?' pop':'')+'">'+esc(bubble.text)+'</div>' : '';
     return '<div class="seat'+(turn===i?' active':'')+(n<=3?' low':'')+'">'+
       '<div class="nm">'+NAMES[i]+'</div>'+fan+'</div>'+
       '<div class="ct">'+n+' 张</div>'+bub+'</div>';
@@ -438,6 +442,7 @@ function render(){
   $('handct').textContent=n+' 张';
   $('log').innerHTML=logs.map(t=>'<div>'+t+'</div>').join('');
   fresh.clear();
+  if(bubble) bubble.pop=false;      // 弹出动画只播一次
 }
 
 function stage(html,stampText){
@@ -595,7 +600,13 @@ function buildPrompt(p){
   L.push('play — 出牌。cards 填手牌编号（1~'+hand.length+'），1 到 '+SET.max+' 张。'+
          (currentRank===null?'rank 填你要报的点数。':'rank 必须是 '+RANKS[currentRank]+'。')+
          '打出去的牌可以不是那个点数，那就是在说瞎话。');
-  if(currentRank!==null) L.push('pass — 过，这一手不出牌。');
+  if(currentRank!==null){
+    const myFit=hand.filter(c=>fits(c,currentRank)).length;
+    L.push('pass — 过，这一手不出牌。注意：过是下策。你手里能当 '+RANKS[currentRank]+' 用的有 '+myFit+
+      ' 张'+(myFit?'，有牌就出，实在不行就说瞎话混过去，老过牌等于把主动权白送人':
+      '，没真牌也可以拿别的牌说瞎话顶上，敢吹才像玩这个游戏的')+
+      '。只有牌堆大到不敢冒险、或者你想把抓人的机会让给下家时，过才划算。');
+  }
   if(canCallNow) L.push('call — 喊说瞎话，抓 '+sn(lastPlay.player)+'。抓错了桌上 '+pile.length+' 张全归你。');
   L.push('');
   L.push('只返回 JSON，不要别的：{"action":"play|pass|call","rank":"K","cards":[1,2],"talk":"一句话，10 字以内"}');
@@ -616,9 +627,13 @@ async function askDeepSeek(p){
         messages:[
           {role:'system',content:PERSONA[p]+
             ' 你们仨都是天津卫的，talk 一律说天津话，把味儿说足：嘛、介（这）、甭、麻利儿、瞅、'+
-            '得嘞、崴泥、打镲、没溜儿、哏儿、可不咋地 这类词随手用。骂街也用天津的骂法，但别带脏字。'+
+            '得嘞、崴泥、打镲、没溜儿、哏儿、可不咋地 这类词随手用。'+
+            (SET.salty
+              ? '骂街用天津的骂法，可以带脏字（他妈的、王八羔子、去你大爷的、放屁 这个级别），牌桌斗嘴的劲儿，别升级到人身侮辱。'
+              : '骂街也用天津的骂法，但别带脏字。')+
             ' 你在玩扑克牌游戏「说瞎话」，目标是先把手牌出完。'+
             '出牌时点数可以骗人，张数不能骗。有人喊说瞎话就翻开验：说谎的收走整桌牌，冤枉人的自己收走整桌牌。'+
+            '你的牌风要敢出敢吹：手里有真牌就跟，没真牌也常用假牌顶上去，把过牌当最后的退路，一场牌里过个一两次就够了。'+
             '只输出 JSON，不要解释。talk 用中文口语，像牌桌上真人说的话。'},
           {role:'user',content:buildPrompt(p)}
         ]})});
@@ -676,7 +691,11 @@ const PROFILE={
              '我介暴脾气上来了','甭拦着我','老没溜儿！'],
      threat:['他快没牌了','拦着点他'],
      last  :['我就剩俩了','快了快了'],
-     over  :['出完喽！']} },
+     over  :['出完喽！'],
+     salty :{tilt:['他妈的邪了门了','我去你大爷的','气死我了真他妈的','王八羔子的牌'],
+             caught:['妈的，栽了','他妈的让你逮着了'],
+             call:['放屁，我不信','你大爷的，翻开'],
+             lose:['妈的，白瞎']}} },
  2:{ /* 王姐 —— 天津大姐，爱诈唬爱多报，嘴最不饶人，出手快 */
    passReal:.10, passBluff:.42, bigPlay:.60, truthMax:.70, junkMix:.32,
    callBase:.07, callPerCard:.05, crowd:.09, sniper:0, speed:[450,1100], tiltable:2, chatty:.55,
@@ -693,7 +712,11 @@ const PROFILE={
              '姐今儿跟你耗上了','你介人损不损啊','气死我得了'],
      threat:['他要跑了！','甭让他出完'],
      last  :['我可就剩两张了','瞅好了啊'],
-     over  :['收工，回家']} },
+     over  :['收工，回家'],
+     salty :{tilt:['你个王八羔子！','他妈的你还来劲了','去你大爷的！','损出你介样儿来'],
+             caught:['他妈的算你狠','行，妈的，姐认了'],
+             call:['放你的屁，翻开！','吹他妈呢你'],
+             win:['我就说你他妈在吹','逮着你了吧孙子']}} },
  3:{ /* 小赵 —— 天津小伙儿，话少算得准，专挑快出完的人下手；上头也就一手 */
    passReal:.18, passBluff:.50, bigPlay:.55, truthMax:.85, junkMix:.18,
    callBase:.02, callPerCard:.07, crowd:.07, sniper:1, speed:[1100,2200], tiltable:1, chatty:.28,
@@ -709,7 +732,10 @@ const PROFILE={
      tilt  :['崴泥','嘛玩意儿','行，你狠'],
      threat:['他还剩两张','该拦了'],
      last  :['俩'],
-     over  :['完了']} }
+     over  :['完了'],
+     salty :{tilt:['妈的','操了','真他妈邪门'],
+             caught:['妈的，失误'],
+             call:['放屁，数不对']}} }
 };
 let tilt={}, bubble=null;
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -816,11 +842,16 @@ function aiApply(p,plan){
 function chat(p,kind,rate){
   const P=PROFILE[p];
   if(Math.random() > (rate===undefined?P.chatty:rate)) return;
-  const line=pick(P.talk[kind]); if(!line) return;
+  let pool=P.talk[kind]||[];
+  const S=P.talk.salty;
+  if(SET.salty&&S&&S[kind]&&S[kind].length){
+    pool = Math.random()<.6 ? S[kind] : pool;   // 开了荤口，六成说荤的
+  }
+  const line=pick(pool); if(!line) return;
   speak2(p,line);
 }
 function speak2(p,line){
-  bubble={p:p,text:String(line).slice(0,16)};   // 只弹气泡，不占日志；16 字封顶，最多两行
+  bubble={p:p,text:String(line).slice(0,16),pop:true};  // 只弹气泡，不占日志；16 字封顶，最多两行
   render();
 }
 
