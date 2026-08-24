@@ -66,6 +66,9 @@ h1{
   transition:border-color .3s,background .3s,transform .3s}
 .seat.active{border-color:var(--brass);background:rgba(199,154,78,.12);transform:translateY(-2px)}
 .seat .nm{font-size:13px;letter-spacing:.06em}
+.ava{width:34px;height:34px;border-radius:50%;overflow:hidden;margin:0 auto 3px;
+  border:1px solid var(--brass-dim);box-shadow:0 2px 6px rgba(0,0,0,.4), inset 0 0 0 1px rgba(199,154,78,.2)}
+.ava svg{display:block;width:100%;height:100%}
 .fan{height:16px;position:relative;margin:6px 0 4px}
 .fan i{position:absolute;top:0;width:9px;height:14px;border-radius:2px;
   background:linear-gradient(150deg,#9C3129,#6E211B);border:.5px solid rgba(0,0,0,.45)}
@@ -123,12 +126,21 @@ h1{
   background:linear-gradient(#8A6B34,#6E5326);color:var(--ivory);
   box-shadow:0 4px 16px rgba(0,0,0,.4)}
 #startBtn:active{transform:translateY(1px)}
+.netrow{display:flex;gap:10px;margin-top:14px}
+.netbtn{font-family:inherit;font-size:13px;letter-spacing:.1em;cursor:pointer;
+  padding:10px 18px;border-radius:7px;border:1px solid rgba(199,154,78,.45);
+  background:rgba(0,0,0,.25);color:var(--dim)}
+.netbtn:hover{color:var(--brass);border-color:var(--brass)}
+.roomcode{font-family:Georgia,serif;font-size:38px;letter-spacing:.35em;text-indent:.35em;
+  text-align:center;color:var(--brass);margin:6px 0 14px;text-shadow:0 2px 8px rgba(0,0,0,.4)}
+#hostName,#joinCode,#joinName{width:100%;padding:11px;border-radius:8px;border:1px solid rgba(199,154,78,.4);
+  background:rgba(0,0,0,.25);color:var(--ivory);font-family:inherit;font-size:14px}
 #startRules{background:none;border:none;color:var(--dim);font-family:inherit;font-size:13px;
   margin-top:20px;cursor:pointer;border-bottom:1px solid transparent;padding:4px 2px}
 #startRules:hover{color:var(--brass);border-color:var(--brass-dim)}
 .sver{position:absolute;bottom:calc(16px + env(safe-area-inset-bottom));font-size:11px;
   color:var(--brass-dim);letter-spacing:.15em}
-@media (max-height:620px){.stitle{font-size:40px}.ssub{margin-bottom:28px}.sdeco{margin-bottom:16px}}
+@media (max-height:700px){.stitle{font-size:40px}.ssub{margin-bottom:28px}.sdeco{margin-bottom:16px}}
 
 /* ─── 发牌动画：从桌心飞到各家 ─── */
 #dealfx{position:fixed;inset:0;pointer-events:none;z-index:8}
@@ -253,22 +265,38 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
   header{padding:10px 0 8px}
   h1{font-size:25px}
   #seats{margin:9px 0 4px;padding-bottom:42px}
-  .seat{padding:7px 4px 6px}
-  #stage{min-height:158px;padding:14px 12px;margin:4px 0 2px}
+  .seat{padding:6px 4px 5px}
+  .ava{width:27px;height:27px;margin-bottom:2px}
+  #stage{min-height:150px;padding:12px 12px;margin:4px 0 2px;gap:8px}
+  .bk{width:40px;height:56px}
+  .pile{height:56px;width:108px}
+  .pilect{font-size:11px}
+  .note{font-size:11.5px}
   .plaque{font-size:22px;padding:7px 16px}
-  #log{margin:7px 2px 2px;min-height:46px;font-size:12px;line-height:1.65}
+  #log{margin:6px 2px 2px;min-height:40px;font-size:12px;line-height:1.6}
   #hint{font-size:11px;max-height:2.9em;margin-top:6px}
   .reveal .card{width:40px;height:56px}  /* 翻牌那一下别把牌桌撑出屏 */
   .label{margin-bottom:6px}
 }
-@media (max-height:620px){
+@media (max-height:700px){
   h1{font-size:22px}
-  #seats{padding-bottom:40px}
-  .bub{font-size:11px;line-height:1.35;padding:4px 8px;max-width:140px}
-  #stage{min-height:114px;padding:10px 10px}
-  .plaque{font-size:19px}
-  #log{min-height:22px}
+  header{padding:8px 0 6px}
+  #seats{padding-bottom:34px;margin:7px 0 3px}
+  .bub{font-size:11px;line-height:1.35;padding:3px 8px;max-width:130px}
+  #stage{min-height:110px;padding:9px 10px;gap:6px}
+  .plaque{font-size:18px;padding:6px 14px}
+  .pile{height:48px;width:100px}
+  .bk{width:36px;height:50px}
+  #log{min-height:22px;margin:5px 2px 2px}
+  .ava{width:23px;height:23px}
   .fan{height:13px;margin:4px 0 3px}
+  #handscroll{padding:8px 0 3px}
+  #hand{height:66px}
+  #hand .card{top:10px}
+  #controls{margin-top:7px}
+  button.act{padding:11px 6px;font-size:14px}
+  button.act.wide{padding:12px 6px;margin-bottom:6px}
+  #hint{margin-top:5px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -304,6 +332,10 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
   <div class="srule"></div>
   <div class="ssub">一副牌 · 四个人 · 全凭一张嘴</div>
   <button id="startBtn">开 始 打 牌</button>
+  <div class="netrow">
+    <button class="netbtn" id="hostBtn">联机 · 开房</button>
+    <button class="netbtn" id="joinBtn">联机 · 加入</button>
+  </div>
   <button id="startRules">先看规则</button>
   <div class="sver" id="sver"></div>
 </div>
@@ -351,6 +383,34 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
   <div class="tip" style="text-align:center;margin-top:12px" id="verFull"></div>
 </div></div>
 
+<div class="sheet" id="netSheet"><div class="panel">
+  <div id="netHost" style="display:none">
+    <h2>开房</h2>
+    <p>把房号念给他们，人齐了就开打。没坐满的位置由 AI 补。</p>
+    <div class="roomcode" id="roomCode">····</div>
+    <div class="opt"><div class="q">你的名字</div>
+      <input id="hostName" maxlength="6" placeholder="房主"></div>
+    <div class="opt"><div class="q">已入座</div><div class="tip" id="lobbyList">就你一个</div></div>
+    <div class="tip" id="netStatusH"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="act" id="hostCancel" style="flex:1">散伙</button>
+      <button class="act primary" id="hostGo" style="flex:1">开打</button>
+    </div>
+  </div>
+  <div id="netJoin" style="display:none">
+    <h2>加入牌局</h2>
+    <div class="opt"><div class="q">房号（四位）</div>
+      <input id="joinCode" maxlength="4" placeholder="比如 7A3F" style="text-transform:uppercase"></div>
+    <div class="opt"><div class="q">你的名字</div>
+      <input id="joinName" maxlength="6" placeholder="怎么称呼"></div>
+    <div class="tip" id="netStatus"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="act" id="joinCancel" style="flex:1">算了</button>
+      <button class="act primary" id="joinGo" style="flex:1">加入</button>
+    </div>
+  </div>
+</div></div>
+
 <div class="sheet" id="rankSheet"><div class="panel">
   <h2>这一轮报什么点数</h2>
   <p id="rankHint"></p>
@@ -369,16 +429,20 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
 const RANKS=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const SUITS=['♠','♥','♣','♦'];
 const CN=['','一','二','三','四','五'];
-const NAMES=['你','老李','王姐','小赵'];
+// NAMES/AVA 由 pickCast() 按本局人物填（开局前先给默认值，声明在人物池那边）
 const isJoker=c=>c>=52;
 const rk=c=>isJoker(c)?-1:c>>2;
 const st=c=>c&3;
 const isRed=c=>c===53||(!isJoker(c)&&(st(c)===1||st(c)===3));
 const sortKey=c=>isJoker(c)?100+c:c;
-const nm=i=>i===0?'你':NAMES[i];
+// mySeat：本机玩家坐哪个座（单机和房主是 0，联机客人是 1~3）
+// SEATK：每个座位是谁在打——'human' 本机真人 / 'ai' 本机 AI / 'remote' 远端真人
+let mySeat=0, SEATK=['human','ai','ai','ai'], NET=null;
+const nm=i=>i===mySeat?'你':NAMES[i];
+const isAI=i=>SEATK[i]==='ai';
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.10';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const VERSION='1.18';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
 const SET={wild:1,max:4,burn:1,ai:1,sound:1,salty:1};
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
      if(_s&&typeof _s==='object') for(const k in SET) if(typeof _s[k]==='number') SET[k]=_s[k];
@@ -445,16 +509,98 @@ const Sfx=(function(){
   };
 })();
 document.addEventListener('pointerdown',()=>Sfx.wake(),{once:true});
-const fits=(c,rank)=>(SET.wild&&isJoker(c))||rk(c)===rank;
+// 本局规则快照：发牌时从 SET 拷贝。中途改设置不影响正在打的这局，联机时双方按同一份快照走。
+let ECFG={wild:SET.wild,max:SET.max,burn:SET.burn};
+const fits=(c,rank)=>(ECFG.wild&&isJoker(c))||rk(c)===rank;
+
+/* ═══ 规则引擎（联机的地基）═══════════════════════════════════
+   动作进（{t:'play'|'pass'|'call', seat, cards?, rank?}），事件出。
+   只动规则状态（hands/pile/turn/currentRank/roundClaimed/passStreak/
+   roundLeaderId/lastPlay/outQueue/over/winner），不碰界面、声音、AI。
+   联机时：客机把动作发给主机，主机跑同一个 engineApply，把事件广播回来。*/
+const PROTO=1;                       // 存档 / 联机协议版本
+function engineLegal(seat){
+  if(over||turn!==seat) return {play:false,pass:false,call:false};
+  return { play:true, pass:currentRank!==null,
+           call:currentRank!==null&&!!lastPlay&&lastPlay.player!==seat };
+}
+function engineApply(act){
+  if(over) throw new Error('牌局已结束');
+  if(act.seat!==turn) throw new Error('还没轮到 '+act.seat);
+  const ev=[];
+  if(act.t==='play'){
+    const cards=act.cards.slice();
+    if(cards.length<1||cards.length>ECFG.max) throw new Error('张数不对');
+    if(new Set(cards).size!==cards.length) throw new Error('有重复牌');
+    const hand=hands[act.seat];
+    if(!cards.every(c=>hand.includes(c))) throw new Error('不是你的牌');
+    let rank;
+    if(currentRank===null){
+      rank=act.rank|0;
+      if(!(rank>=0&&rank<=12)) throw new Error('点数不对');
+      currentRank=rank; roundClaimed=0; roundLeaderId=act.seat;
+    } else rank=currentRank;
+    hands[act.seat]=hand.filter(c=>!cards.includes(c));
+    roundClaimed+=cards.length;
+    pile.push(...cards);
+    lastPlay={player:act.seat,rank:rank,cards:cards};
+    passStreak=0;
+    if(hands[act.seat].length===0&&!outQueue.includes(act.seat)) outQueue.push(act.seat);
+    ev.push({e:'played',seat:act.seat,rank:rank,n:cards.length,out:hands[act.seat].length===0});
+    turn=(turn+1)%4;
+  }else if(act.t==='pass'){
+    if(currentRank===null) throw new Error('开新一轮必须出牌');
+    passStreak++;
+    ev.push({e:'passed',seat:act.seat,claimSeat:lastPlay.player,claimN:lastPlay.cards.length,rank:currentRank});
+    if(passStreak>=3){
+      const leader=lastPlay.player, pn=pile.length, eaten=!ECFG.burn;
+      const gained=eaten?pile.slice():[];
+      if(eaten){ hands[leader].push(...pile); hands[leader].sort((a,b)=>sortKey(a)-sortKey(b));
+                 outQueue=outQueue.filter(i=>hands[i].length===0); }
+      pile=[];
+      ev.push({e:'burn',leader:leader,n:pn,eaten:eaten,gained:gained});
+      currentRank=null;roundClaimed=0;passStreak=0;roundLeaderId=null;lastPlay=null;turn=leader;
+    } else turn=(turn+1)%4;
+  }else if(act.t==='call'){
+    if(currentRank===null||!lastPlay||lastPlay.player===act.seat) throw new Error('现在不能抓');
+    const tp=lastPlay.player, cards=lastPlay.cards;
+    const truth=cards.every(c=>fits(c,lastPlay.rank));
+    const loser=truth?act.seat:tp, next=truth?tp:act.seat, pn=pile.length, gained=pile.slice();
+    hands[loser].push(...pile); hands[loser].sort((a,b)=>sortKey(a)-sortKey(b));
+    outQueue=outQueue.filter(i=>hands[i].length===0);
+    pile=[];
+    ev.push({e:'reveal',by:act.seat,target:tp,cards:cards,rank:lastPlay.rank,
+             truth:truth,loser:loser,next:next,picked:pn,gained:gained});
+    currentRank=null;roundClaimed=0;passStreak=0;roundLeaderId=null;lastPlay=null;turn=next;
+  }else throw new Error('未知动作 '+act.t);
+  // 赢家判定：手牌空、且那一手已经没人能翻
+  const w=outQueue.find(i=>hands[i].length===0&&!(lastPlay&&lastPlay.player===i&&currentRank!==null));
+  if(w!==undefined){ over=true; winner=w; ev.push({e:'win',seat:w}); }
+  return ev;
+}
+function serializeGame(){
+  return JSON.stringify({proto:PROTO,cfg:ECFG,hands:hands,pile:pile,turn:turn,
+    currentRank:currentRank,roundClaimed:roundClaimed,passStreak:passStreak,
+    roundLeaderId:roundLeaderId,lastPlay:lastPlay,outQueue:outQueue,over:over,winner:winner,
+    cast:NAMES.slice(1)});
+}
+function loadGame(j){
+  const g=typeof j==='string'?JSON.parse(j):j;
+  if(g.proto!==PROTO) throw new Error('存档版本不合：'+g.proto);
+  ECFG=g.cfg;hands=g.hands;pile=g.pile;turn=g.turn;currentRank=g.currentRank;
+  roundClaimed=g.roundClaimed;passStreak=g.passStreak;roundLeaderId=g.roundLeaderId;
+  lastPlay=g.lastPlay;outQueue=g.outQueue;over=g.over;winner=g.winner;
+}
 
 /* ═══ 状态 ═══ */
-let hands,pile,turn,currentRank,lastPlay,roundClaimed,passStreak,over,logs,selected,fresh,outQueue,
+let hands,pile,turn,currentRank,lastPlay,roundClaimed,passStreak,over,winner,logs,selected,fresh,outQueue,
     humanResolve;
 const $=id=>document.getElementById(id);
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
 function deal(){
-  const total=SET.wild?54:52;
+  pickCast();
+  const total=(SET.wild?54:52);
   const d=[...Array(total).keys()];
   for(let i=total-1;i>0;i--){const j=Math.random()*(i+1)|0;[d[i],d[j]]=[d[j],d[i]];}
   hands=[[],[],[],[]];
@@ -462,10 +608,11 @@ function deal(){
   d.slice(0,52).forEach((c,i)=>hands[(i+off)%4].push(c));  // 每人 13 张
   hands.forEach(h=>h.sort((a,b)=>sortKey(a)-sortKey(b)));
   pile=[];currentRank=null;lastPlay=null;roundClaimed=0;passStreak=0;
-  over=false;logs=[];selected=new Set();fresh=new Set();outQueue=[];
+  over=false;winner=null;logs=[];selected=new Set();fresh=new Set();outQueue=[];
+  ECFG={wild:SET.wild,max:SET.max,burn:SET.burn};
   turn=0;                          // 真人玩家开第一轮
   tilt={}; bubble=null; banterEpoch++;
-  known=[{},{},{},{}]; roundLeaderId=null;
+  known=[{},{},{},{}]; roundLeaderId=null; mood=['','idle','idle','idle'];
   Sfx.deal();
 }
 function say(t){logs.unshift(t);logs=logs.slice(0,3);}
@@ -480,18 +627,16 @@ const cls=c=>'card'+(isRed(c)?' red':'')+(isJoker(c)?' joker':'');
 const faceUp=c=>'<div class="'+cls(c)+'">'+cardInner(c)+'</div>';
 
 function render(){
-  $('seats').innerHTML=[1,2,3].map(i=>{
-    const n=hands[i].length, shown=Math.min(7,n);
-    let fan='<div class="fan">';
-    for(let k=0;k<shown;k++)
-      fan+='<i style="left:calc(50% - '+(shown*4)+'px + '+(k*8)+'px);transform:rotate('+((k-(shown-1)/2)*4)+'deg)"></i>';
+  $('seats').innerHTML=[1,2,3].map(k=>(mySeat+k)%4).map(i=>{
+    const n=hands[i].length;
     const bub=(bubble&&bubble.p===i)? '<div class="bub'+(bubble.pop?' pop':'')+'">'+esc(bubble.text)+'</div>' : '';
     return '<div class="seat'+(turn===i?' active':'')+(n<=3?' low':'')+'">'+
-      '<div class="nm">'+NAMES[i]+'</div>'+fan+'</div>'+
+      '<div class="ava">'+avaSVG(i)+'</div>'+
+      '<div class="nm">'+NAMES[i]+'</div>'+
       '<div class="ct">'+n+' 张</div>'+bub+'</div>';
   }).join('');
 
-  const h=hands[0], n=h.length;
+  const h=hands[mySeat], n=h.length;
   const step = n<=1?0 : Math.min(34, Math.max(15, (Math.min(420,innerWidth-40)-46)/(n-1)));
   $('hand').style.width=(46+step*(n-1))+'px';
   $('hand').innerHTML=h.map((c,i)=>
@@ -523,7 +668,7 @@ const claimHTML=(p,cnt,rank)=>
   '<div class="who">'+nm(p)+' 报</div><div class="plaque">'+CN[cnt]+' 个 <em>'+RANKS[rank]+'</em></div>';
 
 /* ═══ 人类回合 ═══ */
-function canCall(){ return currentRank!==null && lastPlay && lastPlay.player!==0; }
+function canCall(){ return currentRank!==null && lastPlay && lastPlay.player!==mySeat; }
 function humanTurn(){
   return new Promise(res=>{
     humanResolve=res;
@@ -535,8 +680,8 @@ function humanTurn(){
             '<div class="note">该你了</div>');
       let ev='';
       if(canCall()){                              // 只留情报，不留教学
-        const cap=4+(SET.wild?2:0), k=lastPlay.cards.length;
-        const mine=hands[0].filter(c=>fits(c,currentRank)).length;
+        const cap=4+(ECFG.wild?2:0), k=lastPlay.cards.length;
+        const mine=hands[mySeat].filter(c=>fits(c,currentRank)).length;
         if(k+mine>cap)
           ev='你攥着 '+mine+' 张能当 '+RANKS[currentRank]+' 的 —— 他报 '+k+' 张，数不可能，<b>他一定在吹</b>！';
         else if(mine>0)
@@ -569,7 +714,7 @@ function playControls(){
 function updateControls(){
   const n=selected.size, my=!!humanResolve;
   const pb=$('playBtn'); if(!pb) return;
-  pb.disabled=!(my&&n>=1&&n<=SET.max);
+  pb.disabled=!(my&&n>=1&&n<=ECFG.max);
   pb.textContent=n?'出 '+n+' 张':'出牌';
   $('clearBtn').disabled=!n;
   $('passBtn').disabled=!(my&&currentRank!==null);
@@ -582,13 +727,13 @@ $('hand').addEventListener('click',e=>{
   const el=e.target.closest('.card'); if(!el||!humanResolve) return;
   const c=+el.dataset.c;
   if(selected.has(c)) selected.delete(c);
-  else if(selected.size<SET.max){ selected.add(c); Sfx.tick(); }
+  else if(selected.size<ECFG.max){ selected.add(c); Sfx.tick(); }
   render();updateControls();
 });
 function openRankPicker(){
   const mine={},sel=[...selected];
   sel.forEach(c=>{if(!isJoker(c))mine[rk(c)]=1;});
-  const wilds=SET.wild?sel.filter(isJoker).length:0;
+  const wilds=ECFG.wild?sel.filter(isJoker).length:0;
   $('rankHint').textContent = wilds
     ? '金色的是你选中的牌里真有的。你带了 '+wilds+' 张王，报什么都算真话。'
     : '金色的是你选中的牌里真有的点数。';
@@ -607,29 +752,38 @@ $('rankSheet').addEventListener('click',e=>{
 });
 function commitAct(a){
   selected.clear();
-  const r=humanResolve; humanResolve=null; render(); updateControls(); r(a);
+  const r=humanResolve; humanResolve=null; render(); updateControls();
+  r({t:a,seat:mySeat});
 }
 function commitPlay(rank){
   const cards=[...selected]; selected.clear();
-  hands[0]=hands[0].filter(c=>!cards.includes(c));
-  finishPlay(0,rank,cards);
-  const r=humanResolve; humanResolve=null; updateControls(); r('play');
+  const r=humanResolve; humanResolve=null; updateControls();
+  r({t:'play',seat:mySeat,cards:cards,rank:rank});
 }
 
 
 /* ═══ 跨局的账本：谁赢过几把、真人啥牌风，都记在手机里 ═══ */
 const MEM=(function(){
-  const d={games:0,wins:[0,0,0,0],lastWinner:null,humanCaught:0,humanHonest:0,humanGoodCall:0,humanBadCall:0};
+  const d={games:0,winsBy:{},lastWinner:null,humanCaught:0,humanHonest:0,humanGoodCall:0,humanBadCall:0};
+  // 老版本存的是按座位的数组，折算成按名字
+  try{ const m=JSON.parse(localStorage.getItem('sxh_mem')||'null');
+       if(m&&Array.isArray(m.wins)){ const on=['你','老李','王姐','小赵'];
+         m.winsBy={}; m.wins.forEach((w,i)=>{ if(w) m.winsBy[on[i]]=w; });
+         if(typeof m.lastWinner==='number') m.lastWinner=on[m.lastWinner]||null;
+         delete m.wins; localStorage.setItem('sxh_mem',JSON.stringify(m)); } }catch(e){}
   try{ const m=JSON.parse(localStorage.getItem('sxh_mem')||'null');
        if(m&&typeof m==='object') for(const k in d) if(m[k]!==undefined) d[k]=m[k]; }catch(e){}
   return d;
 })();
 function saveMem(){ try{ localStorage.setItem('sxh_mem',JSON.stringify(MEM)); }catch(e){} }
+function winsLine(){
+  const w=MEM.winsBy||{};
+  return Object.keys(w).map(k=>(k==='你'?'真人玩家':k)+' '+w[k]).join('，')||'还没人赢过';
+}
 function memSummary(){
   if(!MEM.games) return '这是你们头一回坐一桌打牌。';
-  const L=['你们一共打过 '+MEM.games+' 局：真人赢 '+MEM.wins[0]+' 局，老李 '+MEM.wins[1]+
-           '，王姐 '+MEM.wins[2]+'，小赵 '+MEM.wins[3]+'。'];
-  if(MEM.lastWinner!==null) L.push('上一局是'+(MEM.lastWinner===0?'真人玩家':NAMES[MEM.lastWinner])+'赢的。');
+  const L=['你们一共打过 '+MEM.games+' 局：'+winsLine()+'。'];
+  if(MEM.lastWinner) L.push('上一局是'+(MEM.lastWinner==='你'?'真人玩家':MEM.lastWinner)+'赢的。');
   if(MEM.humanCaught+MEM.humanGoodCall+MEM.humanBadCall>0)
     L.push('真人玩家的老底：吹牛被逮过 '+MEM.humanCaught+' 次，抓人抓对 '+MEM.humanGoodCall+
            ' 次、抓错 '+MEM.humanBadCall+' 次。');
@@ -643,84 +797,152 @@ const DEFAULT_KEY='';            // key 不写在文件里，去设置里填
 let KEY=DEFAULT_KEY, aiWarned=false, banterEpoch=0;
 try{ const k=localStorage.getItem('ds_key'); if(k!==null) KEY=k; }catch(e){}
 
-const PERSONA={
- 1:'你是老李，天津人，六十来岁，老实人，牌好就实话实说，很少诈唬；一被人抓到就上头，上头的时候会骂街。说话短促。',
- 2:'你是王姐，天津人，五十来岁，牌桌上的老手，特别爱诈唬，嘴上最不饶人；输了牌会上头骂街。说话爱调侃、损人。',
- 3:'你是小赵，天津人，三十来岁，话少，算得很准。说话简短、冷，上头也就蹦一两个字。'
-};
+// PERSONA 由 pickCast() 按本局人物填
 
-/* ═══ 三个对手：都是天津卫的，说话带味儿，上头了骂街 ═══ */
-const PROFILE={
- 1:{ /* 老李 —— 天津老爷子，实在人，牌好就实说；一被逮着就上头，接着两手乱来 */
-   passReal:.22, passBluff:.72, bigPlay:.50, truthMax:.90, junkMix:.10,
-   callBase:.04, callPerCard:.04, crowd:.05, sniper:0, counts:0, guard:.90, exitD:.85, speed:[900,1800], tiltable:2, chatty:.42,
-   talk:{
-     play  :['就介个','跟一手','得嘞','稳当的'],
-     bluff :['……跟一个吧','就当有','凑合一手'],
-     pass  :['我过','手里没有','介轮不掺和'],
-     call  :['我不信','你打镲呢吧','翻开我瞅瞅'],
-     caught:['哎哟喂','让你逮着了','介把崴泥了','我说我嘛手气'],
-     clear :['我说嘛来着','冤枉好人不是','介回信我了吧'],
-     win   :['我就说','可不咋地','瞅着就不对'],
-     lose  :['我介眼神','白饶了','嗨，白背一手'],
-     tilt  :['介都嘛事儿啊！','气得我脑仁儿疼','缺德带冒烟儿的',
-             '我介暴脾气上来了','甭拦着我','老没溜儿！'],
-     threat:['他快没牌了','拦着点他'],
-     last  :['我就剩俩了','快了快了'],
-     over  :['出完喽！'],
-     salty :{tilt:['他妈的邪了门了','我去你大爷的','气死我了真他妈的','王八羔子的牌'],
-             caught:['妈的，栽了','他妈的让你逮着了'],
-             call:['放屁，我不信','你大爷的，翻开'],
-             lose:['妈的，白瞎']}} },
- 2:{ /* 王姐 —— 天津大姐，爱诈唬爱多报，嘴最不饶人，出手快 */
-   passReal:.10, passBluff:.42, bigPlay:.60, truthMax:.70, junkMix:.32,
-   callBase:.07, callPerCard:.05, crowd:.09, sniper:0, counts:0, guard:.80, exitD:.50, speed:[450,1100], tiltable:2, chatty:.55,
-   talk:{
-     play  :['给你个大的','瞅我的','接着','甭磨叽'],
-     bluff :['满上！','介把稳的','怕了吧','爱信不信'],
-     pass  :['介轮不玩','我歇会儿','你们打'],
-     call  :['吹吧你！','翻开瞅瞅','你介脸都不红'],
-     caught:['让你蒙对一回','行行行算你狠','我介是给你留面子'],
-     clear :['傻了吧','让你抓','介回学乖了吧'],
-     win   :['我就说你在吹','逮着了吧','姐还瞅不出来？'],
-     lose  :['算你运气','介回真让你蒙对了','邪门儿'],
-     tilt  :['你个老没溜儿的！','打镲呢吧你！','我跟你没完',
-             '姐今儿跟你耗上了','你介人损不损啊','气死我得了'],
-     threat:['他要跑了！','甭让他出完'],
-     last  :['我可就剩两张了','瞅好了啊'],
-     over  :['收工，回家'],
-     salty :{tilt:['你个王八羔子！','他妈的你还来劲了','去你大爷的！','损出你介样儿来'],
-             caught:['他妈的算你狠','行，妈的，姐认了'],
-             call:['放你的屁，翻开！','吹他妈呢你'],
-             win:['我就说你他妈在吹','逮着你了吧孙子']}} },
- 3:{ /* 小赵 —— 天津小伙儿，话少算得准，专挑快出完的人下手；上头也就一手 */
-   passReal:.18, passBluff:.50, bigPlay:.55, truthMax:.85, junkMix:.18,
-   callBase:.02, callPerCard:.07, crowd:.07, sniper:1, counts:1, guard:.98, exitD:.95, speed:[1100,2200], tiltable:1, chatty:.28,
-   talk:{
-     play  :['嗯','跟','走着'],
-     bluff :['嗯'],
-     pass  :['过'],
-     call  :['数不对','不可能','你少算一张'],
-     caught:['失误','算差了'],
-     clear :['说了是真的'],
-     win   :['嗯','没算错'],
-     lose  :['记着了'],
-     tilt  :['崴泥','嘛玩意儿','行，你狠'],
-     threat:['他还剩两张','该拦了'],
-     last  :['俩'],
-     over  :['完了'],
-     salty :{tilt:['妈的','操了','真他妈邪门'],
-             caught:['妈的，失误'],
-             call:['放屁，数不对']}} }
+/* ═══ 头像：Open Peeps（Pablo Stanley，CC0），经 DiceBear 生成。
+   底图共用，四张脸按牌局心情换：idle 平时 / mad 上头 / oops 被逮 / glee 得意 ═══ */
+const AVATARS={
+ laoli:{pre:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 704 704" fill="none" shape-rendering="auto" width="96" height="96"><metadata xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/"><rdf:RDF><rdf:Description><dc:title>Open Peeps</dc:title><dc:creator>Pablo Stanley</dc:creator><dc:source xsi:type="dcterms:URI">https://www.openpeeps.com/</dc:source><dcterms:license xsi:type="dcterms:URI">https://creativecommons.org/publicdomain/zero/1.0/</dcterms:license><dc:rights>Remix of „Open Peeps” (https://www.openpeeps.com/) by „Pablo Stanley”, licensed under „CC0 1.0” (https://creativecommons.org/publicdomain/zero/1.0/)</dc:rights></rdf:Description></rdf:RDF></metadata><mask id="viewboxMask"><rect width="704" height="704" rx="0" ry="0" x="0" y="0" fill="#fff" /></mask><g mask="url(#viewboxMask)"><g fill-rule="evenodd" clip-rule="evenodd"><path d="M705.3 1074a2351.1 2351.1 0 0 1-15.6-101c-1-7.7-2.5-16.4 2.7-22 7.3-8 14-14.8 14.8-26.2.8-10.7-2.8-22.4-5-32.8a809.4 809.4 0 0 0-17.3-64.7c-6.6-21.7-13.9-43.2-21.3-64.6-6.9-20-13.5-40.3-22.5-59.5-17-36.5-46-63.5-81.6-81.6-9-4.5-27-20.5-36.3-24-8.5-3.4-8.5 6.3-16.9 2.6-6.7-2.9-13-6.7-16.7-13.2-4-7-14.3-16.9-15.9-25-3.3-17.4.3-32.2-12-45.3a90 90 0 0 0-41.1-23.8c-33.7-9.3-78.5-2.8-98.8 28.5-9.7 14.9-13 33-26.2 45.1-11.4 10.7-8.8 18-23.6 23.4-.9.3-23.6-4.5-24.4-4.2-16.2-3.5-31.7 6.2-46.5 11.8a325.4 325.4 0 0 0-63 32.3 399.2 399.2 0 0 0-102.3 98.5 482.5 482.5 0 0 0-76.4 161c-1.7 6.4-3.5 13-1.5 19.4 1.7 5.3 5.4 9.2 9.8 12.4 6 4.3 18 7 17.7 15.7-.1 6.6-2.4 13.5-3.5 20-1.3 7.7-2.3 15.5-3.4 23.2-4.8 35.4-8.6 71-10.3 106.6a920 920 0 0 0-.5 106c.1 2.3.8 4.5 2 6.2-1 .4-1.2 2.4.1 2.7l2.7.5a12 12 0 0 0 7 2.4l5.5.2c19.3 4 38.6 7.9 58.1 10.8 23.8 3.5 47.6 6.3 71.5 8.7 49.2 4.8 98 3.2 147.1.6a1877 1877 0 0 1 147.4-2c49.2 1.4 98.4 3.5 147.6 4.4 55 1 110-.5 164.8-5 7.5-.5 12.2-6.5 10.7-14-8.9-44.7-19-89.1-27-134Z" fill="#ffdbb4"/><path d="m201 597.5 1.2-.4c14.5-5.7 29.6-14.8 45.4-11.4.5-.2 10.8 1.9 17.9 3.2l-6.7 7L247 598c40.7 67.1 88.8 100.7 144.3 100.7 55.5 0 97.7-33.6 126.4-100.7l4-1c.4 0 1 .2 1.5.4 9.3 3.6 27.4 19.6 36.3 24.1 35.6 18 64.5 45 81.6 81.6 8.7 18.6 15.2 38 21.8 57.5l.7 2c7.4 21.4 14.7 43 21.3 64.6 6.3 20.4 12 41 16.6 61.8l.7 2.9c2.2 10.4 5.8 22 5 32.8a29 29 0 0 1-3 10.7l-80.4 29 38.4 261.3c-35.1 1.5-70.3 2-105.5 1.3-49.2-.9-98.4-3-147.6-4.3-47.7-1.2-95.3-.7-143 1.7l-12 .6a946.3 946.3 0 0 1-139.5-1l-3.1-.3v-38.3l16.3-212.9-83-15.6-81.3-39.5a21.7 21.7 0 0 1-5.6-8.8c-1.9-6-.5-12 1-18l.5-1.3a492.8 492.8 0 0 1 76.4-161A399.3 399.3 0 0 1 138 629.7c19.8-13 40.9-23.9 63-32.3Z" fill="#9ddadb"/><path d="M232.2 584.6c5.1-.3 10.3.6 15.4 1 .4.1.6.8 0 .9-9 1.9-18 4.5-26.9 7.1l-3.8 1.2c-10 3-19.8 6-29.6 10-19.4 7.9-37.8 18.5-54.8 30.8C67.2 682.8 20 754.3-9.9 828.3a526 526 0 0 0-24.3 77c-.4 1.6-2 5.4-1 7 .7 1.3 3.6 2.1 5 2.9l4.5 2.3 25.2 12.9 2.3 1.1c38 18.6 78.4 34.4 121 35.5l.4-3.7a342 342 0 0 1 9.9-60c.3-1 1.6-.6 1.7.3 3 23.1 2 46.4 1 69.7-1.8 41-4.3 82.2-6.5 123.3-1.2 20.6-2.6 41-3.9 61.7-1.3 20.5-1.7 41.6-4.7 62-.6 4.6-6 7-10 6.6-4.4-.5-7.9-4.5-8-9 0-11.9 1.5-24 2.4-35.8l2.5-33.8c3.1-41.1 6.8-82.2 10.2-123.3a4771 4771 0 0 1 3.8-43.7C76.4 979.8 34.2 963-6.1 943.5c-.6 13.2-2 26.5-3.4 39.6-3.8 36.8-7.1 73.6-9.6 110.5a2254.2 2254.2 0 0 0-4.2 92.7l-.2 7c0 4.4-.5 8.5-4.3 11.7-3.7 3.3-8.9 3.5-12.6 0-5-4.6-4.2-10.9-4-17.1a1675.6 1675.6 0 0 1 1.8-47.2 1321 1321 0 0 1 10.5-109.5l2-14c3.5-26 7.5-52.7 15.5-77.9-3.1-1.5-6.2-3-9.3-4.7-5.5-2.7-11.2-5.4-16.6-8.4-4.2-2.5-7.9-5.8-9-10.8-1.4-5.5.6-11.5 2-16.9v-.4a502 502 0 0 1 26.6-80 523.2 523.2 0 0 1 67.8-117 353.8 353.8 0 0 1 88.7-83.3 239 239 0 0 1 53.8-25.7 142.6 142.6 0 0 1 42.8-7.5Zm90.1-66c6-6.5 18.1.2 15.2 8.8a108.2 108.2 0 0 1-34.7 52A79.4 79.4 0 0 1 247 598l1.7 2.4a321.1 321.1 0 0 0 46.1 52.6c36 31.2 84.8 48 132 36 37.1-9.4 69.8-38.8 79.4-76.2-1.3.6-3 .9-4.8.5-7.7-1.7-15.3-9.8-20.3-15.6-5.3-6.3-9.5-13-12.6-20.7-5.6-14-7.4-32.1.3-45.7 1-1.7 3-.7 3.3 1l.3 2.5c1.5 12.7 3.3 25 9.3 36.6a76 76 0 0 0 18.2 23.1c2.6 2 5.8 3.6 8.1 6l.5.4c.6-5 4.1-7.3 7.6-7.2 3.3.2 7.3 1.6 8.8 2.3l.1.1a341 341 0 0 1 65.1 42 259 259 0 0 1 88.4 129c7.5 25.3 11.8 51.4 16.3 77.4l2.8 16c4.2 23.9 8.9 48.4 18.4 70.7 2.5 5.7.6 11.1-5.5 13.4A1493 1493 0 0 1 688 953c3.7 16 6 32.5 8.7 48.5 6 34.1 13.2 68 19.4 102 3.2 17.5 6.1 35 9.3 52.3l4.7 25.2 2.4 13.6.1.7c.5 2.4 1 4.9.4 7.3-.8 2.7-2.9 4.6-4.8 6.6-1.6 1.6-3.8 1.6-5.7.7l-.7-.3c-3.4-1.6-6-3.2-7.3-7-.7-2.5-1-5.2-1.5-7.7a3535.6 3535.6 0 0 1-7.8-43.6l-1.6-9.1c-5.2-31.4-10.2-62.9-12.8-94.5-1-14-2.3-28.1-3.5-42.2l-.9-10.5c-1.1-13.3-2.5-27-2.7-40.5l-4.5 1.6L657 964c-5.5 2-12.5 6-18.4 5.2-2.9-.3-5-1.2-6.8-2.9 2 28.8 4.8 57.4 8.5 86a1965.7 1965.7 0 0 0 22 135c.6 3.2 1.4 6.4 1.9 9.6.5 3.7-.5 5.9-2.5 9-1.7 2.4-5 3.7-7.8 2-3.6-2.3-5.5-4.3-6.5-8.4-1-3.7-1.6-7.6-2.3-11.4a1654.2 1654.2 0 0 1-11.4-65.2c-7.8-52-12.7-104.4-15.2-156.8a1388 1388 0 0 1-1.4-77.8c0-13.3.5-26.6 1.4-39.9 1-13.4 3-26.5 4.8-39.8 0-.5.7-.5.7 0 .8 14.9 2.1 29.8 2.8 44.7.6 14.3.9 28.5 1.4 42.8.6 18.7 1.5 37.5 2.7 56.2a9.6 9.6 0 0 1 8.5-3.1c4.7-1 9.7-3.4 14.1-5l16.8-5.5 26.4-8.7a679 679 0 0 1-18-80.8l-2-12.3c-4-24.2-8.5-48.5-15.8-72a229.8 229.8 0 0 0-34.8-68.2 370.2 370.2 0 0 0-52.7-55.3C557 627 539.7 614 523 600c.1.9.2 2 0 3-3.5 25.9-17 50-35.8 67.9-37.7 36-93.6 43.4-142 26.5-46.7-16.3-88-55-102.6-102.8-.3-.8.8-1 1.3-.5l2.4 3.3c0-.4.2-.9.7-1a129 129 0 0 0 46.6-29.2 100.2 100.2 0 0 0 21.3-33.3l.4-1c1.7-5 3.2-10.2 7-14.2Z" fill="#000"/></g><g transform="matrix(.99789 0 0 1 156 62)"><g fill-rule="evenodd" clip-rule="evenodd"><path d="M398.9 192C363.7 99.6 300.3 31.9 193.3 74.4c-3-2-7-2.6-10.9-.2A277.4 277.4 0 0 0 64.1 235.4a90.6 90.6 0 0 0-31.4 11.8c-20.9 13-35 33.9-48 54.2-4 6-.4 16.1 7 17.5 3.3.6 6.5 1 9.7 1a41 41 0 0 1-3.1 8c-4.7 9.1 4.2 18.7 12.5 16.2 1 .5 1.9 1 2.9 1.2 0 5.1 2.7 12 8 13 8.3 1.8 19.5-4.6 17.5-14 2.6.4 5 .5 7.6.2.2 4.9.1 10 .8 14.5A34 34 0 0 0 91.4 388c1.2 6.6 2.7 16 9.2 19.6 7.7 21.4 20.9 45.8 42.5 55.6-2 5-1 11 4.9 14.2 39.5 22.6 87 30.2 131.7 21.8 17.8-1 35.2-5 52-13.7a243.4 243.4 0 0 0 34.3-22.4c11-8.3 22.6-16.3 31.3-27a87 87 0 0 0 16.8-39.6A344.3 344.3 0 0 0 399 203.4c-29.6-77.7 29.5 66.3 0-11.3Z" fill="#ffdbb4"/><path d="M32.6 243.4c32.8-19.3 74.7-14.3 94.4 15.7a56 56 0 0 1 7.4 17.5l.3 1 .3 1.2c.8 3.8 1.4 7.4 2.2 13.5l.8 7 .3 1.8a98 98 0 0 0 2.6 14.3l.2.8 1.3 4.4-4.9 1.8c-9.3 3.4-11.3 3.7-16.7 1-4.3-2.3-6.5-5.3-9.4-11.3l-.4-.9-1-2-.5-1c-1.9-3.8-3.4-7.9-5.6-9.4-3-2-12.2-2.8-18.6-2h-.4l-.3.1-.4.1a50.4 50.4 0 0 0-27.3 20.6 49.6 49.6 0 0 0-8.6 26.6v.6l-.2 5-10.5-.2.1-2-.1.4c-3.3 7-11.7 11.6-18.6 7l-.3-.2-.2-.2c-5.9-4.3-6.6-13-1.8-18.4l.2-.2.3-.2H17a10 10 0 0 0-5.1 2.9l-.5.4-1 1.1-1 1.1-.5.5a22 22 0 0 1-1.8 1.6l-1 .5c-1 .4-2 .6-3.3.3a5 5 0 0 1-3.4-2.8c-.3-.5-.4-1-.5-1.4l-.2-1.6v-3.5l.2-2.3c.4-7.6 2.4-15.2 5.9-22.3l.3-.7.2-.2-.4.5c-2.3 3-4.6 5.2-7.5 6.6l-.3.2-.4.2c-4 1.7-8 1-10.3-2.2a11.4 11.4 0 0 1-1.8-8.2c.7-6 3-11.4 7.6-19.3l.7-1.1 2.5-4.3a107.4 107.4 0 0 1 37-38.4Z" fill="#e8e1e1"/><path d="M228.8 56.3a145 145 0 0 1 53.5 7.2A185.4 185.4 0 0 1 401.9 181c11.5 33.6 13.3 69.6 16.5 104.7 1.6 17.8 4.3 35.2 7.2 52.8l.4 2.8c2.7 17.1 4.3 34.4.5 51.5-6.3 28.5-25.2 52.6-47.6 70.4-46 36.6-117.8 59-171.4 25.3-8.3-5.2-.5-18.6 7.6-13.1a83.2 83.2 0 0 0 18.2 9.4c27.1 9.7 56.8 6.3 83.6-2.7a180 180 0 0 0 71-43.9c20.5-21 31.8-46.9 30.2-76.4-1-17.5-5-34.8-7.2-52.2-2-15.4-3.2-31-4.5-46.4l-.5-5.6c-2.9-31.5-7-64-21.4-92.6-12-24-29.7-45.5-51-62a170.4 170.4 0 0 0-76.7-34c-32.8-5.4-64.2 4.3-91.6 22.3a216.8 216.8 0 0 0-61.1 61.5A254.6 254.6 0 0 0 84 189.9c-5.4 12.1-9 24.8-13.4 37.3a68.1 68.1 0 0 1 58.4 27.7c13.7 18.8 10 41.9 15.3 63.3.4 1.7-.3 3.3-1.7 4.2-8 5.2-19 5.4-26.7-.5a20.4 20.4 0 0 1-7.3-22.4c.4-1 2-.9 2 .3.5 13.7 13.2 24.3 25.7 17.7-5.4-18.4-2.5-39-13.5-55.7-19.4-29.5-59.5-30.7-87.7-14-14.9 8.7-26.6 21.8-35.4 36.5l-2.5 4.3a50 50 0 0 0-7.6 18.5c-.4 3.6 1 7 5.1 5.2 3.4-1.5 6-5 8-8 3.4-5 11.3-.6 8.4 4.8v.2A54.1 54.1 0 0 0 4 332.9l-.2 2.3c0 1.7 0 4 .3 4.1.4.1 3.4-3.3 3.8-3.8 2.4-2.2 4.9-4.1 8.2-4.7 4.3-.8 8.7 4.6 5 8.1l-.2.2c-3.4 2.9-3.2 8.7.5 11.5 5.3 3.8 11.7-2.5 12.5-7.7v-.2c.7-5.6 8.5-5.8 9 0 .9 12.7-14.2 23.2-25.6 16.9a17.2 17.2 0 0 1-8.3-12c-1.5.7-3 1.2-4.7 1.3-5.3.5-9.1-3.3-10-8.3-1-6-.4-12.2 1.1-18.3-2.9.7-6 .4-9-1.4-9.3-5.4-6.7-17.3-3.1-25.4 15-34.4 46-65.7 84.6-68.2.2-6 1-11.8 2.4-17.9A207.8 207.8 0 0 1 181.8 69a134.3 134.3 0 0 1 47-12.7ZM83 294h.5c6-1.4 21.8-3 20 7.2-.2.5-.9.4-1 0-1.9-6.4-14.5-1.3-18.2.3a53.4 53.4 0 0 0-14.3 8.8c-9.2 8-15.3 19-16.2 31.2-1 12 2.6 25 11.2 33.7 4.3 4.2 9.7 7.1 15.8 7.3 5.5.2 11.5-4 16.6-1.5 1 .5 1.8 1.8 1.7 3a7.4 7.4 0 0 1-2.5 5c8.4 15.3 15.3 31.7 26.1 45.7 5.4 7 11.6 13.5 18.5 19 3.3 2.7 7 5 10.6 7 4.4 2.4 8.1 4 11.2 8 2.6 3.4 0 10-4.3 10.7-10.3 1.4-20.3-7-27.8-13.1a100 100 0 0 1-19.4-22 132.5 132.5 0 0 1-20.1-52.6 33 33 0 0 1-30-5.8c-21.2-16.4-23.6-50-8.6-71.3A52 52 0 0 1 83 294Zm.1 39.1c5-.4 9.8.4 14.5 2l1.9.7c4 1.5 8.3 3.2 11.2 6.3 4.5 4.6 0 12.6-6.3 10.8-7-2-12.7-7.9-19.7-10.3a21 21 0 0 0-18.9 1.9c-.7.5-1.7-.5-1.2-1.2 4.2-6.5 11-9.5 18.5-10.2Z" fill="#000"/></g></g><g transform="translate(315 248)"><',post:'></g><g transform="translate(279 400)"><g fill-rule="evenodd" clip-rule="evenodd"><path d="M245.4 32.8c-14-2.3-28.6 1.2-42.2 4.9-21.4-14.1-49.3.1-64.7 17.7-5.2 4.4-16.3 10.1-10.5 18.4-2.2 5.9-2.8 8.6 1.8 1.8 25.9 3 53.6-2.7 79.2-8 8.8 3 16.4 9.8 26 7.5 9 1.9 19 3.7 27-2.1 6.3-.3 20.2 10.9 20-2.1-2-12.5-26.7-33.2-36.6-38Z" fill="#e8e1e1"/><path d="M255.9 72.8a63 63 0 0 1-43.4-9.6c-1.4-1-2.7-1-3.8-.4-1.3-.1-2.6.4-3.4 2-3.2 6-13.8 4.7-19.6 4.8-19 .4-38.8-.7-57.2 5.1C146 40.4 170.4 25.5 207.9 39c-3.4 2.8 13.6-3.6 15-3.8 26-6.5 47.5 15.3 58 37-8-2-16.8-.3-25 .6Zm36.3 5.9c-11.5-25.8-34-54.2-65.6-49.8-6.5 1-13.3 5.4-19.8 4.6-18.9-7-34.5-10.5-53.4.8-8 .6-53.1 56.4-31.7 51.9 26.4-15.1 72.1-1 88.5-14.4 32 21 58.2-1.8 76.3 11.3 3 3 7.5-.7 5.7-4.4Z" fill="#000"/></g></g><g transform="translate(179 343)"></g><g transform="translate(203 303)"></g></g></svg>',f:{idle:'path fill-rule="evenodd" clip-rule="evenodd" d="M176 239.6c-6.4 0-13.5-2.3-18.4-4.2l-1.2-.5a33.4 33.4 0 0 1-11.6-6.8 13 13 0 0 1-2.7-3.4c-.3-.8-.4-1.5-.1-2.3a40 40 0 0 0 3.3-.4l1.3-.2 4 .3.5.1 3 .4c3 .4 6 .8 9 1 2.2 0 4.5 0 6.8-.2 6-.3 12-.8 16.7 3.4a5 5 0 0 1 1.7 3.9c0 1.7-.8 3.4-1.9 4.8-2.4 3-6.2 4.1-10.4 4.1ZM211 186a15 15 0 0 1-13.8 6.6 82.3 82.3 0 0 1-38.2-12.2 10.6 10.6 0 0 1-4.9-7.8l-.5-5.4-3.1 4.5-1 1.4a175.2 175.2 0 0 0-11.5 19.7 91.4 91.4 0 0 0-4.7 12.5c-2.3 7.3-4.6 14.5-9.6 19.6-.8.8-2 1-3 1-1-.2-1.9-.6-2.3-1.5-6-12.3 2-27 8.6-37.2l.7-1c6-9.3 16-21.5 27.4-23.2l1.3 2 1.8-1.2c3.1-2 7.2-2 10.8-.3l3.6 1.6a99.7 99.7 0 0 0 23.4 7.8 97.9 97.9 0 0 0-3-10.8c-3-7.7-7.6-14.9-12.2-21.7l-.5-.8-2-3c-3.6-5.1-7.5-10.6-7.8-16.1 4.7.3 8.6 3.2 12 5.7 4.8 3.5 9.1 7.4 13.1 11.7 7.7 8.4 14.6 19 17.7 30.1 1.7 6.3 1 13.1-2.3 18ZM87.6 123v-.2c0-6.4 3.7-21 13-21 5.7 0 9.1 10 9.7 20.2v.4c.3 6.4-1.4 20.2-9.8 20.2S87.7 129.4 87.6 123Zm135.2-2v-.2c0-6.4-3.8-21-13-21-5.5 0-9 9.5-9.7 19.4v.8c-.4 6.1 1.2 20.6 9.8 20.6 8.4 0 12.8-13.1 12.9-19.6ZM118.5 79.8a167.8 167.8 0 0 0-33.8 8 437.2 437.2 0 0 0-25 9.5c-3.3 1.3-6.5 2.7-9.8 3.8a93.7 93.7 0 0 1 34.7-27c7.3-3.7 15-6.6 22.8-9l4.3-1.3c6.4-1.9 13.4-3.6 19.3.2a9.5 9.5 0 0 1 4.4 6.2 9 9 0 0 1-1.8 7.3c-1.4 1.9-3.3 3-5.2 3.4a10 10 0 0 1-6.5-1.2H118.5Zm96 1.2a52.4 52.4 0 0 0-18.7-.5c-3 .5-6 1-9.2.4-1.6-.3-3-1.3-4.1-2.6a10.6 10.6 0 0 1-2.4-5.2c-.3-1.8 0-3.5.6-5 .9-1.6 2.2-3 3.9-4.3 5-3.8 13.7-3 19.6-2.1 5.9.7 11.7 2.5 16.9 5.4 5.1 2.9 9.6 6.7 13 11.4 3 4 4.3 8.5 5.8 13.2-6.7-5.6-17-8.9-25.5-10.7Z" fill="#000"/',mad:'path fill-rule="evenodd" clip-rule="evenodd" d="M195.6 205.7a29.7 29.7 0 0 0-26.6.3 73.6 73.6 0 0 0-25.3 21.7c-2.7 3.3-5.2 6.8-7.8 10.3l-3.1 4.4-.7.8c-1.7 2.2-4 5.2-4.8 8-.4 1-.5 2-.4 3l.5 1.3c-1.4.4-2.3 0-2.9-.6-1-1-1.3-2.6-1.3-4.5 0-6.5 4.2-16 6-20l.4-1a75.8 75.8 0 0 1 30.7-36.5c13.7-7.6 29.9-9 44-1.8 15.7 7.9 20 23.6 21.7 39.7a8 8 0 0 1-2.5 6.5c-2 2-4.7 3.2-7.2 3.2a9.9 9.9 0 0 1-9.8-9.8v-1.5a37 37 0 0 0-2.5-14.8 18.1 18.1 0 0 0-8.4-8.7Zm-20.8-72.3c7.6 4.6 19 15.3 11 26.6-9.6 10-23.4-1.4-30.2-6.6-6.3-4-13.3 6.3-7.5 11 49 36.3 69-29.8 30.5-36.4-4.2-.8-5.8 4-3.8 5.4Zm-63.6 1.5a10 10 0 0 1-6.5 1c-2-.5-3.9-1.6-5.6-3.6-2.3-2.7-4-6.5-3-10.1l.4-1c.4-1 1-2 1.6-3 .4-2 .5-3.3.5-4.5v-1a20.3 20.3 0 0 1 1.4-6 195 195 0 0 1-7.7-2.9 202.2 202.2 0 0 1-27.4-13 84 84 0 0 1-5.7-4.1l-1-.9-.6 1.3c-.6.5-1 .6-1.4.4-.4 0-.8-.4-1-.8a2.5 2.5 0 0 1 .7-3c1.8-1.5 4.3-.9 6.4-.5l.9.2 9.7 2 3.9 1 4.4 1c16.9 3.8 33.7 7.7 51 9.4l1.7.1c3.1.3 5.8 1.6 7.6 3.7 1.7 1.9 2.5 4.4 2.1 7.4a9.8 9.8 0 0 1-12.2 8.2 542 542 0 0 1-16-4.6l1.3 3c1 2.5 2 5.2 2.1 8 .1 2.5-.6 5-1.9 7a14 14 0 0 1-5.7 5.3Zm120.2-61.5c-1.4 1.8-2.9 3.4-4.4 5-3.2 3.2-6.5 6.6-10 9.6l-3.8 3.4-1.4 1.2-.8.7.6.7.5.6c2 3.2 3 6.6 4 10 .8 2.4 1.6 4.7 2.6 7l.3.7c1.3 2.8 1.6 5.7 1 8.3a10.6 10.6 0 0 1-7.3 7.4c-2.9.6-5.8.2-8.2-1.2-2.3-1.3-4-3.4-4.9-6.2a44.4 44.4 0 0 1-1.8-14.6 7.8 7.8 0 0 1-7.5 1.8c-2.2-.6-4.3-2-5.7-3.8a8.6 8.6 0 0 1-2-5.7c.1-1.8.9-3.7 2.5-5.4l1.5-1.6c1.2-1.1 2.8-2 4.4-2.5a8 8 0 0 1 4.7 0c2-.5 3.2-1.1 4.4-1.7l2.3-1.1 10.4-4.6 9-3.9 9.6-4Z" fill="#000"/',oops:'g fill-rule="evenodd" clip-rule="evenodd"><path d="M107 164c30.4 0 55-19 55-42.5S137.4 79 107 79s-55 19-55 42.5S76.6 164 107 164Z" fill="#fff"/><path d="M195 148c23.7 0 47-15.4 47-34.5 0-19-19.3-34.5-43-34.5s-43 15.4-43 34.5c0 10.5 3.4 3.7 12.6 10 7.5 5.2 15.7 24.5 26.4 24.5Z" fill="#fff"/><path d="m199.7 206 .8-.1c5.7-.3 11.1-1.2 16.2 2a10.5 10.5 0 0 1 0 18c-5.3 3.2-11 2.1-17 2a953.9 953.9 0 0 0-43.9-.4c-8.8 0-17.6 0-26.4-.2l-3.8-.1c-9-.3-18.5 0-27.4-1.7l-.3-.1c-1.6-.5-2.4-3-.6-3.9 8.9-4 19-5.8 28.4-7.7 9.6-2 19.4-3.4 29.1-4.5a588.5 588.5 0 0 1 45-3.4ZM170.2 80.1l.6-.4c7.1-4.7 17.3-9.2 25.4-5.6.5.2.9.4 1.2.7a51.7 51.7 0 0 1 44 27.8 34.6 34.6 0 0 1-10.3 44.8 48.4 48.4 0 0 1-24.5 10.3c-3 .2-6 .3-8.9-.6 1.4 2.9 2.4 5.8 3 9 1.7 10.7-2.6 19.6-12.6 24.2-8.8 4.1-21 5.7-29.7.5-7.3-4.3-4.9-18.7 4.8-17.4 6.5.8 12.4 3 18.9.2 5.2-2.2 2-10 .4-14-2.6-6.7-6.5-13-9.7-19.5l-.6-1.3c-2-4.2-4.4-8.7-6.3-13.3-1 5.4-3 10.7-5.1 15.6a40.4 40.4 0 0 1-27.4 22 138 138 0 0 1-39.7 3.8c-13-.4-26.7-3.8-36.2-13.2C40 136.5 45 106.4 63.4 91.9a63.6 63.6 0 0 1 43.9-14 56 56 0 0 1 24 1 49.6 49.6 0 0 1 27 15.4l1.8-3.6c-.3-.2-.4-.6-.1-.9l1.6-1.4c2.2-3.1 5-5.8 8.6-8.2Zm-126 80.9c-.7-1 .6-2 1.4-1.5a90.7 90.7 0 0 0 23 11.3c8 2.4 16.5 2.2 24.6 4.2 3 .8 2.5 4.7 0 5.7-9 3.4-19 .5-27.5-3-8.6-3.7-16.1-9-21.5-16.7ZM92.5 87l.2-.3-.6.2a54 54 0 0 0-25 17.1c-11.6 14-11.7 36 5.5 45.5 9.2 5 20.2 5.3 30.5 4.8l2-.1c9.1-.5 18.3-1.3 27-3.7a28.2 28.2 0 0 0 19.8-17.7l.3-.8c3.6-9.5 5.5-20.1-1.2-28.7-11.4-14.7-37.8-17.6-54.1-10.6-4 1.7-7-2.4-4.4-5.7ZM197 83a5 5 0 0 1-.9.7c-3.3 2-7 2-10.6 3A45 45 0 0 0 176 90c-4.8 2.5-9.8 5.4-14.4 8.6a34 34 0 0 1 5.2 20c3.2 2.8 5.9 6.2 8.7 9.3l2.5 2.7a218.8 218.8 0 0 1 13.2 16 7 7 0 0 1 1-1.9 6 6 0 0 1 6.5-2.7c2.3.6 4 1.7 6.4 1.7a37.7 37.7 0 0 0 24-11c9.1-9.5 4.3-23-3-32.2A49 49 0 0 0 197 83Zm-82.3 23c3-.8 7.4.6 8.7 3.6l1 2.2-.2-.1 1 2.3.8.7a11.7 11.7 0 0 1 3.2 11.4 10.8 10.8 0 0 1-10.4 7.8c-14.2 0-17.7-23.9-4.1-27.8Zm85.6-4.2c6.6-.3 11 5.5 11.5 11.4.2 3.4-.4 7.1-1.4 10.3a10 10 0 0 1-19.4-.2c-1.3-3.1-2-6.6-2.1-10-.2-6.5 5.3-11.2 11.4-11.5ZM114 48.2c6.6-1 13 2.2 14 9.4s-4.4 12-11 12.6c-12.6 1.4-25.4 1.7-38 2.2-5.3.3-10.6.4-15.8.4h-2.7c-4.9 0-11.2 1-15.7-1.4-.3-.1-.3-.5 0-.7 3-3.9 9.5-5.5 14-7.2l.5-.1a264 264 0 0 1 17.6-6l3-1c11.2-3.2 22.7-6.3 34-8.2Zm42.2-3.5c4-1.5 8.2-.5 11 2 9.3 2.7 19 4.7 28.3 7l2.6.6c11.8 3 24.7 5.2 35.7 10.6 1.2.6.4 2-.6 2.2-12.2 1.5-25.4-1-37.5-2.3-12.5-1.5-25-3.9-37.4-4.8-9-.7-10.3-12.2-2.1-15.3Z" fill="#000"/></g',glee:'g fill-rule="evenodd" clip-rule="evenodd"><path d="M79.2 197.8c11-6.6 51.7-1.8 83.8 0 25.5 1.4 43.7-1.4 49.5 2.5 13.1 8.9 6.8 51.7-16 57.6-22.6 5.8-106.6 14-121 0-14.6-14-15.9-48.3 3.7-60.1Z" fill="#fff"/><path d="M93.3 186.5c17.2-2.1 33.8 3.1 50.6 5.8a236.6 236.6 0 0 0 32 3c.2-1.6 1-3 3-4 4-1.7 7.1-2.5 11.4-2.4 4 .2 8 .6 11.9 1.3a37 37 0 0 1 19.4 9.4c12 11.8 10.1 30.9.9 43.8-19.2 26.7-54.1 28-84 27.6h-2.8c-27.3-.5-66.3 3.6-78.7-27.4a43.6 43.6 0 0 1 1.7-35.6c6.6-13 20.6-19.8 34.6-21.5Zm85.2 44.4h-.2c-12.6.5-25.2.8-37.8 1a500.6 500.6 0 0 0 2.3 17.3c.2 1.1.8 2.8.6 3.8v.4a3.8 3.8 0 0 1 2 2.2c9.8 0 20.3-.1 30.2-1.9v-.2c.2-1.3.8-2.1 1.5-2.7.7-4 .6-8.4.9-12.4l.5-7.5Zm-47.6 1.2c-9 .2-18 .3-27.1.2h-4.2c1 4.6 1.9 9.2 2.6 14 .9 4.8-3.4 8-7.2 7.8l1.3.2c11.6 1.6 23.7 1.2 35.5 1.2-.6-3.7-.4-8-.5-11v-.5l-.4-11.9Zm-61.5-.8c.3 2.4 1 4.8 1.8 7 4 9.3 12.8 13.6 22.2 15.5-1.7-.6-3-2-3.3-4.2A128 128 0 0 1 89 232c-6.6 0-13.1-.2-19.6-.8Zm143.2-2c-4.7 1-10 .6-14.6.8l-12.9.5.6 8.8c.3 3.7.3 7.7 1 11.5 8.7-3 16.4-7.7 22.2-15.2 1.4-1.9 2.7-4 3.7-6.4ZM91.4 201.8c-7.8 1.8-15 5.7-19 12.8a27 27 0 0 0-3.2 14c6.5-.7 13.2-1 19.8-1.2l.1-3.6.1-3c.2-5.9.3-13.2 2.2-19Zm40 .7-3.3-.4c-9.5-1-19-2.2-28.4-1.6l-4.2.5c1.7 6 1.5 13.1 2.2 19.1l1 6.9h1.7c10.1-.6 20.3-1 30.5-1.4V218c.2-4.8-.1-10.3.6-15.4Zm47.6-.8a190.6 190.6 0 0 1-41.5 1.4l.5 6.2 1.3 12.4.5 3.6 37.5-1.9h1.7l.5-7c.4-4.6.7-9.2 1.3-13.8l-.4-.1-1.4-.8Zm4.4 1.7 1.2 19.6 8.2-.4 4.2-.2c5.3-.3 12.2-2 17.5-.4.4-4.8-1-9.5-5.3-12.7-7.7-5.7-17.3-3.7-25.8-5.9Zm-28.2-58.3c12.3-7 43-14.2 45 7.9 1 10.1-6.6 18.6-15.5 22.3l-.3.1c-8.3 3.4-23 7.3-30.1 0-6-6.2 2-17.2 9.3-12.2 3.9 2.6 11.9.7 16.1-.6h.3c4.6-1.4 10.7-5.7 8.8-11.3-1.7-5-8.8-6-13.3-6-6.7-.3-13.2 1.2-19.8 1.7-1 0-1.3-1.4-.5-2Zm50.8-35.5c16.7-.8 27 17.4 23.2 32.3-.6 2.6-3.5 5-6.3 4.8h-.7l-1-.2c-2.7-.8-5-3.5-4.8-6.4v-.8c.4-7-.4-15.1-8.7-16.8-7.1-1.5-11 5.3-11.2 11.6 0 1.1-1.2 2-2.2 1.3-5.2-3-6-9.3-4-14.6a17.2 17.2 0 0 1 15.7-11.2Zm-123.6 3.9c12.2-4 25.2 2.4 31.1 13.1 2 .6 4.1 2.2 3.8 4.6-.4 3.5-1 5.7-3.4 8.4-3.8 4.1-11 2-12.5-3.1v-.2c-1.9-6.6-9.1-11-15.7-8.7-7.8 2.7-7.5 10.9-13 15.6-.6.6-1.4.7-2.1.3-5.8-2.8-4.8-11.1-2.7-16 2.7-6.2 8-11.8 14.5-14ZM66 76.7c9.8-10 35.5-19.7 42.2-1.2 1.3 3.5-1.5 8.2-5.1 9-6 1.2-11.4-1.4-17.3-1a26 26 0 0 0-13.8 5c-10.7 8.3-13 22.3-20.5 32.9-.4.5-1 .3-1.1-.3a58.4 58.4 0 0 1 15.6-44.4ZM194 66.8a33 33 0 0 1 20.5 0 39.7 39.7 0 0 1 23 18.6c.8 1.5 1.7 4.4 2.6 6.2 5.1 3 7.3 9.7 2.7 14.5l-.2.3-.6.6a9.9 9.9 0 0 1-9.6 2.5c-7.5-2.2-8.4-8.1-11-14.4a25.8 25.8 0 0 0-8.3-10.6 39.8 39.8 0 0 0-32.6-5.4c-.5.1-1.1-.6-.8-1 2-2.6 3-4.6 5.7-6.6 2.6-2 5.5-3.6 8.6-4.7Z" fill="#000"/></g'}},
+ wangjie:{pre:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 704 704" fill="none" shape-rendering="auto" width="96" height="96"><metadata xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/"><rdf:RDF><rdf:Description><dc:title>Open Peeps</dc:title><dc:creator>Pablo Stanley</dc:creator><dc:source xsi:type="dcterms:URI">https://www.openpeeps.com/</dc:source><dcterms:license xsi:type="dcterms:URI">https://creativecommons.org/publicdomain/zero/1.0/</dcterms:license><dc:rights>Remix of „Open Peeps” (https://www.openpeeps.com/) by „Pablo Stanley”, licensed under „CC0 1.0” (https://creativecommons.org/publicdomain/zero/1.0/)</dc:rights></rdf:Description></rdf:RDF></metadata><mask id="viewboxMask"><rect width="704" height="704" rx="0" ry="0" x="0" y="0" fill="#fff" /></mask><g mask="url(#viewboxMask)"><g fill-rule="evenodd" clip-rule="evenodd"><path d="M705.3 1074a2351.1 2351.1 0 0 1-15.6-101c-1-7.7-2.5-16.4 2.7-22 7.3-8 14-14.8 14.8-26.2.8-10.7-2.8-22.4-5-32.8a809.4 809.4 0 0 0-17.3-64.7c-6.6-21.7-13.9-43.2-21.3-64.6-6.9-20-13.5-40.3-22.5-59.5-17-36.5-46-63.5-81.6-81.6-9-4.5-27-20.5-36.3-24-8.5-3.4-8.5 6.3-16.9 2.6-6.7-2.9-13-6.7-16.7-13.2-4-7-14.3-16.9-15.9-25-3.3-17.4.3-32.2-12-45.3a90 90 0 0 0-41.1-23.8c-33.7-9.3-78.5-2.8-98.8 28.5-9.7 14.9-13 33-26.2 45.1-11.4 10.7-8.8 18-23.6 23.4-.9.3-23.6-4.5-24.4-4.2-16.2-3.5-31.7 6.2-46.5 11.8a325.4 325.4 0 0 0-63 32.3 399.2 399.2 0 0 0-102.3 98.5 482.5 482.5 0 0 0-76.4 161c-1.7 6.4-3.5 13-1.5 19.4 1.7 5.3 5.4 9.2 9.8 12.4 6 4.3 18 7 17.7 15.7-.1 6.6-2.4 13.5-3.5 20-1.3 7.7-2.3 15.5-3.4 23.2-4.8 35.4-8.6 71-10.3 106.6a920 920 0 0 0-.5 106c.1 2.3.8 4.5 2 6.2-1 .4-1.2 2.4.1 2.7l2.7.5a12 12 0 0 0 7 2.4l5.5.2c19.3 4 38.6 7.9 58.1 10.8 23.8 3.5 47.6 6.3 71.5 8.7 49.2 4.8 98 3.2 147.1.6a1877 1877 0 0 1 147.4-2c49.2 1.4 98.4 3.5 147.6 4.4 55 1 110-.5 164.8-5 7.5-.5 12.2-6.5 10.7-14-8.9-44.7-19-89.1-27-134Z" fill="#ffdbb4"/><path d="m201 597.5 1.2-.4c14.5-5.7 29.6-14.8 45.4-11.4.5-.2 10.8 1.9 17.9 3.2l-6.7 7L247 598c40.7 67.1 88.8 100.7 144.3 100.7 55.5 0 97.7-33.6 126.4-100.7l4-1c.4 0 1 .2 1.5.4 9.3 3.6 27.4 19.6 36.3 24.1 35.6 18 64.5 45 81.6 81.6 8.7 18.6 15.2 38 21.8 57.5l.7 2c7.4 21.4 14.7 43 21.3 64.6 6.3 20.4 12 41 16.6 61.8l.7 2.9c2.2 10.4 5.8 22 5 32.8a29 29 0 0 1-3 10.7l-80.4 29 38.4 261.3c-35.1 1.5-70.3 2-105.5 1.3-49.2-.9-98.4-3-147.6-4.3-47.7-1.2-95.3-.7-143 1.7l-12 .6a946.3 946.3 0 0 1-139.5-1l-3.1-.3v-38.3l16.3-212.9-83-15.6-81.3-39.5a21.7 21.7 0 0 1-5.6-8.8c-1.9-6-.5-12 1-18l.5-1.3a492.8 492.8 0 0 1 76.4-161A399.3 399.3 0 0 1 138 629.7c19.8-13 40.9-23.9 63-32.3Z" fill="#e279c7"/><path d="M232.2 584.6c5.1-.3 10.3.6 15.4 1 .4.1.6.8 0 .9-9 1.9-18 4.5-26.9 7.1l-3.8 1.2c-10 3-19.8 6-29.6 10-19.4 7.9-37.8 18.5-54.8 30.8C67.2 682.8 20 754.3-9.9 828.3a526 526 0 0 0-24.3 77c-.4 1.6-2 5.4-1 7 .7 1.3 3.6 2.1 5 2.9l4.5 2.3 25.2 12.9 2.3 1.1c38 18.6 78.4 34.4 121 35.5l.4-3.7a342 342 0 0 1 9.9-60c.3-1 1.6-.6 1.7.3 3 23.1 2 46.4 1 69.7-1.8 41-4.3 82.2-6.5 123.3-1.2 20.6-2.6 41-3.9 61.7-1.3 20.5-1.7 41.6-4.7 62-.6 4.6-6 7-10 6.6-4.4-.5-7.9-4.5-8-9 0-11.9 1.5-24 2.4-35.8l2.5-33.8c3.1-41.1 6.8-82.2 10.2-123.3a4771 4771 0 0 1 3.8-43.7C76.4 979.8 34.2 963-6.1 943.5c-.6 13.2-2 26.5-3.4 39.6-3.8 36.8-7.1 73.6-9.6 110.5a2254.2 2254.2 0 0 0-4.2 92.7l-.2 7c0 4.4-.5 8.5-4.3 11.7-3.7 3.3-8.9 3.5-12.6 0-5-4.6-4.2-10.9-4-17.1a1675.6 1675.6 0 0 1 1.8-47.2 1321 1321 0 0 1 10.5-109.5l2-14c3.5-26 7.5-52.7 15.5-77.9-3.1-1.5-6.2-3-9.3-4.7-5.5-2.7-11.2-5.4-16.6-8.4-4.2-2.5-7.9-5.8-9-10.8-1.4-5.5.6-11.5 2-16.9v-.4a502 502 0 0 1 26.6-80 523.2 523.2 0 0 1 67.8-117 353.8 353.8 0 0 1 88.7-83.3 239 239 0 0 1 53.8-25.7 142.6 142.6 0 0 1 42.8-7.5Zm90.1-66c6-6.5 18.1.2 15.2 8.8a108.2 108.2 0 0 1-34.7 52A79.4 79.4 0 0 1 247 598l1.7 2.4a321.1 321.1 0 0 0 46.1 52.6c36 31.2 84.8 48 132 36 37.1-9.4 69.8-38.8 79.4-76.2-1.3.6-3 .9-4.8.5-7.7-1.7-15.3-9.8-20.3-15.6-5.3-6.3-9.5-13-12.6-20.7-5.6-14-7.4-32.1.3-45.7 1-1.7 3-.7 3.3 1l.3 2.5c1.5 12.7 3.3 25 9.3 36.6a76 76 0 0 0 18.2 23.1c2.6 2 5.8 3.6 8.1 6l.5.4c.6-5 4.1-7.3 7.6-7.2 3.3.2 7.3 1.6 8.8 2.3l.1.1a341 341 0 0 1 65.1 42 259 259 0 0 1 88.4 129c7.5 25.3 11.8 51.4 16.3 77.4l2.8 16c4.2 23.9 8.9 48.4 18.4 70.7 2.5 5.7.6 11.1-5.5 13.4A1493 1493 0 0 1 688 953c3.7 16 6 32.5 8.7 48.5 6 34.1 13.2 68 19.4 102 3.2 17.5 6.1 35 9.3 52.3l4.7 25.2 2.4 13.6.1.7c.5 2.4 1 4.9.4 7.3-.8 2.7-2.9 4.6-4.8 6.6-1.6 1.6-3.8 1.6-5.7.7l-.7-.3c-3.4-1.6-6-3.2-7.3-7-.7-2.5-1-5.2-1.5-7.7a3535.6 3535.6 0 0 1-7.8-43.6l-1.6-9.1c-5.2-31.4-10.2-62.9-12.8-94.5-1-14-2.3-28.1-3.5-42.2l-.9-10.5c-1.1-13.3-2.5-27-2.7-40.5l-4.5 1.6L657 964c-5.5 2-12.5 6-18.4 5.2-2.9-.3-5-1.2-6.8-2.9 2 28.8 4.8 57.4 8.5 86a1965.7 1965.7 0 0 0 22 135c.6 3.2 1.4 6.4 1.9 9.6.5 3.7-.5 5.9-2.5 9-1.7 2.4-5 3.7-7.8 2-3.6-2.3-5.5-4.3-6.5-8.4-1-3.7-1.6-7.6-2.3-11.4a1654.2 1654.2 0 0 1-11.4-65.2c-7.8-52-12.7-104.4-15.2-156.8a1388 1388 0 0 1-1.4-77.8c0-13.3.5-26.6 1.4-39.9 1-13.4 3-26.5 4.8-39.8 0-.5.7-.5.7 0 .8 14.9 2.1 29.8 2.8 44.7.6 14.3.9 28.5 1.4 42.8.6 18.7 1.5 37.5 2.7 56.2a9.6 9.6 0 0 1 8.5-3.1c4.7-1 9.7-3.4 14.1-5l16.8-5.5 26.4-8.7a679 679 0 0 1-18-80.8l-2-12.3c-4-24.2-8.5-48.5-15.8-72a229.8 229.8 0 0 0-34.8-68.2 370.2 370.2 0 0 0-52.7-55.3C557 627 539.7 614 523 600c.1.9.2 2 0 3-3.5 25.9-17 50-35.8 67.9-37.7 36-93.6 43.4-142 26.5-46.7-16.3-88-55-102.6-102.8-.3-.8.8-1 1.3-.5l2.4 3.3c0-.4.2-.9.7-1a129 129 0 0 0 46.6-29.2 100.2 100.2 0 0 0 21.3-33.3l.4-1c1.7-5 3.2-10.2 7-14.2Z" fill="#000"/></g><g transform="matrix(.99789 0 0 1 156 62)"><g fill-rule="evenodd" clip-rule="evenodd"><path d="M343.4 146.7C277.6 93.3 172.2 76 101.8 129.8c-54.7 50.6-77.3 194.5-67.6 266.7 2.7 46.4 38 99 90 84.3 8.9-.9 17.5-4.3 26.4-5 10.6-1.2 21.4-1.2 32 .3 23.2 3.3 43.7 15.6 66.2 21.3A156.8 156.8 0 0 0 373.1 477c118.7-78 65-254.6-29.7-330.2Z" fill="#ffdbb4"/><path d="m334.6 498.7 3.7-1.3c0 .3.2.5.4.8l.5 1.2c-1.5 0-3-.2-4.6-.7Zm-2.4-518c-.5-1.2-1.2-2.4-1.9-3.5 1.7.5 3.4 1.3 5 2.3l-3 1.2ZM72.4 138.8h-.2c1-2.4 2.5-4.6 4.2-6.2l1-.9a50.2 50.2 0 0 0-5 7.1Zm475.4 248.4c-1-8.4-2-16.7-3.5-25-1.4-7.8-2.5-16.3-6.6-23.3-4-7-8-13.8-12.7-20 .6-3 1.5-6 2.3-8.4 4.5-13.7 9-31.1-.4-43.8-2.2-3-4.8-5.3-7.9-7.3-1.2-.9-3.4-1.7-4.4-2.9-.7-.8-.4-.3-.5-.8-.1-2.2 5.2-7 6.4-8.8 2.3-3.3 4-7 5.4-10.8 5.2-15.1 1.6-31.7-1.5-46.8-1.6-8-3.5-16-4-24.3-.6-7.6.4-15.1 1-22.8.6-7.5.5-15.3-2.8-22.3-1.5-3.4-4-6.4-6.8-8.7-2.9-2.3-6.4-3.6-9.2-6-2.8-2.2-2-5.3-1.2-8.4 1-4.3 2.2-8.5 2.3-12.9.2-7.7-2.9-15.1-7.8-21-5-6-12.2-10-20-10.9-3.6-.4-7 .3-10.6 0-3.5-.2-4.3-2-5-5.1-1.4-7.4-.8-14.6-4.4-21.4a28 28 0 0 0-15.2-12.7 66 66 0 0 0-37.1-.9c-7.2-21-29.6-35-51.7-35.1A31.2 31.2 0 0 0 336-36c-11-4.2-22.6-1.7-34-1.7h-.1a61 61 0 0 1-6.7-.4c-13-1.5-26-6.9-38.9-1.7-5.7 2.4-10.3 6-13.2 10.5-4.4 1.2-8.7 2.6-13 4.2A55.1 55.1 0 0 0 184.5 1c-13-1.5-27.2 1-35.8 11.7-2.3 2.8-4 6-5.2 9.5-8.8 2.8-17 8-22.2 15.6-5 7-5.8 16-2.6 23.4a45.7 45.7 0 0 0-17 23.5c-1.7 5.8-2 11.9-.8 17.6-8 1.8-15.8 5.1-22.6 10-7.1 5.3-16 13.5-16.5 23v2.2C46 136.5 30 139 19.4 151.7a39.8 39.8 0 0 0-9.4 32.8 87.2 87.2 0 0 0-48.7 28c-9 10.5-17 23.9-16.5 38.2.2 4.3 1.2 8.6 3 12.6-.8 1.5-1.6 3-2.3 4.7a69.3 69.3 0 0 0-24.8 34.8c-3.8 11.4-6.2 26.1-2.1 37.7.6 1.7 1.4 3.4 2.3 5-.8.7-1.5 1.6-2.2 2.4C-89 357-97 368.5-96.5 381c.2 5 2.1 10.1 5.2 14.3-10.8 11-19.5 24.8-18.6 40.2.7 13.5 8 27 19.6 33.5a32.5 32.5 0 0 0 22.5 37.5c1.1 12.2 12 22 23.4 24.8 2.2.6 4.3.9 6.4 1 10.4 5.1 22.7 4.5 33.3-.1A34 34 0 0 0 13.2 544c14.9 4.4 30.2-1.6 43.2-8.5l1.9-.9a35.4 35.4 0 0 0 26.3 9.4c7.8-.5 14.7-3 21-6.7l2.9.3c6 .3 11.3-1.6 16.2-4.6 3.1.4 6.4.4 9.7-.2 7.3 1.9 14.3-1 20-5.7 2.6-2.1 4.7-4.5 7-6.9 2.3-2.4 4.1-3 7-4.6 6.5-3.8 7.2-13.5 4.4-20.5.5-1.2.9-2.6.9-4.1 0-13.3-6.2-25.5-13.7-36-3.3-4.8-7-9.4-11-13.6-3.2-3.4-7.7-8.9-12.4-10.2l-1-.7c1-3.2 1.5-6.5 1.3-9.8-.2-3.4-1.3-6.7-3.1-9.5 6-11.6 8.5-24.2 7.3-37.5a64.4 64.4 0 0 0 12.2-38.7c0-2.5-1-5.8-1-8.4.1.8 1.2-2.3 1.6-3 4.8-9 11-16 12-26.5.7-6.2-.8-13-4.5-18a44.9 44.9 0 0 0-4.9-35.3c.6-1.8 1.2-3.7 2-5.4l.8-2c2.7-2.4 5.2-5 7.3-7.6a34.2 34.2 0 0 0 8.8-19.6 31 31 0 0 0-1.8-11c-.5-1.5-.8-3.3-1.3-5-.4-.8-1.1-1.7-1.4-2.5l-.1-.4v-.9c0-3.6.5-7 .5-10.5a29 29 0 0 0 11.8 7.2c9 3 18.5 1.6 26.5-2.9 8.7 6 18.4 11.3 28.6 13.4 6 1.3 12 .8 18.1 1.6 6 .8 12 3.4 17.6 5.5 12.6 4.5 25.2 9.2 38 13.7a63 63 0 0 0 32 4.4 34.8 34.8 0 0 0 23.5 15.6c3.6.6 7.8.3 10.7 2.8 2.9 2.4 4.7 6 7.2 8.7a37.4 37.4 0 0 0 19.1 10.8l-.6 20.5c-.1 14.9 0 29.7-.3 44.6-.2 14.8-.6 29.6-1.4 44.4-.8 13.9-1.8 27.8-5.1 41.3-11 45-52.1 77.1-98.2 78.8-13.6.5-27.2-1.5-40.2-5.5-13.6-4.1-25.7-12.7-39.5-15.4-3.7-.6-7 3-5 6.5 3.6 6 8 9.7 13.9 13.4a139.2 139.2 0 0 0 59.3 17c10.2.4 20.4-.3 30.4-2.2.7 2.2 2 4.3 2.9 6.3.1.2.6 0 .5-.3l-.3-1.3c3.4 4.4 8.6 7.5 14 9a30.8 30.8 0 0 0 15.1.2c4 3.5 9 5.8 14 7-.8 5.2 1.8 11 7.9 12.5 2.5.6 5 .6 7.4.4 2 1 4 1.6 6.3 2.1 3 .7 6.5-.2 8.7-2.3 1.2.9 2.3 1.5 3.4 2.8 4.6 5.6 14.6 1.1 15-5.3h4.4l1 .6c6.5 3 13.2 5.6 20.3 3.2 1.3-.4 2.5-1 3.6-1.6 5 .4 10 .5 15-1.2 3-1 5.8-2.5 8.2-4.5a38 38 0 0 0 23.9.5 29.5 29.5 0 0 0 13.8-10c5.1.2 10.2-1 14.9-3.4 7.9-4 13.4-11.9 17.3-19.7a160.5 160.5 0 0 0 15.6-54.8c2-18.8-.9-37.5-2.8-56.2Z" fill="#000"/></g></g><g transform="translate(315 248)"><',post:'></g><g transform="translate(279 400)"></g><g transform="translate(179 343)"></g><g transform="translate(203 303)"></g></g></svg>',f:{idle:'path fill-rule="evenodd" clip-rule="evenodd" d="M155.9 251c7.5-1.1 15.7-5.4 22.9-2 3.4 1.7 5 7.3 2.7 10.4-3.5 4.7-7 5.5-12.8 6-4.2.3-8.5.3-12.7-.2l-1-.1c-7.6-1-15.5-3.1-21.3-8.2-1.2-1-.6-3.3 1-3.6 6.9-1.5 14.2-1.4 21.2-2.4Zm-9-17.5h.2a24.8 24.8 0 0 0-.1 0Zm24-89.1c7.5 4.6 19 15.3 10.8 26.6-9.5 10-23.3-1.4-30-6.6-6.4-4-13.4 6.3-7.6 11 49 36.3 69-29.8 30.5-36.4-4.2-.8-5.8 4-3.8 5.4ZM209.4 93c1.7 0 3.4.6 5 1.7 1.5 1.1 2.9 2.7 4 4.7 2.2 3.8 3.5 9 3.5 14.8 0 5.7-1.3 11-3.5 14.7-1.1 2-2.5 3.6-4 4.7a8.5 8.5 0 0 1-5 1.7c-1.8 0-3.5-.6-5-1.7-1.6-1-3-2.7-4-4.7-2.3-3.8-3.6-9-3.6-14.7 0-5.8 1.3-11 3.5-14.8 1.2-2 2.5-3.6 4-4.7a8.5 8.5 0 0 1 5-1.7ZM127.3 99l.7-.1c4-.8 5.9-.5 9.3 2.1 2.5 2 1.8 6 0 8-3.2 3.7-6.3 3-10.6 3.2h-.3l-10.9.3h-3c.1 9.2-5.1 16.2-12.1 21.5-4.5 3.4-10.2-.5-11.8-4.8a23.1 23.1 0 0 1-1-11.8c.3-1.4.9-3 1.7-4.2l.2-.4v-.9c-6.5-.4-13-1-19.3-1.8l-2.2-.3c-5.4-.7-13.5-1-18-4.5l.1-.5c2.5-1.3 5-1.2 7.7-1.3h.4l8.9-.4 3-.1c7.5-.2 15-.6 22.7-1l4-.2c1.3-.6 2.8-1 4.2-1 1.2 0 2.4 0 3.4.4l8.3-.7 2.8-.2c4-.4 8-.6 11.8-1.3Zm48-68.7a34 34 0 0 1 27-.8l.5.2c8.7 3.6 19.1 12 16.9 22.3-2 9.5-17 7.9-17.7-1-4.8-6.7-15.6-8.2-22.3-4-4.1 2.6-7 7-8.9 11.3-1.6 3.7-2 8.3-4.4 11.5-.1 0-.3.1-.4 0-7.5-1.7-7.7-13.6-6.4-19.4a30.2 30.2 0 0 1 15.6-20Z" fill="#000"/',mad:'g fill-rule="evenodd" clip-rule="evenodd"><path d="M107 148c18.2 0 33-13 33-29s-14.8-29-33-29-33 13-33 29 14.8 29 33 29ZM226.5 141c16.3 0 29.5-11.2 29.5-25s-13.2-25-29.5-25-29.5 11.2-29.5 25 13.2 25 29.5 25ZM119.7 216.6c4.8-12.8 32.5-23.9 51.5-23.9s49.7 11 49.7 11L212 228s-80-3.4-84.7-3.4c-4.6 0-12.4 4.9-7.7-8Z" fill="#fff"/><path d="M156.5 188.5c20.5-.8 58.6 3 74.1 15 16 12.1-4 50.9-6.3 50.8-23-.9-45.7 2.4-68.4 5.5l-4.5.6c-15.3 2.1-36.7 5.8-44-11.8-9-30.6 18.4-60.3 49-60.1Zm36.2 13a148.6 148.6 0 0 0-37-1c-11 1.2-21.4 4.2-28.3 12.5 1.7.3 3.2 1.5 4.2 3.2 14.8.4 30-.2 45 .6 8.4.1 17 1 25.3.6 7.2-.3 5.2-6.3 6.2-11.4a62.8 62.8 0 0 0-15.4-4.6ZM58 85.5c14.8-24.4 59.4-9.2 81.8-4.1 17.1-3.8 18.8 24.7 1 21.8a32 32 0 0 1-7.2 43.2C99.4 175 36.6 128.4 80 95c.5-4.1 6-5.3 9.3-7l-1.1-.2a52.1 52.1 0 0 0-28.7-.5c-1 0-1.5-1-1.4-1.8Zm120.8 50.8c7.6 4.6 19 15.3 11 26.6-9.6 10-23.4-1.4-30.2-6.6-6.3-4-13.3 6.3-7.5 11 49 36.3 69-29.8 30.5-36.4-4.2-.8-5.8 4-3.8 5.4ZM256.5 59c.5 0 .7.7.4 1-9.3 9.2-21 16-31.4 23.8a44.6 44.6 0 0 1 37.4 30c4.6 25.4-32 37-51.4 29.4-16.1-5.6-27.8-21.2-19-37.8-9.2 0-18.5-12-11.7-18.8 6-6.2 13-2.5 15.6-4l3-1.5c18-9.6 36.8-18.8 57-22Zm-124.8 51.4c-11.6-18.3-57.3-18.7-56 9.6 1.8 37.2 75.6 28.8 56-9.6ZM226 94.7c-8.6-1.8-16.1 8-21 5.5-27.2 31 28.2 49 46.4 25.2 10-12.8-13.2-30.4-25.4-30.7ZM111 112c11.2-4 11 12.6 2.7 16-9.5 3.7-12.7-16.2-2.8-16Zm101.1 1.8c-.6-10.2 14.9-14.9 18.8-4.7 5.4 13.7-18 20.6-18.8 4.7Z" fill="#231F20"/></g',oops:'g clip-rule="evenodd"><path fill-rule="evenodd" d="M166.7 208c11.9 0 16.9 1.9 24.6 6.4 7.7 4.5 16 10.4 18 19.2 1.8 8.1-1.8 16-9.8 19.2-4.4 1.7-55.5 5.8-63.6 6.3-8 .6-15.6 0-20.8-5.4-13.3-13.8 5.2-31.7 17-38.3a70 70 0 0 1 34.6-7.5Zm-2.8 9.2c-8.9 0-23.5 6.6-23.5 9.8 0 3.1 42.6 0 43.5-2.7 1-2.8-11-7-20-7Zm7-72.8c7.5 4.6 19 15.3 10.8 26.6-9.5 10-23.3-1.4-30-6.6-6.4-4-13.4 6.3-7.6 11 49 36.3 69-29.8 30.5-36.4-4.2-.8-5.8 4-3.8 5.4Zm-85.4-41.6c13-9.5 32.1-2.2 35.3 12.6 2.2 1.2 3.4 3 3.7 5.7v.7c.4 3.2-2.5 6.3-5.4 7-3.2 1-5.7.6-8.7-.8-2.8-1.3-3.8-5-3.3-7.8v-.3c.8-3.5-2.2-6.9-5.2-8.3-3.4-1.5-7.3-.5-10.2 1.5-3.3 2.3-6 6.3-7 10.2v.4c-.8 3.4-1.3 9.7 2 11.7.5.3.1 1.1-.5 1-7.1-1.2-11.4-5.5-11.4-13.2 0-8.1 4.3-15.7 10.7-20.4ZM204 100c12.8-4.6 28.9 7.6 24 21.8-3.3 9.3-15.9 5.5-14.7-3.8v-.2c.8-4.9-2.9-7.2-7.4-5.6-6.6 2.4-10.2 12.8-7.1 19 .4.7-.7 1.3-1.1.6l-.5-.7c-3.5-5.5-6.6-9.6-5.5-16.7A19 19 0 0 1 204 100Zm-26-33.7c-.1-.6.6-1 1.1-.9 4.6 1.2 8.7 4.5 12.9 6.6 4.5 2.4 9.2 4.3 14 5.7 4.9 1.3 9.7 2 14.7 2 5.4 0 10.7-2.1 16-2 8 .3 12.1 11.9 4.3 15.9-11.4 5.8-28.4 1.6-39.5-3.3-9-3.8-23-13-23.6-24Zm-58 2.7c4-5.4 12.5-5.7 16.2.6 3.8 6.5-.8 13-7.2 14.4-11.9 5.3-24 9.4-37 11l-1.7.3c-11.3 1.4-25.5 2-35.7-3-1-.6-.7-2.1.3-2.4 5.8-1.7 12.2-1.6 18-2.7a149 149 0 0 0 16.7-3.8c10.8-3.3 21-8 30.3-14.4Z" fill="#000"/><path d="M133.2 229.7s10.2-16.5 26.9-16.5 36 8.7 34.7 12.8c-.7 2.2-16.3 8.5-42.2 8.7-6.4 0-19.4-5-19.4-5Z" stroke="#22252B" stroke-width="1.5"/></g',glee:'path fill-rule="evenodd" clip-rule="evenodd" d="M55.6 167.6c3.5-7.8 19.1-20 19.1-20s4.8 27 1.1 35.3c-3 6.8-14 19.2-22 15.7s-4-18 1.8-31ZM250.2 160.5c-2.8-6.6-15.7-17-15.7-17s-3.9 22.9-.9 30c2.5 5.7 11.5 16.2 18.1 13.2 6.6-3 3.2-15.3-1.5-26.2ZM117 199.2h87.8l5.2 14.5s-65.5 15.3-88.5 5.5l-4.5-20Z" fill="#fff"/><g fill="#000"><path d="M181.7 171c8.2-11.3-3.3-22-10.9-26.6-2-1.5-.4-6.2 3.8-5.4 38.4 6.6 18.5 72.7-30.5 36.4-5.8-4.7 1.2-15 7.5-11l1 .7c7.1 5.5 20 15.5 29.1 6ZM104.5 56.5l-2 .3c-6 1-12 3.4-17.5 6.2a59.3 59.3 0 0 0-25.9 24c-.5 1.2.7 2.7 2 2 9-6.2 17.8-11.8 28.6-15a67.7 67.7 0 0 1 19.5-2.5c4.4.2 8.6.3 12.4-2.9 3-2.3 2.2-7 0-9.4-4.1-4.7-11.3-3.7-17.1-2.7ZM204.6 52.5l-1.4-.3a8.5 8.5 0 0 0-4.9.4 7.4 7.4 0 0 0-3.6 3.1 7 7 0 0 0-.8 5.9 7 7 0 0 0 2.6 4c1.2.9 2.9 1.5 4.6 1.7 7.8.9 15.4 2.6 22.9 5 3.5 1.2 6.8 2.7 10 4.3L237 78a45 45 0 0 0 9.4 3.6c.9-.3 1.1-.6 1.3-.8v-.1l.1-.1c.3-.3.6-.8.3-3-7.4-15.3-27.7-21.9-43.4-25.1ZM123.3 128c-3 1.8-6.3 1-8.9-1.1-1.6-1.3-2.8-3-4-4.6-1.5-1.9-2.9-3.8-5-5.1-3.2-2.2-7.5-2.3-11.2-1.7-5.6 1-10.4 3.6-15.3 6.2a86 86 0 0 1-8.3 4.2c-1.1.5-1.8-1-1.4-1.8a38 38 0 0 1 27-22.5 29 29 0 0 1 30.4 18.2c1.1 3-.7 6.7-3.3 8.2ZM242.6 115.4c.2 0 .5-.2.4-.5-3.2-10.3-15.1-14.7-25.2-13.8-6.2.5-11.9 2.8-16.6 7-4.5 4-8 11.4-4 16.9 4.3 5.6 12.8 3.8 13.3-3.6.4-4.8 8.6-7.8 12.8-8.5 6.5-1.2 13.2.2 19.3 2.5Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M176.1 195.5c11.6-.1 25.6-.3 35.6.3 3.6.2 5.3 5.3 5.6 7.8 2.3 22.4-15.6 40.4-35.4 47.3-18.4 6.5-42.7 7.7-59.2-4.3a50.2 50.2 0 0 1-16-20.6 56.8 56.8 0 0 1-4.3-15c-.6-3.3-1.3-7.3-.2-10.4 1.7-4.4 6-4.5 10.1-4.5h1l5-.2 12.8-.2 27.7-.2H176Zm-49.8 19a253 253 0 0 0 42.5 1.5c10-.4 36-6.5 36-9 0-2.7-1.1-5-2-5-4 .5-34.7.8-56.4 1a3011.2 3011.2 0 0 0-24.7.3c-1 3.2 1.7 10 4.6 11.1ZM82.3 146.6c-.3-2-2-3.2-4-2.2a7.5 7.5 0 0 0-2.6 2.2l.1-.2c0-.2 0-.4-.2-.4-4.4-.7-10.1 5.4-13.2 8.8l-.7.7a61.8 61.8 0 0 0-11 16c-3.5 7.5-7.2 18.9-2.5 26.6 6.6 10.9 20.5 2.7 25.7-4.8a39.9 39.9 0 0 0 7-21.5c0-2.2 0-4.4-.2-6.7 0-2-.2-4.2 0-6.3 0-1.8.4-3.6.8-5.3.5-2.3 1-4.6.8-6.9Zm-9.9 32.5c-1.5 5.8-4.6 12.5-10 15.6-2.9 1.7-7.1 2.3-8.8-1.1-3-6.5 1.3-16.4 3.9-22.2a63 63 0 0 1 17.2-23 29 29 0 0 0-1.6 11.2l.2 5.4c.2 4.7.3 9.5-.9 14.1ZM253.3 157.5A65.2 65.2 0 0 1 262 175c3 11.9-7.2 20.5-18.5 18-11.9-2.7-16.3-16.4-16-27.2 0-5 1-10 2.1-14.9l.4-2 .7-4.1c.3-2 .5-4 1-5.9-.5-1.5-.9-3-.8-4.6 0-2.5 2.6-3.8 4.7-2.7 3 1.5 4.7 4.3 6.3 7.2l1 1.8 3.6 6 3.5 6 3.2 5Zm-13 25.5c3.1 2.8 8.5 3.9 12 1.2 4.9-3.6.8-10-1.9-14.2l-.7-1.2a1574 1574 0 0 1-13-21.3l-.8 4.9-.7 3.6c-1.3 8.8-2.2 20.3 5.1 27Z"/></g'}},
+ xiaozhao:{pre:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 704 704" fill="none" shape-rendering="auto" width="96" height="96"><metadata xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/"><rdf:RDF><rdf:Description><dc:title>Open Peeps</dc:title><dc:creator>Pablo Stanley</dc:creator><dc:source xsi:type="dcterms:URI">https://www.openpeeps.com/</dc:source><dcterms:license xsi:type="dcterms:URI">https://creativecommons.org/publicdomain/zero/1.0/</dcterms:license><dc:rights>Remix of „Open Peeps” (https://www.openpeeps.com/) by „Pablo Stanley”, licensed under „CC0 1.0” (https://creativecommons.org/publicdomain/zero/1.0/)</dc:rights></rdf:Description></rdf:RDF></metadata><mask id="viewboxMask"><rect width="704" height="704" rx="0" ry="0" x="0" y="0" fill="#fff" /></mask><g mask="url(#viewboxMask)"><g fill-rule="evenodd" clip-rule="evenodd"><path d="M705.3 1074a2351.1 2351.1 0 0 1-15.6-101c-1-7.7-2.5-16.4 2.7-22 7.3-8 14-14.8 14.8-26.2.8-10.7-2.8-22.4-5-32.8a809.4 809.4 0 0 0-17.3-64.7c-6.6-21.7-13.9-43.2-21.3-64.6-6.9-20-13.5-40.3-22.5-59.5-17-36.5-46-63.5-81.6-81.6-9-4.5-27-20.5-36.3-24-8.5-3.4-8.5 6.3-16.9 2.6-6.7-2.9-13-6.7-16.7-13.2-4-7-14.3-16.9-15.9-25-3.3-17.4.3-32.2-12-45.3a90 90 0 0 0-41.1-23.8c-33.7-9.3-78.5-2.8-98.8 28.5-9.7 14.9-13 33-26.2 45.1-11.4 10.7-8.8 18-23.6 23.4-.9.3-23.6-4.5-24.4-4.2-16.2-3.5-31.7 6.2-46.5 11.8a325.4 325.4 0 0 0-63 32.3 399.2 399.2 0 0 0-102.3 98.5 482.5 482.5 0 0 0-76.4 161c-1.7 6.4-3.5 13-1.5 19.4 1.7 5.3 5.4 9.2 9.8 12.4 6 4.3 18 7 17.7 15.7-.1 6.6-2.4 13.5-3.5 20-1.3 7.7-2.3 15.5-3.4 23.2-4.8 35.4-8.6 71-10.3 106.6a920 920 0 0 0-.5 106c.1 2.3.8 4.5 2 6.2-1 .4-1.2 2.4.1 2.7l2.7.5a12 12 0 0 0 7 2.4l5.5.2c19.3 4 38.6 7.9 58.1 10.8 23.8 3.5 47.6 6.3 71.5 8.7 49.2 4.8 98 3.2 147.1.6a1877 1877 0 0 1 147.4-2c49.2 1.4 98.4 3.5 147.6 4.4 55 1 110-.5 164.8-5 7.5-.5 12.2-6.5 10.7-14-8.9-44.7-19-89.1-27-134Z" fill="#edb98a"/><path d="m201 597.5 1.2-.4c14.5-5.7 29.6-14.8 45.4-11.4.5-.2 10.8 1.9 17.9 3.2l-6.7 7L247 598c40.7 67.1 88.8 100.7 144.3 100.7 55.5 0 97.7-33.6 126.4-100.7l4-1c.4 0 1 .2 1.5.4 9.3 3.6 27.4 19.6 36.3 24.1 35.6 18 64.5 45 81.6 81.6 8.7 18.6 15.2 38 21.8 57.5l.7 2c7.4 21.4 14.7 43 21.3 64.6 6.3 20.4 12 41 16.6 61.8l.7 2.9c2.2 10.4 5.8 22 5 32.8a29 29 0 0 1-3 10.7l-80.4 29 38.4 261.3c-35.1 1.5-70.3 2-105.5 1.3-49.2-.9-98.4-3-147.6-4.3-47.7-1.2-95.3-.7-143 1.7l-12 .6a946.3 946.3 0 0 1-139.5-1l-3.1-.3v-38.3l16.3-212.9-83-15.6-81.3-39.5a21.7 21.7 0 0 1-5.6-8.8c-1.9-6-.5-12 1-18l.5-1.3a492.8 492.8 0 0 1 76.4-161A399.3 399.3 0 0 1 138 629.7c19.8-13 40.9-23.9 63-32.3Z" fill="#8fa7df"/><path d="M232.2 584.6c5.1-.3 10.3.6 15.4 1 .4.1.6.8 0 .9-9 1.9-18 4.5-26.9 7.1l-3.8 1.2c-10 3-19.8 6-29.6 10-19.4 7.9-37.8 18.5-54.8 30.8C67.2 682.8 20 754.3-9.9 828.3a526 526 0 0 0-24.3 77c-.4 1.6-2 5.4-1 7 .7 1.3 3.6 2.1 5 2.9l4.5 2.3 25.2 12.9 2.3 1.1c38 18.6 78.4 34.4 121 35.5l.4-3.7a342 342 0 0 1 9.9-60c.3-1 1.6-.6 1.7.3 3 23.1 2 46.4 1 69.7-1.8 41-4.3 82.2-6.5 123.3-1.2 20.6-2.6 41-3.9 61.7-1.3 20.5-1.7 41.6-4.7 62-.6 4.6-6 7-10 6.6-4.4-.5-7.9-4.5-8-9 0-11.9 1.5-24 2.4-35.8l2.5-33.8c3.1-41.1 6.8-82.2 10.2-123.3a4771 4771 0 0 1 3.8-43.7C76.4 979.8 34.2 963-6.1 943.5c-.6 13.2-2 26.5-3.4 39.6-3.8 36.8-7.1 73.6-9.6 110.5a2254.2 2254.2 0 0 0-4.2 92.7l-.2 7c0 4.4-.5 8.5-4.3 11.7-3.7 3.3-8.9 3.5-12.6 0-5-4.6-4.2-10.9-4-17.1a1675.6 1675.6 0 0 1 1.8-47.2 1321 1321 0 0 1 10.5-109.5l2-14c3.5-26 7.5-52.7 15.5-77.9-3.1-1.5-6.2-3-9.3-4.7-5.5-2.7-11.2-5.4-16.6-8.4-4.2-2.5-7.9-5.8-9-10.8-1.4-5.5.6-11.5 2-16.9v-.4a502 502 0 0 1 26.6-80 523.2 523.2 0 0 1 67.8-117 353.8 353.8 0 0 1 88.7-83.3 239 239 0 0 1 53.8-25.7 142.6 142.6 0 0 1 42.8-7.5Zm90.1-66c6-6.5 18.1.2 15.2 8.8a108.2 108.2 0 0 1-34.7 52A79.4 79.4 0 0 1 247 598l1.7 2.4a321.1 321.1 0 0 0 46.1 52.6c36 31.2 84.8 48 132 36 37.1-9.4 69.8-38.8 79.4-76.2-1.3.6-3 .9-4.8.5-7.7-1.7-15.3-9.8-20.3-15.6-5.3-6.3-9.5-13-12.6-20.7-5.6-14-7.4-32.1.3-45.7 1-1.7 3-.7 3.3 1l.3 2.5c1.5 12.7 3.3 25 9.3 36.6a76 76 0 0 0 18.2 23.1c2.6 2 5.8 3.6 8.1 6l.5.4c.6-5 4.1-7.3 7.6-7.2 3.3.2 7.3 1.6 8.8 2.3l.1.1a341 341 0 0 1 65.1 42 259 259 0 0 1 88.4 129c7.5 25.3 11.8 51.4 16.3 77.4l2.8 16c4.2 23.9 8.9 48.4 18.4 70.7 2.5 5.7.6 11.1-5.5 13.4A1493 1493 0 0 1 688 953c3.7 16 6 32.5 8.7 48.5 6 34.1 13.2 68 19.4 102 3.2 17.5 6.1 35 9.3 52.3l4.7 25.2 2.4 13.6.1.7c.5 2.4 1 4.9.4 7.3-.8 2.7-2.9 4.6-4.8 6.6-1.6 1.6-3.8 1.6-5.7.7l-.7-.3c-3.4-1.6-6-3.2-7.3-7-.7-2.5-1-5.2-1.5-7.7a3535.6 3535.6 0 0 1-7.8-43.6l-1.6-9.1c-5.2-31.4-10.2-62.9-12.8-94.5-1-14-2.3-28.1-3.5-42.2l-.9-10.5c-1.1-13.3-2.5-27-2.7-40.5l-4.5 1.6L657 964c-5.5 2-12.5 6-18.4 5.2-2.9-.3-5-1.2-6.8-2.9 2 28.8 4.8 57.4 8.5 86a1965.7 1965.7 0 0 0 22 135c.6 3.2 1.4 6.4 1.9 9.6.5 3.7-.5 5.9-2.5 9-1.7 2.4-5 3.7-7.8 2-3.6-2.3-5.5-4.3-6.5-8.4-1-3.7-1.6-7.6-2.3-11.4a1654.2 1654.2 0 0 1-11.4-65.2c-7.8-52-12.7-104.4-15.2-156.8a1388 1388 0 0 1-1.4-77.8c0-13.3.5-26.6 1.4-39.9 1-13.4 3-26.5 4.8-39.8 0-.5.7-.5.7 0 .8 14.9 2.1 29.8 2.8 44.7.6 14.3.9 28.5 1.4 42.8.6 18.7 1.5 37.5 2.7 56.2a9.6 9.6 0 0 1 8.5-3.1c4.7-1 9.7-3.4 14.1-5l16.8-5.5 26.4-8.7a679 679 0 0 1-18-80.8l-2-12.3c-4-24.2-8.5-48.5-15.8-72a229.8 229.8 0 0 0-34.8-68.2 370.2 370.2 0 0 0-52.7-55.3C557 627 539.7 614 523 600c.1.9.2 2 0 3-3.5 25.9-17 50-35.8 67.9-37.7 36-93.6 43.4-142 26.5-46.7-16.3-88-55-102.6-102.8-.3-.8.8-1 1.3-.5l2.4 3.3c0-.4.2-.9.7-1a129 129 0 0 0 46.6-29.2 100.2 100.2 0 0 0 21.3-33.3l.4-1c1.7-5 3.2-10.2 7-14.2Z" fill="#000"/></g><g transform="matrix(.99789 0 0 1 156 62)"><g fill-rule="evenodd" clip-rule="evenodd"><path d="M242 75.3c56.8 0 130.1 35.6 136.4 72 7.3 43 46.8 208 37.9 261-9 52.8-57 90.9-133.7 90.9-76.8 0-134.2-41.9-147.3-56.3-13.2-14.4-37.6-65.7-37.6-65.7s-41-5.5-41.3-39c-.2-33.5 26.8-45.7 26.8-45.7s-9.6-132.3 14.5-166.7C122 91.3 185.3 75.3 242 75.3Z" fill="#edb98a"/><path d="M374.9 141.5c0-.8 1-.9 1.3-.2 12.2 40.5 19.8 72 27.7 113.5l2.4 12.2c6.2 32.6 12.6 65.2 18 97.9l.3 2c2.6 16.8 4.2 34 .8 51a85.6 85.6 0 0 1-22.8 41.9 158 158 0 0 1-81.6 42.6 170 170 0 0 1-69.4 0l-.9-.1c-7.6-1.7-14.4-3.6-18.4-10.8-1-1.8-.6-5 1.5-5.9 4-1.7 7-2.4 11.4-2 4.2.5 8.3 1.8 12.5 2.6a147 147 0 0 0 71.1-4c26.1-8 52.6-23.7 67.9-47 18-27.4 10.8-60.7 6-91l-.1-1c-4.8-30.9-9.6-61.9-14.2-92.8l-2-13.3c-5.1-35.1-10-60.2-11.5-95.6Zm-265-86A79.3 79.3 0 0 1 154.4 45h2c19.5.3 118.1 2.7 151.2 3.4l7.8.2 42.2.6h.6l15.9.3h.8c4 .2 7.3.8 10.4 3.6a6.9 6.9 0 0 1 2 5.6v.3l7.9.7c5.3.4 8.1 5.2 6 10l-.1.3c-3.8 8-6.7 31.5-8.7 40.1-1 4.6-1.9 9.2-2.4 13.8-.4 3.7-.4 7.4-2.5 10.6-4.3 6.9-16.6 6.8-16.8-3v-.8c-30.7-1.4-72.8-1.3-103.6.6a579 579 0 0 0-106.7 16.5c-5.8 1.5-13 2.4-18.1 5.5-5.8 3.5-5.7 9.8-5 15.8.6 6.4 1.7 3.1 3.3 9l.1.3a114 114 0 0 0 6.4 18.4c1.6 3.4 4 6.7 3.1 10.6a14 14 0 0 1-3.8 6c-7.3 7-19.5 2.5-24.5 12-5 10-5.2 23.5-5.7 34.5v.7c-.3 7.5-.2 15.2.3 22.7.4 7 2.3 13.8 0 20.4-1.8 4.8-7.4 5.3-10.4 1.3l-1-1.3-.2-.5.8 1.4c.2.5-.4 1-.8.6-7-7.5-17-6-24.9-.8-8 5.4-11 15.6-11.5 24.7-.4 10.1.5 22 4.7 31.4 1.8 4 4.3 7.6 8.5 9 2 .7 3.8.7 5.8.8 2 .2 4.5 1.2 6.5 1 2.6-.1 5 2.9 4.2 5.4v.1l-.1.4.2.3a186.3 186.3 0 0 0 58.9 67.5c1.2.7 2.3 1.2 3.7 1.6l2 .5.6.2h.2c1.8.2 3.3 1.5 4 3.4 1.5 5-1.3 9.4-6.3 10.7-5.3 1.5-10.4-1.1-14.6-4.1l-.3-.2a119 119 0 0 1-49.7-76.8c-1 2.1-2.3 4-4.6 5.2-3.5 2-7.8 2-11.7 1.4a29.3 29.3 0 0 1-19-12.6 51.3 51.3 0 0 1-7.4-22.9c-1-8-1.6-16-.5-23.9 1.5-11.5 6.3-22.8 15.6-29a109 109 0 0 1-7.7-49.1c.6-20.6 4.2-41.4 6.9-61.7l7.7-58 .4-2.3c1.8-13.6 4.1-27.3 9.2-40.1A66 66 0 0 1 110 55.6Zm-32.7 274c12.9-6.2 26.7-.4 33.6 11.6 6 10.5-11.8 17.5-14.8 6.6v-.3c-2-8.2-10-15.3-18.4-16.4-.6 0-1.2-1-.4-1.5Z" fill="#000"/></g></g><g transform="translate(315 248)"><',post:'></g><g transform="translate(279 400)"></g><g transform="translate(179 343)"></g><g transform="translate(203 303)"></g></g></svg>',f:{idle:'path fill-rule="evenodd" clip-rule="evenodd" d="M181.7 212.8c.7-.2 1.3.8.8 1.3-2.4 2-3.9 6-5.6 8.6a116.6 116.6 0 0 0-9 16.7l-.3.6.9 2.4v.2c2.2 5.4-2.3 11.5-7.4 13-8.7 2.6-16.1-4.5-16.3-13-.2-6.6 4.3-12.5 9-17a52 52 0 0 1 13.5-9.5c2.2-1 4.5-2 6.9-2.4 2.5-.6 5.1-.2 7.5-.9ZM165.4 237c.6.3 1.2 1 1.6 1.8a3 3 0 0 0-1.6-1.8Zm5.4-92.6c7.6 4.6 19 15.3 11 26.6-9.6 10-23.4-1.4-30.2-6.6-6.3-4-13.3 6.3-7.5 11 49 36.3 69-29.8 30.5-36.4-4.2-.8-5.8 4-3.8 5.4Zm-62-44.1 1.3-.1c5.8-.5 11.6-1.3 17.3 0 7.7 1.8 7.1 13 0 15-6.2 1.8-13.2 1-19.6 1l-3 .1c-.3 2.4-1 4.5-2.3 6.6-.9 1.5-2 3-3 4.2-2.7 3.2-8.8 3.1-11.4 0-2-2.3-3.5-4.9-3.5-8 0-.8 0-1.6.3-2.4h-3.6c-8.6.2-17.3.1-25.8-1.3-3 .7-5.5-4.8-1.3-6.4 11.3-4.4 24-5.7 36-7 6.1-.7 12.4-1.2 18.5-1.7Zm96.4-4.6h.3c7.4-.8 15.7-2.1 23.2-1.3a8.7 8.7 0 0 1 0 17.4 67 67 0 0 1-12.7-.2c2.2 4.7-.4 10.3-5.8 11-4.9.6-10-4.2-8.4-9.3v-.2l1-3H201c-5.3-.5-12.7-1.5-14.7-5.7a3 3 0 0 1 .5-3.6c3.7-4.4 13-4.6 18.4-5ZM125.5 61c5.4-2 11 2.7 11.8 7.9.8 6-3.5 9.9-9 10.6h-.3c-12 1.4-24 3.8-36.1 5.2-5.5.6-11 1-16.6 1.2h-4c-4.8.2-10 .3-14.4-1.4-1.2-.4-1.8-2-.4-3 4.7-3.4 11.1-4.6 16.7-6.2A452 452 0 0 1 90 70.8c11.8-3 24-5.6 35.5-9.8Zm50 1.4c1.4-7.5 12.2-8.3 16.1-2.8l8.6 2.4 12.1 3.6c8.4 2.4 16.5 5.4 24.8 8.2.8.3.6 1.4-.2 1.5a199.8 199.8 0 0 1-34.4 1.7l-2.3-.1c-10.2-.4-27.5.3-24.7-14.5Z" fill="#000"/',mad:'path fill-rule="evenodd" clip-rule="evenodd" d="M190.6 219.8a28.5 28.5 0 0 1-16 9.2 33.9 33.9 0 0 1-19.5-.9l-.5-.2c-4.6-1.8-9-5.7-10.6-9.6a7 7 0 0 1-.4-4.7 6.9 6.9 0 0 1 3-3.7c.4-.3 1-.3 1.7-.2.8.1 1.6.5 2 1 2.7 2.7 6.4 5.4 11 5.4 3.4 0 6.2-1.4 8.9-3l2-1c1.8-1.1 3.6-2 5.8-2.5a14 14 0 0 1 11.2 3c1.2 1.1 2.1 2.4 2.4 3.7.2 1.2-.1 2.4-1 3.5Zm-19.8-75.4c7.6 4.6 19 15.3 11 26.6-9.6 10-23.4-1.4-30.2-6.6-6.3-4-13.3 6.3-7.5 11 49 36.3 69-29.8 30.5-36.4-4.2-.8-5.8 4-3.8 5.4ZM85.6 73.8l2.2-.6 2.2-.6 1.5-.4c10.3-2.7 21.6-5 31.8-3.9 3.7.5 6.7 2.5 7.3 6.4.4 3.3-1.7 7.6-5.3 8.1-12 2-24.3 1.4-36.3 3.4-6 1-12 2.2-17.9 3.3-4.5.8-9.2 1.1-13.8 1.8l1 .2c.5 0 .4.6 0 .6-1.5-.1-3-.2-4.5 0H53c-1 .1-1.5-1-.7-1.6 5.6-3.8 10.3-8 16.6-10.7 5.4-2.4 11-4.4 16.6-6Zm93.6-5.8c7.9-8 24.7-4.9 34-1.2 5.4 2 10.5 4.7 14.8 8.6l.4.4.6.6c2.9 2.8 6 6.7 5.6 10.7 0 .7-.4 1.4-1 1.5-3.8.7-7.5-1.3-11-2.5l-2.3-.8c-3.5-1.2-7-2.3-10.5-3.1-4.4-1-9-1.6-13.5-1.6-4.6 0-9.5 1.4-14-.4-4.8-2-7.3-8-3.1-12.2Zm-78 64.4c-2 2-4.8 3.2-8.2 2.6-2.6-.6-7.7-3.3-11.7-7.4-2.8-2.8-5.1-6.3-5.8-10.4-.1-1-.6-1.6-1.3-2-.5-.2-1.2-.4-2-.3-.6 0-1.2.3-1.8.6-1 .6-1.4 1.4-1.4 2-.8 6 1.5 11.8 5 16.8C79 141 86 146 90.1 147.1c7.2 2 14.7.4 20.2-4.6a36 36 0 0 0 8.8-14.4l.4-1 1.5-3.7c1-2.3.7-4.4-.3-6-1-1.8-3-3-5.3-3.4-2-.3-4.2 0-6 1.3a7.7 7.7 0 0 0-3 5.2c-.6 4-2.2 8.6-5 11.6l-.3.3Zm122.2-23.2c-1.6-.8-3-1-4.8-.5-1 .3-2 .9-2.8 1.6-.8.8-1.3 1.8-1.5 2.9-.6 2.6-2 5.1-4.1 6.8a8.2 8.2 0 0 1-6.5 1.7 12.5 12.5 0 0 1-8.3-6l-.2-.4c-.9-1.5-1.7-2.8-3-3.8-.4-.4-1-.7-1.7-.7l-.8.1c-2.7 2.7-3.2 4.7-3.1 6.7 0 2.1 1 4.3 2.2 6.3 3.2 4.7 9.2 8.5 13.2 9.4 5.6 1.2 11-.3 15.5-3.4a22 22 0 0 0 9-13.7c.2-1.3 0-2.8-.4-4a5.7 5.7 0 0 0-2.7-3Z" fill="#000"/',oops:'g fill-rule="evenodd" clip-rule="evenodd"><path d="M105.8 231.1c4.6-14 54.2-34.8 62.6-28.8 8.3 6-2.5 49.2-2.5 49.2s-46.2 4.8-49.5 2.4c-3.3-2.4-15.2-8.7-10.6-22.8Z" fill="#fff"/><path d="M190.3 203.4c.3.3-.3.8-.7.5-3.8-2.7-9.8-1.1-13.5.1 0 0-1.3 43.3.2 44.3s22.4.5 22.4 3c0 8.4-12.6 11.6-19.4 11-10.8-.7-21.9-2.2-32.6-1-10.8 1.3-33.6 8.1-45.3-1.4-14-11.3-12.1-29.9-.5-42a68 68 0 0 1 28.7-15.7c15.5-5 52.1-8.1 60.7 1.2Zm-28.6 31.8a748.9 748.9 0 0 1-40.3 13.1c7.8-.5 34.3-1.1 40.3-4 .6-2.7 1-9.5 0-9Zm4.2-30c-15.2 2.5-48.1 13.6-52.8 19.6 7.1-1.2 47.2-6 51.8-6 .6-3.5.2-9.6 1-13.6Zm5-67.8c7.5 4.6 19 15.3 10.8 26.6-9.5 10-23.3-1.4-30-6.6-6.4-4-13.4 6.3-7.6 11 49 36.3 69-29.8 30.5-36.4-4.2-.8-5.8 4-3.8 5.4Zm16.7-67c4.4 0 7 2.8 10.3 5.4 3.4 2.6 7.6 4.7 11.6 6.3 4.1 1.7 8.6 3 13 4 4.5 1 8.7.5 13.2 1.4 12 2.2 9.2 22.2-2.8 21.2a59.6 59.6 0 0 1-30.7-14.5c-3.9-3.2-7.2-7-10.4-11l-.6-.7c-2.9-3.5-5.5-7.1-4-11.8 0-.2.1-.3.4-.3Zm-100 58.3c0-6.4 3.7-21 13-21 5.7 0 9.1 10 9.7 20.2v.4c.3 6.4-1.4 20.2-9.8 20.2S87.7 135.4 87.6 129v-.2Zm135.2 0c0-6.4-3.8-21-13-21-5.5 0-9 9.5-9.7 19.4v.8c-.4 6.1 1.2 20.6 9.8 20.6 8.4 0 12.8-13.1 12.9-19.6v-.2ZM117.7 71.3c5.7-2.4 12.2-1.7 15.7 4.2 3.3 5.5 1 12.3-4.1 15.7-5.1 3.4-12 5.2-17.8 7.1l-.6.2a148.2 148.2 0 0 1-33.7 7.4l-1.6.2c-4.3.5-10.3 2.1-14.2-.3a.8.8 0 0 1-.3-1c2.3-4 8.3-5.5 12.1-7.5 5-2.5 9.8-5.3 14.7-8l14.5-8.5c5-3 10-7.2 15.3-9.5Z" fill="#000"/></g',glee:'path fill-rule="evenodd" clip-rule="evenodd" d="M146.6 241a40.7 40.7 0 0 1-17.1-13.2c-1.5-2-2-4.2-1.6-6.2a8.9 8.9 0 0 1 9.6-7.2c1.9.3 3.7 1.3 5.2 3.5l.3.4a27 27 0 0 0 10 8.3c3.6 1.8 7.8 2.6 12.1 2.1 8.3-1 14-5.4 20-11.4l2.2-2.3c.5-.8 1.1-1.2 1.9-1.5a4 4 0 0 1 4.6 1.6c.4.7.7 1.5.6 2.5a25.7 25.7 0 0 1-8.5 16.2c-5.1 4.9-12 8.2-18.4 9.4-7.1 1.3-14.4.4-21-2.3Zm24.2-96.6c7.6 4.6 19 15.3 11 26.6-9.6 10-23.4-1.4-30.2-6.6-6.3-4-13.3 6.3-7.5 11 49 36.3 69-29.8 30.5-36.4-4.2-.8-5.8 4-3.8 5.4ZM83 102c.8-10.3 16.6-12.7 18.1-2.4a42 42 0 0 1-4.3 25.9c-4 7.9-14 4.2-14.7-3-1-9.7.3-14 .9-20.5Zm120-4.5c2.2-3 5.4-4.9 9.2-3.8 11.9 3.5 8.4 20.4 4.2 28.6-2.3 4.4-9.6 5.6-12.9 1.6-5.4-6.4-8-19.1-1.1-25.5l.6-1ZM96.6 56.8l1.9-.3c5.8-1 13-2 17.1 2.7 2.2 2.5 3 7 0 9.4-5.1 4.2-10.8 2.6-17 3-5.1.2-10 1-14.9 2.5C73 77 64.2 82.8 55 88.9c-1.2.8-2.4-.7-1.9-1.8a59.3 59.3 0 0 1 26-24.1 64 64 0 0 1 17.5-6.2Zm95.6-4.6 1.4.3c15.7 3.2 36 9.8 43.4 25.1.3 2.2 0 2.7-.3 3-.2.3-.4.7-1.4 1A36 36 0 0 1 226 78l-2.8-1.4a77.7 77.7 0 0 0-10.1-4.3c-7.5-2.4-15.1-4.1-23-5a9.4 9.4 0 0 1-4.5-1.8 7 7 0 0 1-2.6-4 7 7 0 0 1 .8-5.8 7.4 7.4 0 0 1 3.6-3.1c1.5-.6 3.2-.8 4.9-.4Z" fill="#000"/'}},
+ tiezi:{pre:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 704 704" fill="none" shape-rendering="auto" width="96" height="96"><metadata xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/"><rdf:RDF><rdf:Description><dc:title>Open Peeps</dc:title><dc:creator>Pablo Stanley</dc:creator><dc:source xsi:type="dcterms:URI">https://www.openpeeps.com/</dc:source><dcterms:license xsi:type="dcterms:URI">https://creativecommons.org/publicdomain/zero/1.0/</dcterms:license><dc:rights>Remix of „Open Peeps” (https://www.openpeeps.com/) by „Pablo Stanley”, licensed under „CC0 1.0” (https://creativecommons.org/publicdomain/zero/1.0/)</dc:rights></rdf:Description></rdf:RDF></metadata><mask id="viewboxMask"><rect width="704" height="704" rx="0" ry="0" x="0" y="0" fill="#fff" /></mask><g mask="url(#viewboxMask)"><g fill-rule="evenodd" clip-rule="evenodd"><path d="M705.3 1074a2351.1 2351.1 0 0 1-15.6-101c-1-7.7-2.5-16.4 2.7-22 7.3-8 14-14.8 14.8-26.2.8-10.7-2.8-22.4-5-32.8a809.4 809.4 0 0 0-17.3-64.7c-6.6-21.7-13.9-43.2-21.3-64.6-6.9-20-13.5-40.3-22.5-59.5-17-36.5-46-63.5-81.6-81.6-9-4.5-27-20.5-36.3-24-8.5-3.4-8.5 6.3-16.9 2.6-6.7-2.9-13-6.7-16.7-13.2-4-7-14.3-16.9-15.9-25-3.3-17.4.3-32.2-12-45.3a90 90 0 0 0-41.1-23.8c-33.7-9.3-78.5-2.8-98.8 28.5-9.7 14.9-13 33-26.2 45.1-11.4 10.7-8.8 18-23.6 23.4-.9.3-23.6-4.5-24.4-4.2-16.2-3.5-31.7 6.2-46.5 11.8a325.4 325.4 0 0 0-63 32.3 399.2 399.2 0 0 0-102.3 98.5 482.5 482.5 0 0 0-76.4 161c-1.7 6.4-3.5 13-1.5 19.4 1.7 5.3 5.4 9.2 9.8 12.4 6 4.3 18 7 17.7 15.7-.1 6.6-2.4 13.5-3.5 20-1.3 7.7-2.3 15.5-3.4 23.2-4.8 35.4-8.6 71-10.3 106.6a920 920 0 0 0-.5 106c.1 2.3.8 4.5 2 6.2-1 .4-1.2 2.4.1 2.7l2.7.5a12 12 0 0 0 7 2.4l5.5.2c19.3 4 38.6 7.9 58.1 10.8 23.8 3.5 47.6 6.3 71.5 8.7 49.2 4.8 98 3.2 147.1.6a1877 1877 0 0 1 147.4-2c49.2 1.4 98.4 3.5 147.6 4.4 55 1 110-.5 164.8-5 7.5-.5 12.2-6.5 10.7-14-8.9-44.7-19-89.1-27-134Z" fill="#edb98a"/><path d="m201 597.5 1.2-.4c14.5-5.7 29.6-14.8 45.4-11.4.5-.2 10.8 1.9 17.9 3.2l-6.7 7L247 598c40.7 67.1 88.8 100.7 144.3 100.7 55.5 0 97.7-33.6 126.4-100.7l4-1c.4 0 1 .2 1.5.4 9.3 3.6 27.4 19.6 36.3 24.1 35.6 18 64.5 45 81.6 81.6 8.7 18.6 15.2 38 21.8 57.5l.7 2c7.4 21.4 14.7 43 21.3 64.6 6.3 20.4 12 41 16.6 61.8l.7 2.9c2.2 10.4 5.8 22 5 32.8a29 29 0 0 1-3 10.7l-80.4 29 38.4 261.3c-35.1 1.5-70.3 2-105.5 1.3-49.2-.9-98.4-3-147.6-4.3-47.7-1.2-95.3-.7-143 1.7l-12 .6a946.3 946.3 0 0 1-139.5-1l-3.1-.3v-38.3l16.3-212.9-83-15.6-81.3-39.5a21.7 21.7 0 0 1-5.6-8.8c-1.9-6-.5-12 1-18l.5-1.3a492.8 492.8 0 0 1 76.4-161A399.3 399.3 0 0 1 138 629.7c19.8-13 40.9-23.9 63-32.3Z" fill="#78e185"/><path d="M232.2 584.6c5.1-.3 10.3.6 15.4 1 .4.1.6.8 0 .9-9 1.9-18 4.5-26.9 7.1l-3.8 1.2c-10 3-19.8 6-29.6 10-19.4 7.9-37.8 18.5-54.8 30.8C67.2 682.8 20 754.3-9.9 828.3a526 526 0 0 0-24.3 77c-.4 1.6-2 5.4-1 7 .7 1.3 3.6 2.1 5 2.9l4.5 2.3 25.2 12.9 2.3 1.1c38 18.6 78.4 34.4 121 35.5l.4-3.7a342 342 0 0 1 9.9-60c.3-1 1.6-.6 1.7.3 3 23.1 2 46.4 1 69.7-1.8 41-4.3 82.2-6.5 123.3-1.2 20.6-2.6 41-3.9 61.7-1.3 20.5-1.7 41.6-4.7 62-.6 4.6-6 7-10 6.6-4.4-.5-7.9-4.5-8-9 0-11.9 1.5-24 2.4-35.8l2.5-33.8c3.1-41.1 6.8-82.2 10.2-123.3a4771 4771 0 0 1 3.8-43.7C76.4 979.8 34.2 963-6.1 943.5c-.6 13.2-2 26.5-3.4 39.6-3.8 36.8-7.1 73.6-9.6 110.5a2254.2 2254.2 0 0 0-4.2 92.7l-.2 7c0 4.4-.5 8.5-4.3 11.7-3.7 3.3-8.9 3.5-12.6 0-5-4.6-4.2-10.9-4-17.1a1675.6 1675.6 0 0 1 1.8-47.2 1321 1321 0 0 1 10.5-109.5l2-14c3.5-26 7.5-52.7 15.5-77.9-3.1-1.5-6.2-3-9.3-4.7-5.5-2.7-11.2-5.4-16.6-8.4-4.2-2.5-7.9-5.8-9-10.8-1.4-5.5.6-11.5 2-16.9v-.4a502 502 0 0 1 26.6-80 523.2 523.2 0 0 1 67.8-117 353.8 353.8 0 0 1 88.7-83.3 239 239 0 0 1 53.8-25.7 142.6 142.6 0 0 1 42.8-7.5Zm90.1-66c6-6.5 18.1.2 15.2 8.8a108.2 108.2 0 0 1-34.7 52A79.4 79.4 0 0 1 247 598l1.7 2.4a321.1 321.1 0 0 0 46.1 52.6c36 31.2 84.8 48 132 36 37.1-9.4 69.8-38.8 79.4-76.2-1.3.6-3 .9-4.8.5-7.7-1.7-15.3-9.8-20.3-15.6-5.3-6.3-9.5-13-12.6-20.7-5.6-14-7.4-32.1.3-45.7 1-1.7 3-.7 3.3 1l.3 2.5c1.5 12.7 3.3 25 9.3 36.6a76 76 0 0 0 18.2 23.1c2.6 2 5.8 3.6 8.1 6l.5.4c.6-5 4.1-7.3 7.6-7.2 3.3.2 7.3 1.6 8.8 2.3l.1.1a341 341 0 0 1 65.1 42 259 259 0 0 1 88.4 129c7.5 25.3 11.8 51.4 16.3 77.4l2.8 16c4.2 23.9 8.9 48.4 18.4 70.7 2.5 5.7.6 11.1-5.5 13.4A1493 1493 0 0 1 688 953c3.7 16 6 32.5 8.7 48.5 6 34.1 13.2 68 19.4 102 3.2 17.5 6.1 35 9.3 52.3l4.7 25.2 2.4 13.6.1.7c.5 2.4 1 4.9.4 7.3-.8 2.7-2.9 4.6-4.8 6.6-1.6 1.6-3.8 1.6-5.7.7l-.7-.3c-3.4-1.6-6-3.2-7.3-7-.7-2.5-1-5.2-1.5-7.7a3535.6 3535.6 0 0 1-7.8-43.6l-1.6-9.1c-5.2-31.4-10.2-62.9-12.8-94.5-1-14-2.3-28.1-3.5-42.2l-.9-10.5c-1.1-13.3-2.5-27-2.7-40.5l-4.5 1.6L657 964c-5.5 2-12.5 6-18.4 5.2-2.9-.3-5-1.2-6.8-2.9 2 28.8 4.8 57.4 8.5 86a1965.7 1965.7 0 0 0 22 135c.6 3.2 1.4 6.4 1.9 9.6.5 3.7-.5 5.9-2.5 9-1.7 2.4-5 3.7-7.8 2-3.6-2.3-5.5-4.3-6.5-8.4-1-3.7-1.6-7.6-2.3-11.4a1654.2 1654.2 0 0 1-11.4-65.2c-7.8-52-12.7-104.4-15.2-156.8a1388 1388 0 0 1-1.4-77.8c0-13.3.5-26.6 1.4-39.9 1-13.4 3-26.5 4.8-39.8 0-.5.7-.5.7 0 .8 14.9 2.1 29.8 2.8 44.7.6 14.3.9 28.5 1.4 42.8.6 18.7 1.5 37.5 2.7 56.2a9.6 9.6 0 0 1 8.5-3.1c4.7-1 9.7-3.4 14.1-5l16.8-5.5 26.4-8.7a679 679 0 0 1-18-80.8l-2-12.3c-4-24.2-8.5-48.5-15.8-72a229.8 229.8 0 0 0-34.8-68.2 370.2 370.2 0 0 0-52.7-55.3C557 627 539.7 614 523 600c.1.9.2 2 0 3-3.5 25.9-17 50-35.8 67.9-37.7 36-93.6 43.4-142 26.5-46.7-16.3-88-55-102.6-102.8-.3-.8.8-1 1.3-.5l2.4 3.3c0-.4.2-.9.7-1a129 129 0 0 0 46.6-29.2 100.2 100.2 0 0 0 21.3-33.3l.4-1c1.7-5 3.2-10.2 7-14.2Z" fill="#000"/></g><g transform="matrix(.99789 0 0 1 156 62)"><g fill-rule="evenodd" clip-rule="evenodd"><path d="M388.4 151.8c-7-25.5-6-28.2-16.6-52.6-35-70.7-268.7-47-292.6 23.6C66.2 161 69.3 215 66 248.3L63 301a10181.4 10181.4 0 0 1-3.3 53.8c-4.3 36.5 14 40.2 45.4 39 8.4 20.2 21.8 36.9 38.5 50.5-4 11 10.5 16.6 18.4 21 42.7 23.8 95.2 38.4 142.5 25 14-4 71.4-17.6 89-59.9 8.7-20.8 26.3-128.2 3-225l-8-53.7Z" fill="#edb98a"/><path d="M239-14.5c6.6-1.2 14-.7 17.8 5.8.8 1.4 1.3 2.8 1.6 4.2 18-4 36.8-4.5 55.2-1.9 5.5.8 7.5 8.2 5 12.3l-.7 1.3c5.8.5 11.5 1.5 17.2 3 4.1 1.1 8 6.4 6.1 10.7l-.5 1.1c9 1.6 17.6 5 25.1 10.8a11 11 0 0 1 2.4 2.5 84 84 0 0 1 49 9.7c4.3 2.3 6.3 8.8 3.5 12.9-1 1.3-1.8 2.5-2.8 3.6A30.7 30.7 0 0 1 434 74.2a29.6 29.6 0 0 1 3.3 23.3 21.4 21.4 0 0 1 5.5 19.7c-1.5 6.8-5.7 11-11 13.6 1 3.3.2 7-2.2 9.6-3.8 4-8.3 7-13.2 9 0 1.2-.3 2.5-1 3.7a29.9 29.9 0 0 1-23.6 15 893.2 893.2 0 0 1 19 115.4l.2 3c3.5 42.1 4.4 86.2-4.2 127.7-5.4 26.4-22 48.6-44 63.7a148.2 148.2 0 0 1-76.7 24.2c-13.8.6-27.6-.6-41-3.4-6.5-1.3-12.7-3.2-18.7-5.6-6.6-2.6-12-6.5-17.5-10.8-2.8-2.3-1.2-7.6 2.2-8.3l7.3-1.4c2.2-.4 4.6 1.8 4.1 3.8l4.7 1.3 4.7 1.2 2.3.6a148.8 148.8 0 0 0 62.4 5A126 126 0 0 0 362 458c8.9-7.5 16.3-16.4 21.7-26.8 6.8-13.2 9-27.8 10.6-42.4 5-42.1 3.5-84.3-.4-126.5-1.9-21-4.5-41.8-7.3-62.7-1.4-10.7-3-21.4-4.2-32.2a23 23 0 0 1-8-3.8 8 8 0 0 1-3-4.2c-2.5-.4-4.8-1.8-6.5-4l-.2-.3c-4.4-6.5-12-10.1-19.2-12.8-4.3-1.6-8.7-3-13-4.5-4.6-1.5-9.4-3.7-14.1-4.3-5.4-.6-10.9 1-16.4.4a20.8 20.8 0 0 1-16-10c-16.7 3.5-34.2-1-51.5 0-11.4.8-21.4 7.8-32.9 7.7-3.1 0-6.2-1.2-8.4-3.1-10.8 2-21.9 6-32 9.4-10.2 3.4-19.9 8-29.8 11.7-1.3 4.2-5.2 6-9.3 5.3-13.5-2.4-25-11-38-14-3.7 13.1-7.6 26.1-10.2 39.6a394.7 394.7 0 0 0-5.9 41 471.6 471.6 0 0 0-1.4 63c.1 6 1.3 13.5-.9 19.2l-.2.4c-.2.9-1.4 1.4-2 .6-4-4.7-5-12.1-6.2-18a295.4 295.4 0 0 1-3.9-65.1c1.5-28.7 6-59 16-86-3.1.2-4.5-4.3-4.7-6.8-.4-5 .4-10.4 1.3-15.4l.9-5.3c.8-5 1.7-9.7 3.4-14.5 4-11.6 9.9-22.4 17.1-32.3 14.8-20 35.3-35.3 58.6-44 1.4-.6 2.8-.6 4-.2a315.6 315.6 0 0 1 89-31.5ZM63 308c9.6-6 29.5-7.6 34.8 5.3.3.5-.4 1-.8.8l-1.3-.3c-5-1.2-9.5-2-14.6.1-4.6 1.8-9 4.7-12 8.6-7.1 9.3-7.9 21.9-7.2 33.1v.6c.6 9.8 3.2 21.8 12.8 26.7 4.9 2.5 10.2 2.3 15.5 2.3 6 0 12.2.6 18 2.5 3.2 1 4.8 5.3 2 7.8-.8.8-1.7 1.6-2.7 2.3 3 3.1 5.8 6.3 8.6 9.6 4.7 5.7 9.7 11.1 15 16.3 5 5 10.4 9.8 16.2 14 6.1 4.3 13.4 7.3 18.7 12.7 3.5 3.4 2.9 8.2 0 11.7-7 8.7-19-.4-25.9-5.5l-.8-.7a118 118 0 0 1-19.4-17.8 96.8 96.8 0 0 1-14.5-22.5 54.5 54.5 0 0 1-4.3-14.1 41.2 41.2 0 0 1-38.4-3.9C48 387.7 44 369.5 44 353v-1c.1-16 4.3-35 18.9-44Zm27.4 23.3h.4c5.4.1 10.2 2 14.7 4.7l.5.3c4.4 2.6 10.8 4.7 13 9.7 1.5 3 1.4 6.3-1 8.8-4.5 4.4-11.1 3.7-16 .2-3.5-2.6-5.8-6.5-9.3-9.1-6.6-5-17-4.7-23.8-.4-.5.2-.9-.3-.7-.7a24 24 0 0 1 22.2-13.5Z" fill="#000"/></g></g><g transform="translate(315 248)"><',post:'></g><g transform="translate(279 400)"><path fill-rule="evenodd" clip-rule="evenodd" d="M248.1 111.7c-3.5-1.1-6.9-2.4-10.3-3.7a70.4 70.4 0 0 0-57.4-3c-9 3.6-17.5 10.2-26.6 14.5l-6.5 2.2a195 195 0 0 1-31.6-14.6l-3-3.8a148 148 0 0 0 18.3-4c17.3-4.7 33.7-12.5 51-17.4 16-4.7 33.5-7.2 49.7-1.4 7.6 2.7 14.4 7.5 21.9 10.7 3.8 1.7 8.4 3.3 13 3.5-3 7-6.6 13.5-11.7 19l-6.8-2Zm37.6-54.6c-1.6 1.3-8 5.5-10 8l-1.6-.7a4.4 4.4 0 0 0-3.6-1.6 85.6 85.6 0 0 1-25.6-18.5c-5.4-5.6-11-11.4-18-14.7-8.6-3.8-16.9-2-25.8-1.4-9.5.6-18.8-2-28.3-.8-6.9 1-13.4 3.9-19 8-11.4 8.4-19.3 20.3-29 30.5a80.4 80.4 0 0 1-39.4 22.7c-.2 0-.3-.2-.5-.3-11-10-21-21.3-29.9-33.3-8.6-11.8-31.3-64.7-36.8-69.3-2.3-2-4.8-2.8-7.2-2.7C6.7-16.9 2.7-13.9.9-9c-3 8-1.5 18.4-1.3 26.9a409.2 409.2 0 0 0 12.3 88.1A91.6 91.6 0 0 0 34 150.1c12.5 12.4 29.5 20.6 45.2 28 15 7 30.7 13.2 46.9 18 14 6.4 29 11.4 44 14 16.6 3 34 3.2 50-2.6a88 88 0 0 0 22.1-11.7c9.6-5 18.2-11.8 25.3-20.8a113.4 113.4 0 0 0 21.2-56.2c.7-5.2 3.3-25 3.5-28.1l1.9-30c.3-4.8-5.5-6-8.5-3.6Z" fill="#000"/></g><g transform="translate(179 343)"></g><g transform="translate(203 303)"></g></g></svg>',f:{idle:'path fill-rule="evenodd" clip-rule="evenodd" d="M55.6 167.6c3.5-7.8 19.1-20 19.1-20s4.8 27 1.1 35.3c-3 6.8-14 19.2-22 15.7s-4-18 1.8-31ZM250.2 160.5c-2.8-6.6-15.7-17-15.7-17s-3.9 22.9-.9 30c2.5 5.7 11.5 16.2 18.1 13.2 6.6-3 3.2-15.3-1.5-26.2ZM117 199.2h87.8l5.2 14.5s-65.5 15.3-88.5 5.5l-4.5-20Z" fill="#fff"/><g fill="#000"><path d="M181.7 171c8.2-11.3-3.3-22-10.9-26.6-2-1.5-.4-6.2 3.8-5.4 38.4 6.6 18.5 72.7-30.5 36.4-5.8-4.7 1.2-15 7.5-11l1 .7c7.1 5.5 20 15.5 29.1 6ZM104.5 56.5l-2 .3c-6 1-12 3.4-17.5 6.2a59.3 59.3 0 0 0-25.9 24c-.5 1.2.7 2.7 2 2 9-6.2 17.8-11.8 28.6-15a67.7 67.7 0 0 1 19.5-2.5c4.4.2 8.6.3 12.4-2.9 3-2.3 2.2-7 0-9.4-4.1-4.7-11.3-3.7-17.1-2.7ZM204.6 52.5l-1.4-.3a8.5 8.5 0 0 0-4.9.4 7.4 7.4 0 0 0-3.6 3.1 7 7 0 0 0-.8 5.9 7 7 0 0 0 2.6 4c1.2.9 2.9 1.5 4.6 1.7 7.8.9 15.4 2.6 22.9 5 3.5 1.2 6.8 2.7 10 4.3L237 78a45 45 0 0 0 9.4 3.6c.9-.3 1.1-.6 1.3-.8v-.1l.1-.1c.3-.3.6-.8.3-3-7.4-15.3-27.7-21.9-43.4-25.1ZM123.3 128c-3 1.8-6.3 1-8.9-1.1-1.6-1.3-2.8-3-4-4.6-1.5-1.9-2.9-3.8-5-5.1-3.2-2.2-7.5-2.3-11.2-1.7-5.6 1-10.4 3.6-15.3 6.2a86 86 0 0 1-8.3 4.2c-1.1.5-1.8-1-1.4-1.8a38 38 0 0 1 27-22.5 29 29 0 0 1 30.4 18.2c1.1 3-.7 6.7-3.3 8.2ZM242.6 115.4c.2 0 .5-.2.4-.5-3.2-10.3-15.1-14.7-25.2-13.8-6.2.5-11.9 2.8-16.6 7-4.5 4-8 11.4-4 16.9 4.3 5.6 12.8 3.8 13.3-3.6.4-4.8 8.6-7.8 12.8-8.5 6.5-1.2 13.2.2 19.3 2.5Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M176.1 195.5c11.6-.1 25.6-.3 35.6.3 3.6.2 5.3 5.3 5.6 7.8 2.3 22.4-15.6 40.4-35.4 47.3-18.4 6.5-42.7 7.7-59.2-4.3a50.2 50.2 0 0 1-16-20.6 56.8 56.8 0 0 1-4.3-15c-.6-3.3-1.3-7.3-.2-10.4 1.7-4.4 6-4.5 10.1-4.5h1l5-.2 12.8-.2 27.7-.2H176Zm-49.8 19a253 253 0 0 0 42.5 1.5c10-.4 36-6.5 36-9 0-2.7-1.1-5-2-5-4 .5-34.7.8-56.4 1a3011.2 3011.2 0 0 0-24.7.3c-1 3.2 1.7 10 4.6 11.1ZM82.3 146.6c-.3-2-2-3.2-4-2.2a7.5 7.5 0 0 0-2.6 2.2l.1-.2c0-.2 0-.4-.2-.4-4.4-.7-10.1 5.4-13.2 8.8l-.7.7a61.8 61.8 0 0 0-11 16c-3.5 7.5-7.2 18.9-2.5 26.6 6.6 10.9 20.5 2.7 25.7-4.8a39.9 39.9 0 0 0 7-21.5c0-2.2 0-4.4-.2-6.7 0-2-.2-4.2 0-6.3 0-1.8.4-3.6.8-5.3.5-2.3 1-4.6.8-6.9Zm-9.9 32.5c-1.5 5.8-4.6 12.5-10 15.6-2.9 1.7-7.1 2.3-8.8-1.1-3-6.5 1.3-16.4 3.9-22.2a63 63 0 0 1 17.2-23 29 29 0 0 0-1.6 11.2l.2 5.4c.2 4.7.3 9.5-.9 14.1ZM253.3 157.5A65.2 65.2 0 0 1 262 175c3 11.9-7.2 20.5-18.5 18-11.9-2.7-16.3-16.4-16-27.2 0-5 1-10 2.1-14.9l.4-2 .7-4.1c.3-2 .5-4 1-5.9-.5-1.5-.9-3-.8-4.6 0-2.5 2.6-3.8 4.7-2.7 3 1.5 4.7 4.3 6.3 7.2l1 1.8 3.6 6 3.5 6 3.2 5Zm-13 25.5c3.1 2.8 8.5 3.9 12 1.2 4.9-3.6.8-10-1.9-14.2l-.7-1.2a1574 1574 0 0 1-13-21.3l-.8 4.9-.7 3.6c-1.3 8.8-2.2 20.3 5.1 27Z"/></g',mad:'g fill-rule="evenodd" clip-rule="evenodd"><path d="M107 148c18.2 0 33-13 33-29s-14.8-29-33-29-33 13-33 29 14.8 29 33 29ZM226.5 141c16.3 0 29.5-11.2 29.5-25s-13.2-25-29.5-25-29.5 11.2-29.5 25 13.2 25 29.5 25ZM119.7 216.6c4.8-12.8 32.5-23.9 51.5-23.9s49.7 11 49.7 11L212 228s-80-3.4-84.7-3.4c-4.6 0-12.4 4.9-7.7-8Z" fill="#fff"/><path d="M156.5 188.5c20.5-.8 58.6 3 74.1 15 16 12.1-4 50.9-6.3 50.8-23-.9-45.7 2.4-68.4 5.5l-4.5.6c-15.3 2.1-36.7 5.8-44-11.8-9-30.6 18.4-60.3 49-60.1Zm36.2 13a148.6 148.6 0 0 0-37-1c-11 1.2-21.4 4.2-28.3 12.5 1.7.3 3.2 1.5 4.2 3.2 14.8.4 30-.2 45 .6 8.4.1 17 1 25.3.6 7.2-.3 5.2-6.3 6.2-11.4a62.8 62.8 0 0 0-15.4-4.6ZM58 85.5c14.8-24.4 59.4-9.2 81.8-4.1 17.1-3.8 18.8 24.7 1 21.8a32 32 0 0 1-7.2 43.2C99.4 175 36.6 128.4 80 95c.5-4.1 6-5.3 9.3-7l-1.1-.2a52.1 52.1 0 0 0-28.7-.5c-1 0-1.5-1-1.4-1.8Zm120.8 50.8c7.6 4.6 19 15.3 11 26.6-9.6 10-23.4-1.4-30.2-6.6-6.3-4-13.3 6.3-7.5 11 49 36.3 69-29.8 30.5-36.4-4.2-.8-5.8 4-3.8 5.4ZM256.5 59c.5 0 .7.7.4 1-9.3 9.2-21 16-31.4 23.8a44.6 44.6 0 0 1 37.4 30c4.6 25.4-32 37-51.4 29.4-16.1-5.6-27.8-21.2-19-37.8-9.2 0-18.5-12-11.7-18.8 6-6.2 13-2.5 15.6-4l3-1.5c18-9.6 36.8-18.8 57-22Zm-124.8 51.4c-11.6-18.3-57.3-18.7-56 9.6 1.8 37.2 75.6 28.8 56-9.6ZM226 94.7c-8.6-1.8-16.1 8-21 5.5-27.2 31 28.2 49 46.4 25.2 10-12.8-13.2-30.4-25.4-30.7ZM111 112c11.2-4 11 12.6 2.7 16-9.5 3.7-12.7-16.2-2.8-16Zm101.1 1.8c-.6-10.2 14.9-14.9 18.8-4.7 5.4 13.7-18 20.6-18.8 4.7Z" fill="#231F20"/></g',oops:'g fill-rule="evenodd" clip-rule="evenodd"><path d="M95 163c26.5 0 48-18.8 48-42s-21.5-42-48-42-55.2 18-55.2 41.2c0 9.9 7.8 27 14.2 34.2 8.8 9.8 25.7 8.6 41 8.6ZM209.3 155c20.2 0 36.7-17 36.7-38s-16.5-38-36.7-38C189 79 167 95.3 167 116.3c0 8.9 6 24.4 10.9 31 6.7 8.7 19.7 7.7 31.4 7.7Z" fill="#fff"/><path d="M94.3 189c.2-.1.6-.2.8 0 4.4 2.7 4.9 12 5 17.2l5.1 1.4 10.7 2.2 2.7.5c9 2 18 3.3 27.1 4 8.8.7 18 1 26.7-.2 3.8-.5 7.6-1.3 11.2-2.4 4.3-1.3 7.8-3.4 11.8-5.3 10-4.7 18.5 9 8.8 15a68 68 0 0 1-29.2 8 157.6 157.6 0 0 1-59.9-9.6 107 107 0 0 1-12.2-5.7l-1.1-.6-2-1a70 70 0 0 1-5.5 19.1 8.5 8.5 0 0 1-11.7 5.6c-6-2.5-6.4-9-3-13.8l.2-.2c4-5.2 6.7-11.8 8.9-18 1.1-3.1 2.2-6.4 3-9.7.8-2.3.8-4.7 2.6-6.4Zm153.9-52.7a34.7 34.7 0 0 1-22 22.6 68.2 68.2 0 0 1-33.4.3l-7.2-1.4c2 1.2 3.7 3 5.3 4.7 2.5 2.7 4.7 5.6 5.4 9 .7 3.3-.4 5.8-2.3 7.7-3 3-7.8 4.6-11.8 5.4a63 63 0 0 1-27.3-.3 6.9 6.9 0 0 1-4.8-3.4 9 9 0 0 1-.5-6.6 9 9 0 0 1 3.8-5.4c1.6-1 3.6-1.2 5.8-.5a46.6 46.6 0 0 0 23.3 2 84.6 84.6 0 0 1-9.3-16 84.3 84.3 0 0 1-1.5-3.8l-.4-.4a26.7 26.7 0 0 1-7-9.3 52.4 52.4 0 0 1-1-33.7A42.6 42.6 0 0 1 177 85.4a22 22 0 0 1 2.8-4c3.8-3.9 9-6.5 14.1-8.1 11.5-3.6 24-1 33.6 5.8 9 6.3 16 15.8 19.7 26.3 3.6 10 4.3 20.8 1 31Zm-155.7-65a64.8 64.8 0 0 1 38.5 12c10.5 7.6 18.8 19 18.8 32.5 0 13.1-7 26-14.9 36.3a41.6 41.6 0 0 1-34.5 17c-7.5.1-15-.6-22.5-1.5l-4-.5c-5.4-.7-11-1.5-16.2-3.4-24.7-9-25.5-41.4-16.3-62 7-16 25-31.6 42.8-29.8 2.7-.3 5.5-.5 8.3-.6Zm23 15.3a65.1 65.1 0 0 0-54.2 2.8A56.8 56.8 0 0 0 48 113.7c-2 8.9-1.7 18.3 1.4 26.9 3.8 10.4 13 13 23.2 14.6l3.9.6 1.6.3a92.6 92.6 0 0 0 30.2.7c10.6-2 17.4-10.6 22.7-19.4l.2-.4c5.5-9.2 10.1-20.4 5.5-30.9-4-9-12.5-15.6-21.2-19.5Zm100.4 2.6a23 23 0 0 0-26.1 2.5l-1 .7c-2.7 2.1-5.3 3.2-7.4 6.1l-.3.4c-1 1.6-3 2.2-4.6 2-2 5.4-2.8 11.3-2.8 17v1.6c.1 6.8 1.3 15.1 6.7 19.7 4.9 4.2 12.3 5.2 19 5.8l5 .4h1.4c7 .6 14.6.4 20.4-3.7 5.1-3.6 7.5-9.7 8.1-15.7A38.4 38.4 0 0 0 216 89.2ZM88.8 90.5a27.3 27.3 0 0 1 28.6 2.4 8 8 0 0 0-2.1.7c-1.8 1-3 2.7-3.4 4.6-.5 2.2.7 4.3 2.8 5 1.9.6 4.1.8 5.8-.3 1-.6 1.6-1.4 2-2.4v-.1l.1-.1a12 12 0 0 0 .3-.8l.3-.3c1.5 2.2 2.6 4.8 3.3 7.5 4.6 18-14.3 36.5-31.2 38.4-6.4.7-12.2-.9-17-3.9v-.1c2 .3 4.3-.5 5-2.7 1.9-5.5 0-12-6-13.8-3.9-1.2-7.9.1-10.6 2.8-2.1-5.2-2.9-11-1.9-16.7a24.9 24.9 0 0 1 14-19c3.7-1.6 7-2 10-1.2Zm98.7 11 .3-.4c2.9-4.4 8.4-9.9 14.1-8.4.8.2 1.6.6 2.3 1a14 14 0 0 1 9.2 2v.2c-.3 1.1-.2 2.1.3 3.1.6 1.1 1.3 2.1 2.4 2.7.7.5 1.6.7 2.4.7 1.2 0 2.3-.6 3.2-1.4.5-.5.8-1.1 1-1.8l1.3 1.4a24.4 24.4 0 0 1-2 30.6l-1 1c-3.2 4.3-8.1 7.2-14 7.8a21 21 0 0 1-15-4.3l1-.7a9.8 9.8 0 0 0 2-3.4l.1-.3.2-.6v-.2c.8-1.9.5-4-1.3-5.2h-.2a4 4 0 0 0-2-.6c-1.8-2.2-4.5-2.7-7-2v-.8l-.1-.3c-2-6.5-1-13.9 2.8-20Zm-86.8-65.2h.6c5-.8 8.3 0 11.5 4.2 1.5 2 1 5 0 7-3.4 6.7-12.8 5.3-19 6.6a90.4 90.4 0 0 0-34.9 14.7c-4.8 3.2-9.2 8-14.8 9.8-.2 0-.5-.2-.5-.4.4-6.3 5.7-12.1 9.7-16.6A76.5 76.5 0 0 1 69.8 48a89.3 89.3 0 0 1 30.9-11.8Zm74.8 8.6c6.1-9 21.5-7.3 30.6-4.9 11.3 3 23.7 9.2 31.6 18 7.2 8-3.5 18.3-11.5 11.6l-2.2-1.8-1.4-1.1c-6.1-5-12.2-9.6-19.7-13-8.8-3.9-17.8-5.8-27-8-.4 0-.7-.5-.4-.8Z" fill="#000"/></g',glee:'path fill-rule="evenodd" clip-rule="evenodd" d="M167 221.4c1.5-2.7 5-5.2 8.2-4.8 14.5 1.7 14.5 19.2 9 29.5a27 27 0 0 1-25.6 13.6c-10.8-.8-20-7.1-24-17.2-2.7-6.7-4-19 3.2-23.5h.5c3.4 4 3.5 10 6.5 14.4 2.8 4.1 7 7.5 12.1 8 3.8.4 7.6-1 9.1-4.3.8-1.9.7-2.9.4-4.1l-.3-1.1c-.9-3.9-1.3-6.8.8-10.5Zm3.8-77c7.6 4.6 19 15.3 11 26.6-9.6 10-23.4-1.4-30.2-6.6-6.3-4-13.3 6.3-7.5 11 49 36.3 69-29.8 30.5-36.4-4.2-.8-5.8 4-3.8 5.4Zm-79.7-31.5c4.6-7 15.2-6 17.7 2.3 1.4 4.5-.5 8.5-.4 13 0 3.7-.2 8-1.3 11.6a19.5 19.5 0 0 1-19 14A23.5 23.5 0 0 1 67.8 140c-3.7-8-3-16.1-.2-24.2.1-.4.6-.5 1-.2 3.1 3.4 5.5 7 7.9 10.8l2.5 4c1.9 2.8 4.6 6.6 8.2 6.4h.5c1-.2.9 0 1.6-1.3.4-.6.3-1.8.5-2.5v-.4l-.2-2.2v-.3c-.3-5.4-1.8-12.4 1.5-17.3Zm117.5 4.6c-.9-8.9 11.6-10.8 15.8-4.3 2.2 3.5 2.8 7.8 3.3 11.9l.2 1.9c.5 4.2.7 8.6-1.1 12.5a15.7 15.7 0 0 1-15.9 8.9 19.3 19.3 0 0 1-15.3-9.9c-2.8-5-5.5-14.9-2.2-20.2.2-.3.6-.3.9 0 3.1 2.7 3.7 7.9 5.5 11.5 2 3.8 5 7.5 9.4 8 4.2.6 5.9-1.7 4.8-5.8-1.4-5.3-5-8.8-5.4-14.5ZM94.4 60l2-.8c7-2.6 16.7-5.7 22.4 0 3.5 3.5 4.2 8.7 1.7 13-3 5.2-8.5 5.3-13.8 6-6 1-12 2.6-17.6 5-6.3 2.6-12.1 6-17.8 9.6-5.5 3.5-10.9 9.3-17.4 10.4-.2 0-.5 0-.6-.4-1.5-6.3 2.6-12.6 6.3-17.5A72.8 72.8 0 0 1 94.4 60Zm127.3 22.6.6-.1c4.3-.7 8.1-.6 11.3 2.8a9 9 0 0 1 2.3 9.3c-1.1 3.1-3.5 6.3-7 7a115.8 115.8 0 0 1-36.7.1c-5.4-.7-10.9-1.7-16.1-3.2l-2.5-.7c-4.4-1.2-9.4-2.5-12.6-5.8-1.1-1.1-.5-2.8.9-3.3 5.6-2.2 13.2-1 19.2-1.2 6.9-.2 13.8-.8 20.7-1.5 6.8-.7 13.3-2.2 20-3.4Z" fill="#000"/'}},
+ chenjiaoshou:{pre:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 704 704" fill="none" shape-rendering="auto" width="96" height="96"><metadata xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/"><rdf:RDF><rdf:Description><dc:title>Open Peeps</dc:title><dc:creator>Pablo Stanley</dc:creator><dc:source xsi:type="dcterms:URI">https://www.openpeeps.com/</dc:source><dcterms:license xsi:type="dcterms:URI">https://creativecommons.org/publicdomain/zero/1.0/</dcterms:license><dc:rights>Remix of „Open Peeps” (https://www.openpeeps.com/) by „Pablo Stanley”, licensed under „CC0 1.0” (https://creativecommons.org/publicdomain/zero/1.0/)</dc:rights></rdf:Description></rdf:RDF></metadata><mask id="viewboxMask"><rect width="704" height="704" rx="0" ry="0" x="0" y="0" fill="#fff" /></mask><g mask="url(#viewboxMask)"><g fill-rule="evenodd" clip-rule="evenodd"><path d="M705.3 1074a2351.1 2351.1 0 0 1-15.6-101c-1-7.7-2.5-16.4 2.7-22 7.3-8 14-14.8 14.8-26.2.8-10.7-2.8-22.4-5-32.8a809.4 809.4 0 0 0-17.3-64.7c-6.6-21.7-13.9-43.2-21.3-64.6-6.9-20-13.5-40.3-22.5-59.5-17-36.5-46-63.5-81.6-81.6-9-4.5-27-20.5-36.3-24-8.5-3.4-8.5 6.3-16.9 2.6-6.7-2.9-13-6.7-16.7-13.2-4-7-14.3-16.9-15.9-25-3.3-17.4.3-32.2-12-45.3a90 90 0 0 0-41.1-23.8c-33.7-9.3-78.5-2.8-98.8 28.5-9.7 14.9-13 33-26.2 45.1-11.4 10.7-8.8 18-23.6 23.4-.9.3-23.6-4.5-24.4-4.2-16.2-3.5-31.7 6.2-46.5 11.8a325.4 325.4 0 0 0-63 32.3 399.2 399.2 0 0 0-102.3 98.5 482.5 482.5 0 0 0-76.4 161c-1.7 6.4-3.5 13-1.5 19.4 1.7 5.3 5.4 9.2 9.8 12.4 6 4.3 18 7 17.7 15.7-.1 6.6-2.4 13.5-3.5 20-1.3 7.7-2.3 15.5-3.4 23.2-4.8 35.4-8.6 71-10.3 106.6a920 920 0 0 0-.5 106c.1 2.3.8 4.5 2 6.2-1 .4-1.2 2.4.1 2.7l2.7.5a12 12 0 0 0 7 2.4l5.5.2c19.3 4 38.6 7.9 58.1 10.8 23.8 3.5 47.6 6.3 71.5 8.7 49.2 4.8 98 3.2 147.1.6a1877 1877 0 0 1 147.4-2c49.2 1.4 98.4 3.5 147.6 4.4 55 1 110-.5 164.8-5 7.5-.5 12.2-6.5 10.7-14-8.9-44.7-19-89.1-27-134Z" fill="#ffdbb4"/><path d="m201 597.5 1.2-.4c14.5-5.7 29.6-14.8 45.4-11.4.5-.2 10.8 1.9 17.9 3.2l-6.7 7L247 598c40.7 67.1 88.8 100.7 144.3 100.7 55.5 0 97.7-33.6 126.4-100.7l4-1c.4 0 1 .2 1.5.4 9.3 3.6 27.4 19.6 36.3 24.1 35.6 18 64.5 45 81.6 81.6 8.7 18.6 15.2 38 21.8 57.5l.7 2c7.4 21.4 14.7 43 21.3 64.6 6.3 20.4 12 41 16.6 61.8l.7 2.9c2.2 10.4 5.8 22 5 32.8a29 29 0 0 1-3 10.7l-80.4 29 38.4 261.3c-35.1 1.5-70.3 2-105.5 1.3-49.2-.9-98.4-3-147.6-4.3-47.7-1.2-95.3-.7-143 1.7l-12 .6a946.3 946.3 0 0 1-139.5-1l-3.1-.3v-38.3l16.3-212.9-83-15.6-81.3-39.5a21.7 21.7 0 0 1-5.6-8.8c-1.9-6-.5-12 1-18l.5-1.3a492.8 492.8 0 0 1 76.4-161A399.3 399.3 0 0 1 138 629.7c19.8-13 40.9-23.9 63-32.3Z" fill="#8fa7df"/><path d="M232.2 584.6c5.1-.3 10.3.6 15.4 1 .4.1.6.8 0 .9-9 1.9-18 4.5-26.9 7.1l-3.8 1.2c-10 3-19.8 6-29.6 10-19.4 7.9-37.8 18.5-54.8 30.8C67.2 682.8 20 754.3-9.9 828.3a526 526 0 0 0-24.3 77c-.4 1.6-2 5.4-1 7 .7 1.3 3.6 2.1 5 2.9l4.5 2.3 25.2 12.9 2.3 1.1c38 18.6 78.4 34.4 121 35.5l.4-3.7a342 342 0 0 1 9.9-60c.3-1 1.6-.6 1.7.3 3 23.1 2 46.4 1 69.7-1.8 41-4.3 82.2-6.5 123.3-1.2 20.6-2.6 41-3.9 61.7-1.3 20.5-1.7 41.6-4.7 62-.6 4.6-6 7-10 6.6-4.4-.5-7.9-4.5-8-9 0-11.9 1.5-24 2.4-35.8l2.5-33.8c3.1-41.1 6.8-82.2 10.2-123.3a4771 4771 0 0 1 3.8-43.7C76.4 979.8 34.2 963-6.1 943.5c-.6 13.2-2 26.5-3.4 39.6-3.8 36.8-7.1 73.6-9.6 110.5a2254.2 2254.2 0 0 0-4.2 92.7l-.2 7c0 4.4-.5 8.5-4.3 11.7-3.7 3.3-8.9 3.5-12.6 0-5-4.6-4.2-10.9-4-17.1a1675.6 1675.6 0 0 1 1.8-47.2 1321 1321 0 0 1 10.5-109.5l2-14c3.5-26 7.5-52.7 15.5-77.9-3.1-1.5-6.2-3-9.3-4.7-5.5-2.7-11.2-5.4-16.6-8.4-4.2-2.5-7.9-5.8-9-10.8-1.4-5.5.6-11.5 2-16.9v-.4a502 502 0 0 1 26.6-80 523.2 523.2 0 0 1 67.8-117 353.8 353.8 0 0 1 88.7-83.3 239 239 0 0 1 53.8-25.7 142.6 142.6 0 0 1 42.8-7.5Zm90.1-66c6-6.5 18.1.2 15.2 8.8a108.2 108.2 0 0 1-34.7 52A79.4 79.4 0 0 1 247 598l1.7 2.4a321.1 321.1 0 0 0 46.1 52.6c36 31.2 84.8 48 132 36 37.1-9.4 69.8-38.8 79.4-76.2-1.3.6-3 .9-4.8.5-7.7-1.7-15.3-9.8-20.3-15.6-5.3-6.3-9.5-13-12.6-20.7-5.6-14-7.4-32.1.3-45.7 1-1.7 3-.7 3.3 1l.3 2.5c1.5 12.7 3.3 25 9.3 36.6a76 76 0 0 0 18.2 23.1c2.6 2 5.8 3.6 8.1 6l.5.4c.6-5 4.1-7.3 7.6-7.2 3.3.2 7.3 1.6 8.8 2.3l.1.1a341 341 0 0 1 65.1 42 259 259 0 0 1 88.4 129c7.5 25.3 11.8 51.4 16.3 77.4l2.8 16c4.2 23.9 8.9 48.4 18.4 70.7 2.5 5.7.6 11.1-5.5 13.4A1493 1493 0 0 1 688 953c3.7 16 6 32.5 8.7 48.5 6 34.1 13.2 68 19.4 102 3.2 17.5 6.1 35 9.3 52.3l4.7 25.2 2.4 13.6.1.7c.5 2.4 1 4.9.4 7.3-.8 2.7-2.9 4.6-4.8 6.6-1.6 1.6-3.8 1.6-5.7.7l-.7-.3c-3.4-1.6-6-3.2-7.3-7-.7-2.5-1-5.2-1.5-7.7a3535.6 3535.6 0 0 1-7.8-43.6l-1.6-9.1c-5.2-31.4-10.2-62.9-12.8-94.5-1-14-2.3-28.1-3.5-42.2l-.9-10.5c-1.1-13.3-2.5-27-2.7-40.5l-4.5 1.6L657 964c-5.5 2-12.5 6-18.4 5.2-2.9-.3-5-1.2-6.8-2.9 2 28.8 4.8 57.4 8.5 86a1965.7 1965.7 0 0 0 22 135c.6 3.2 1.4 6.4 1.9 9.6.5 3.7-.5 5.9-2.5 9-1.7 2.4-5 3.7-7.8 2-3.6-2.3-5.5-4.3-6.5-8.4-1-3.7-1.6-7.6-2.3-11.4a1654.2 1654.2 0 0 1-11.4-65.2c-7.8-52-12.7-104.4-15.2-156.8a1388 1388 0 0 1-1.4-77.8c0-13.3.5-26.6 1.4-39.9 1-13.4 3-26.5 4.8-39.8 0-.5.7-.5.7 0 .8 14.9 2.1 29.8 2.8 44.7.6 14.3.9 28.5 1.4 42.8.6 18.7 1.5 37.5 2.7 56.2a9.6 9.6 0 0 1 8.5-3.1c4.7-1 9.7-3.4 14.1-5l16.8-5.5 26.4-8.7a679 679 0 0 1-18-80.8l-2-12.3c-4-24.2-8.5-48.5-15.8-72a229.8 229.8 0 0 0-34.8-68.2 370.2 370.2 0 0 0-52.7-55.3C557 627 539.7 614 523 600c.1.9.2 2 0 3-3.5 25.9-17 50-35.8 67.9-37.7 36-93.6 43.4-142 26.5-46.7-16.3-88-55-102.6-102.8-.3-.8.8-1 1.3-.5l2.4 3.3c0-.4.2-.9.7-1a129 129 0 0 0 46.6-29.2 100.2 100.2 0 0 0 21.3-33.3l.4-1c1.7-5 3.2-10.2 7-14.2Z" fill="#000"/></g><g transform="matrix(.99789 0 0 1 156 62)"><path fill-rule="evenodd" clip-rule="evenodd" d="M287.4 509.5c-22.2.1-41-6.2-55.4-16.6-18-6.4-39.7-16.3-52.8-26.7-5.2 1.3-11.3-4.1-15.2-7-24.5-18.2-43.6-45-49.3-71.7-8.8 11-21.3 11.6-33.2 6-25-14.2-24.1-44-15.1-66.4-19-42.6-32.1-155-3.2-200.3 6-6.8 14.6-10.8 20.9-17.8 5.6-6 10.9-12.3 17.3-17 19.8-15.1 53.8-23.1 75.2-27 89-19.1 157.3 15.4 238 44.6a142 142 0 0 1-18.5 32c20 7.5 10.8 24.3-4.7 32.8l-9.2-4.5c14.4 51.6 47.5 179.8 33.2 221-11.4 64.1-61.5 119-128 118.6" fill="#ffdbb4"/><path d="M86 309.8c-11.3 0-19.7 12.7-19.7 12.7H64C46.2 276.7 35 170.9 63 127.3c3-3.4 6.7-6.2 10.4-9A68 68 0 0 0 86 107c4.7-5.2 9.4-10.4 15-14.5 19.8-15 53.8-23 75.1-26.8C252.7 49 314 72.3 381 97.6c11 4.2 22 8.4 33.3 12.5a142 142 0 0 1-18.4 32c20 7.5 10.8 24.3-4.7 32.8l-6.9-3.3c-1.8-9.7-6.6-28.5-16.7-29.5-7.2-.7-19 6-30.4 12.5-10.3 6-20.4 11.7-26.7 11.7-5 0-17.4-4-33-9-26-8.4-60.8-19.6-83.8-19.6-36.8 0-68 30.4-80.5 52.4s18.5 49.3 18.5 49.3-18.5 23.7-18.5 34.1c0 10.4 4.3 42.9 4.3 42.9s-20-6.6-31.3-6.6Z" fill="#e8e1e1"/><path fill-rule="evenodd" clip-rule="evenodd" d="M300.3 515c-28.9 3-63-3.9-82.3-27.3a3.6 3.6 0 0 1 2-5.8c.7-.2 1.5 0 2.4.4l1.8 1a115.7 115.7 0 0 0 87.7 15c27.6-6.3 50-22.4 66.4-43.5a162.5 162.5 0 0 0 32.2-83.7c3.5-36.4-4.5-72.5-12.6-107.7-8.6-37-18-73.8-29-110.2-.3-1.1-.3-2.1-.3-3-3.2-1.4-6.6-1-10 .1-6.2 2.2-12.4 6.9-17.6 10.8l-5.2 3.8a42.4 42.4 0 0 1-21.3 8c-8.1.6-16.1-2-23.6-5.1l-11.1-5c-10.5-4.7-20.9-9.4-32.2-12.5-15.2-4-31-6-46.7-6-28 .3-56.3 7.6-73.5 31.3-7 9.6-11.5 20.7-8 32.6a59 59 0 0 0 9.6 17.7l1.4 1.8c2.1 3 4 6 4.6 9.1.5 2.6.1 5.4-1.8 8.5a40 40 0 0 1-4.2 5.3c-1 1.3-2.2 2.5-3.1 3.8a48.9 48.9 0 0 0-4.9 8.6 50.8 50.8 0 0 0-4 18.7c-.2 7.7 1 15.2 2 22.8.7 5.4 1.5 10.7 1.8 16.2 0 1-.2 1.6-.6 2.1a3 3 0 0 1-2 1.2h-.8l.3 1.6a28.6 28.6 0 0 0-1.8-2c-.6-.4-1-.9-1.4-1.5l-2.6-2.2a27.6 27.6 0 0 0-16-5.8c-5.5 0-10.9 1.8-15 5.7C72.4 327.5 70 340.2 70 351c0 11 2.5 24.4 12.2 31.2 3.8 2.8 8.6 4.5 13.3 4.5 4 0 7.7-1.4 11.5-2.7l3.4-1.2c1.3-.4 2.5-.4 3.5 0 1.2.3 2.1 1 2.9 2a7 7 0 0 1 .4 7.8l2.1 3.5a220.5 220.5 0 0 0 27.3 37.8c6.2 6.6 12.8 12.8 20 18.3l1 .7c.7.5 1.4 1 2.1 1.7 2.1 1.7 4.7 4 7 4.1l1.9-.1c1.3-.2 2.5-.3 3.6.2.9.4 1.8 1 2.7 2.4a6.5 6.5 0 0 1 0 6.7 9.5 9.5 0 0 1-4.2 4 10 10 0 0 1-5.9.5c-5-1-10.7-5.2-14.3-8l-.7-.4c-8-6.1-15.5-12.8-22.1-20.3a126.6 126.6 0 0 1-26.6-44.3 25.2 25.2 0 0 1-13 3.7 44 44 0 0 1-19.5-4A42.8 42.8 0 0 1 56 370.6 71.7 71.7 0 0 1 59 326c-15.3-38.7-20-81.7-18.7-123a291 291 0 0 1 6.5-58.5c2-8.4 5.6-16.5 11.3-23.1 3.2-3.8 7.2-6.8 11.2-9.7 3.4-2.6 6.9-5.1 9.8-8.3l1.4-1.5.9-1c5-5.6 10-11 16-15.5 7.1-5.3 15-9.4 23-12.9a264.3 264.3 0 0 1 55-15.2C215.8 50 257.2 49.6 297 60a587 587 0 0 1 59.4 20l41.9 15.3 19.4 7.2a7 7 0 0 1 3.6 3 5 5 0 0 1 .4 4.5c-4 10-9 19.5-15.2 28.3a19.6 19.6 0 0 1 8.1 15.4c.3 12-10.6 20.1-19.6 26-.9.5-1.7.8-2.5 1 8.8 33.4 17.1 67 24.2 100.9l.5 2.3c7.4 35.4 12 71.6 5.2 107.4a169 169 0 0 1-41.6 83.8 128.6 128.6 0 0 1-80.5 39.9ZM110.5 311.3c-3.8-12-5.8-25-4.3-37.2a58.9 58.9 0 0 1 14.5-32.4l1-1.2c.5-.5 1-1 1.1-1.7.1-.4 0-.8-.2-1.3-.5-1.2-1.5-2.2-2.4-3.3l-1.6-2c-8.3-11.1-14.4-24.5-12.4-38.7 2-13.8 11-26.7 20.7-36.5C148 135.6 181 130.7 210 132a186.6 186.6 0 0 1 72.8 18l1.7.8c.9.5 1.8 1 2.7 1.3 5.8 3 11.7 5.8 18 7.4 12.5 3 21-3.4 29.8-9.9 3-2.2 6.2-4.5 9.4-6.4l.7-.4c6-3.5 13-5.8 19.8-5.7 6 .1 11.6 2 16.3 6.5 1 .9 1.5 1.9 1.7 2.9a8 8 0 0 1 1.2 2.6 8705 8705 0 0 1 5 18.7l1.3-.9c4-2.6 8.4-5.5 10.3-9.9.8-1.7.7-4.4-.3-6.5a4 4 0 0 0-1.4-1.7c-.4-.3-1-.5-1.6-.4-1.5.2-2.8 0-4-.5a6.7 6.7 0 0 1-3.1-2.7 6 6 0 0 1-1-4c.2-1.1.8-2.4 1.8-3.6 6.8-7.8 12.6-16.5 17-26L379 101l-30.8-11.4-5.6-2a466.2 466.2 0 0 0-57-18c-38.7-8.8-79-6.7-117.6 1.5l-2.3.5a202 202 0 0 0-47.5 15.2 84 84 0 0 0-20.2 13.7c-2.6 2.5-5 5.2-7.3 7.9A88 88 0 0 1 80 119l-3.6 2.9A42.2 42.2 0 0 0 63 137.5c-3.3 7.2-4.8 15-6 22.8-3.2 19.3-4.5 39-4.4 58.7.2 33 5.2 65.2 11.6 97.4 5-7.3 12.2-13 21.3-14.1a29 29 0 0 1 25 9Zm-9.6 39.1a38.5 38.5 0 0 0-20.8-2.2 3 3 0 0 1-2-.3c-.6-.4-1-1-1.3-1.6-.3-.7-.3-1.4 0-2.1.1-.6.6-1.2 1.4-1.6a43.6 43.6 0 0 1 24.6-4h.8c4.3.7 10.4 2 15 4.7 3.5 2 6.2 5 6.8 8.7.3 2-.1 4-1.3 5.5a5.8 5.8 0 0 1-4.9 2.3c-3.8-.1-6-1.7-8.7-3.8l-1-.8a36 36 0 0 0-8.6-4.8Z" fill="#000"/></g><g transform="translate(315 248)"><',post:'></g><g transform="translate(279 400)"><path fill-rule="evenodd" clip-rule="evenodd" d="M208 31.3c-11.2-5-31.2-.6-38.4 1.1-16.9 4-33.8 12.8-39 26.5-6 15.4 5.8 20.3 7.5 19.5 11.7.8 25.6-6.5 37.8-8.4 10-1.6 20.4-3 29.7-8.2 6.8 3.7 22.1 5.7 34.5 9 10.6 2.8 15.1 8.8 25 7.5 11.6-1.5 6.8-26.1-6.2-36.1-14.3-11-38.5-15.4-51-10.9Zm22 105.4c-9.8 2.3-10.4-19-11.5-26.5-.9-6-5.7-21-17.9-20.4-12.1.6-16.7 13.3-16.1 21.2.4 5.2 5.1 31.2-10 34.4-9.6 0-20.7-.6-30.8-2.5-12-2.7-27.4-12.1-31.5 6.4-1.5 6.7 51 26.6 74.2 28.4a75.1 75.1 0 0 0 68-20.6c3.9-4.1 14.6-21.2 15.4-25.3 1.6-8.8-2.1-14.5-13-11.4-7.6 4.1-20.6 14.7-26.9 16.3Z" fill="#000"/></g><g transform="translate(179 343)"></g><g transform="translate(203 303)"><path fill-rule="evenodd" clip-rule="evenodd" d="M367 74.4a79.6 79.6 0 0 1-12.3 22.2c-21.3 18-42 8-52.5-16.4-4-17.2 6.6-35.8 17.8-48.6 16.3-16.2 42.7-7.7 50.2 11.6.4 2.6.7 5 .8 7.5a66 66 0 0 1-4 22.7M162.5 59c28-33.4 80.5-35.1 79.2 16.2-6 65-107.5 49-79.2-16.2ZM376 31.1c-1-1.7-2-3.3-3.3-4.8-.4-.3-.6-2.6-2.3-2.8C348.7-.4 310.7 13.2 297 37c-2.5 3-4.6 6.5-6 10.2a78.4 78.4 0 0 0-42 3.1c-12.4-32.6-50.2-35.5-75-21.6-15.6 7.7-25.6 23.6-40.6 32.4C98 63.6 60 55.7 25.2 64.6c-27.4 5.7-4.5 19.5.1 10.3C58.1 65.2 97 73.4 131 71.2c3.6 6 10.4 10.9 17.1 10.7 7.3 64.7 101.7 54 105-3.6a42.2 42.2 0 0 1 14.8-15A32 32 0 0 0 275 61c3.8-.5 9.6 1 13.1 4.2 12 71.9 81 63.5 93.3.6.2-.3 1-1.2 1.4-2.7 4.2-5.6 14.6-7.7 13-17-1.5-9.5-13.4-9.4-19.9-15Z" fill="#000"/></g></g></svg>',f:{idle:'g fill-rule="evenodd" clip-rule="evenodd"><path d="M93.8 224.8c8-16 81.4-8.9 81.4-8.9l6.2 51s-35.4 11.3-56.5 9c-21-2.5-39-35.1-31-51.1Z" fill="#fff"/><path d="M99 251.5c-2.5-5.5 50-20.2 66.2-10.1 16.2 10 11.1 23.9 11.1 23.9S108 280.8 99 251.5Z" fill="#FF8181"/><path d="M89.3 215.3c12.2-14.2 32.9-15.2 50-11.7 11 2.3 21.6 6.1 32.7 7.5 5.2.7 10.5.9 15.7.8 5.2-.1 10.3-1.1 15.4-1 .8 0 1.1 1.1.4 1.5-7 4.4-16.5 5.7-24.8 6.6a93 93 0 0 1 .7 5.8l1.3 9.2c.8 6 1 12.3 2.5 18.2l.3 1a9 9 0 0 1 .3 3.4l.3-.1 1.1-.5.7-.4c2.6-1.2 5-2 8-1.7 2.3.2 4.2 1.7 4.2 4.2 0 11-14.7 14.5-23.1 16.6l-2.5.6c-10.8 2.6-21.7 4.9-32.8 5.4-17.7 1-37.7-4-49.3-18.4-10.8-13.4-12.8-33.4-1.1-47Zm80.6 46c-2-16.5-22.2-17.4-28-7-2.6-14.5-40.9-1.2-37.9 1.7 11.4 11 28.6 12 43.4 10 7.5-1 15-2.8 22.5-4.7Zm-22.5-43.2-5.1-.7-2-.3c-12.7-1.7-26.9-2.6-37.3 5.5a18 18 0 0 0-6.7 11A552 552 0 0 1 126 230l2.7-.3 18.6-1.7 4.3-.5 4.4-.4c1.6-.2 12-.7 14-.4.2-1.7.4-5.5.9-7.3-7.4.3-14.8-.3-22.1-1.2l-1.3-.2Zm23.4-73.7c7.6 4.6 19 15.3 11 26.6-9.6 10-23.4-1.4-30.2-6.6-6.3-4-13.3 6.3-7.5 11 49 36.3 69-29.8 30.5-36.4-4.2-.8-5.8 4-3.8 5.4Zm13.5 19.3.4-.2h.1c.2-.2 0-.2-.4 0l-.4.1v.3l.3-.2ZM87.6 123v-.2c0-6.4 3.7-21 13-21 5.7 0 9.1 10 9.7 20.2v.4c.3 6.4-1.4 20.2-9.8 20.2S87.7 129.4 87.6 123Zm135.2-2v-.2c0-6.4-3.8-21-13-21-5.5 0-9 9.5-9.7 19.4v.8c-.4 6.1 1.2 20.6 9.8 20.6 8.4 0 12.8-13.1 12.9-19.6Zm-130-62.6c7.5-1.2 17.5 1 21 8.6 1.5 3.4-.3 7.2-4.2 7.4-9.5.4-18-1.7-26.4 4.5a42 42 0 0 0-9 10l-1 1.4-.8 1.1c-1.7 2.5-3.4 5.3-3.1 8.3 0 1-.9 1.8-1.7 1.7-5.5-.2-6-7-5.4-11.1 1.4-7.7 5-14.8 10.2-20.6 5.4-6 12.4-10 20.5-11.3ZM196 67.5a29.3 29.3 0 0 1 17.9-4c12 .9 32 11 29.3 25.6-.8 4.5-7 6.9-10.8 4.4-4-2.7-4.9-6.9-7.8-10.4a28.5 28.5 0 0 0-8.6-6.5 28.3 28.3 0 0 0-10.3-3.1h-.6c-2.2-.3-13-.2-11.4 3.8.3.8-.9 1.5-1.4.9-3.4-3.7.4-8.5 3.7-10.7Z" fill="#000"/></g',mad:'path fill-rule="evenodd" clip-rule="evenodd" d="M190.6 219.8a28.5 28.5 0 0 1-16 9.2 33.9 33.9 0 0 1-19.5-.9l-.5-.2c-4.6-1.8-9-5.7-10.6-9.6a7 7 0 0 1-.4-4.7 6.9 6.9 0 0 1 3-3.7c.4-.3 1-.3 1.7-.2.8.1 1.6.5 2 1 2.7 2.7 6.4 5.4 11 5.4 3.4 0 6.2-1.4 8.9-3l2-1c1.8-1.1 3.6-2 5.8-2.5a14 14 0 0 1 11.2 3c1.2 1.1 2.1 2.4 2.4 3.7.2 1.2-.1 2.4-1 3.5Zm-19.8-75.4c7.6 4.6 19 15.3 11 26.6-9.6 10-23.4-1.4-30.2-6.6-6.3-4-13.3 6.3-7.5 11 49 36.3 69-29.8 30.5-36.4-4.2-.8-5.8 4-3.8 5.4ZM85.6 73.8l2.2-.6 2.2-.6 1.5-.4c10.3-2.7 21.6-5 31.8-3.9 3.7.5 6.7 2.5 7.3 6.4.4 3.3-1.7 7.6-5.3 8.1-12 2-24.3 1.4-36.3 3.4-6 1-12 2.2-17.9 3.3-4.5.8-9.2 1.1-13.8 1.8l1 .2c.5 0 .4.6 0 .6-1.5-.1-3-.2-4.5 0H53c-1 .1-1.5-1-.7-1.6 5.6-3.8 10.3-8 16.6-10.7 5.4-2.4 11-4.4 16.6-6Zm93.6-5.8c7.9-8 24.7-4.9 34-1.2 5.4 2 10.5 4.7 14.8 8.6l.4.4.6.6c2.9 2.8 6 6.7 5.6 10.7 0 .7-.4 1.4-1 1.5-3.8.7-7.5-1.3-11-2.5l-2.3-.8c-3.5-1.2-7-2.3-10.5-3.1-4.4-1-9-1.6-13.5-1.6-4.6 0-9.5 1.4-14-.4-4.8-2-7.3-8-3.1-12.2Zm-78 64.4c-2 2-4.8 3.2-8.2 2.6-2.6-.6-7.7-3.3-11.7-7.4-2.8-2.8-5.1-6.3-5.8-10.4-.1-1-.6-1.6-1.3-2-.5-.2-1.2-.4-2-.3-.6 0-1.2.3-1.8.6-1 .6-1.4 1.4-1.4 2-.8 6 1.5 11.8 5 16.8C79 141 86 146 90.1 147.1c7.2 2 14.7.4 20.2-4.6a36 36 0 0 0 8.8-14.4l.4-1 1.5-3.7c1-2.3.7-4.4-.3-6-1-1.8-3-3-5.3-3.4-2-.3-4.2 0-6 1.3a7.7 7.7 0 0 0-3 5.2c-.6 4-2.2 8.6-5 11.6l-.3.3Zm122.2-23.2c-1.6-.8-3-1-4.8-.5-1 .3-2 .9-2.8 1.6-.8.8-1.3 1.8-1.5 2.9-.6 2.6-2 5.1-4.1 6.8a8.2 8.2 0 0 1-6.5 1.7 12.5 12.5 0 0 1-8.3-6l-.2-.4c-.9-1.5-1.7-2.8-3-3.8-.4-.4-1-.7-1.7-.7l-.8.1c-2.7 2.7-3.2 4.7-3.1 6.7 0 2.1 1 4.3 2.2 6.3 3.2 4.7 9.2 8.5 13.2 9.4 5.6 1.2 11-.3 15.5-3.4a22 22 0 0 0 9-13.7c.2-1.3 0-2.8-.4-4a5.7 5.7 0 0 0-2.7-3Z" fill="#000"/',oops:'g fill-rule="evenodd" clip-rule="evenodd"><path d="M105.8 231.1c4.6-14 54.2-34.8 62.6-28.8 8.3 6-2.5 49.2-2.5 49.2s-46.2 4.8-49.5 2.4c-3.3-2.4-15.2-8.7-10.6-22.8Z" fill="#fff"/><path d="M190.3 203.4c.3.3-.3.8-.7.5-3.8-2.7-9.8-1.1-13.5.1 0 0-1.3 43.3.2 44.3s22.4.5 22.4 3c0 8.4-12.6 11.6-19.4 11-10.8-.7-21.9-2.2-32.6-1-10.8 1.3-33.6 8.1-45.3-1.4-14-11.3-12.1-29.9-.5-42a68 68 0 0 1 28.7-15.7c15.5-5 52.1-8.1 60.7 1.2Zm-28.6 31.8a748.9 748.9 0 0 1-40.3 13.1c7.8-.5 34.3-1.1 40.3-4 .6-2.7 1-9.5 0-9Zm4.2-30c-15.2 2.5-48.1 13.6-52.8 19.6 7.1-1.2 47.2-6 51.8-6 .6-3.5.2-9.6 1-13.6Zm5-67.8c7.5 4.6 19 15.3 10.8 26.6-9.5 10-23.3-1.4-30-6.6-6.4-4-13.4 6.3-7.6 11 49 36.3 69-29.8 30.5-36.4-4.2-.8-5.8 4-3.8 5.4Zm16.7-67c4.4 0 7 2.8 10.3 5.4 3.4 2.6 7.6 4.7 11.6 6.3 4.1 1.7 8.6 3 13 4 4.5 1 8.7.5 13.2 1.4 12 2.2 9.2 22.2-2.8 21.2a59.6 59.6 0 0 1-30.7-14.5c-3.9-3.2-7.2-7-10.4-11l-.6-.7c-2.9-3.5-5.5-7.1-4-11.8 0-.2.1-.3.4-.3Zm-100 58.3c0-6.4 3.7-21 13-21 5.7 0 9.1 10 9.7 20.2v.4c.3 6.4-1.4 20.2-9.8 20.2S87.7 135.4 87.6 129v-.2Zm135.2 0c0-6.4-3.8-21-13-21-5.5 0-9 9.5-9.7 19.4v.8c-.4 6.1 1.2 20.6 9.8 20.6 8.4 0 12.8-13.1 12.9-19.6v-.2ZM117.7 71.3c5.7-2.4 12.2-1.7 15.7 4.2 3.3 5.5 1 12.3-4.1 15.7-5.1 3.4-12 5.2-17.8 7.1l-.6.2a148.2 148.2 0 0 1-33.7 7.4l-1.6.2c-4.3.5-10.3 2.1-14.2-.3a.8.8 0 0 1-.3-1c2.3-4 8.3-5.5 12.1-7.5 5-2.5 9.8-5.3 14.7-8l14.5-8.5c5-3 10-7.2 15.3-9.5Z" fill="#000"/></g',glee:'path fill-rule="evenodd" clip-rule="evenodd" d="M146.6 241a40.7 40.7 0 0 1-17.1-13.2c-1.5-2-2-4.2-1.6-6.2a8.9 8.9 0 0 1 9.6-7.2c1.9.3 3.7 1.3 5.2 3.5l.3.4a27 27 0 0 0 10 8.3c3.6 1.8 7.8 2.6 12.1 2.1 8.3-1 14-5.4 20-11.4l2.2-2.3c.5-.8 1.1-1.2 1.9-1.5a4 4 0 0 1 4.6 1.6c.4.7.7 1.5.6 2.5a25.7 25.7 0 0 1-8.5 16.2c-5.1 4.9-12 8.2-18.4 9.4-7.1 1.3-14.4.4-21-2.3Zm24.2-96.6c7.6 4.6 19 15.3 11 26.6-9.6 10-23.4-1.4-30.2-6.6-6.3-4-13.3 6.3-7.5 11 49 36.3 69-29.8 30.5-36.4-4.2-.8-5.8 4-3.8 5.4ZM83 102c.8-10.3 16.6-12.7 18.1-2.4a42 42 0 0 1-4.3 25.9c-4 7.9-14 4.2-14.7-3-1-9.7.3-14 .9-20.5Zm120-4.5c2.2-3 5.4-4.9 9.2-3.8 11.9 3.5 8.4 20.4 4.2 28.6-2.3 4.4-9.6 5.6-12.9 1.6-5.4-6.4-8-19.1-1.1-25.5l.6-1ZM96.6 56.8l1.9-.3c5.8-1 13-2 17.1 2.7 2.2 2.5 3 7 0 9.4-5.1 4.2-10.8 2.6-17 3-5.1.2-10 1-14.9 2.5C73 77 64.2 82.8 55 88.9c-1.2.8-2.4-.7-1.9-1.8a59.3 59.3 0 0 1 26-24.1 64 64 0 0 1 17.5-6.2Zm95.6-4.6 1.4.3c15.7 3.2 36 9.8 43.4 25.1.3 2.2 0 2.7-.3 3-.2.3-.4.7-1.4 1A36 36 0 0 1 226 78l-2.8-1.4a77.7 77.7 0 0 0-10.1-4.3c-7.5-2.4-15.1-4.1-23-5a9.4 9.4 0 0 1-4.5-1.8 7 7 0 0 1-2.6-4 7 7 0 0 1 .8-5.8 7.4 7.4 0 0 1 3.6-3.1c1.5-.6 3.2-.8 4.9-.4Z" fill="#000"/'}},
+ yaomei:{pre:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 704 704" fill="none" shape-rendering="auto" width="96" height="96"><metadata xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/"><rdf:RDF><rdf:Description><dc:title>Open Peeps</dc:title><dc:creator>Pablo Stanley</dc:creator><dc:source xsi:type="dcterms:URI">https://www.openpeeps.com/</dc:source><dcterms:license xsi:type="dcterms:URI">https://creativecommons.org/publicdomain/zero/1.0/</dcterms:license><dc:rights>Remix of „Open Peeps” (https://www.openpeeps.com/) by „Pablo Stanley”, licensed under „CC0 1.0” (https://creativecommons.org/publicdomain/zero/1.0/)</dc:rights></rdf:Description></rdf:RDF></metadata><mask id="viewboxMask"><rect width="704" height="704" rx="0" ry="0" x="0" y="0" fill="#fff" /></mask><g mask="url(#viewboxMask)"><g fill-rule="evenodd" clip-rule="evenodd"><path d="M705.3 1074a2351.1 2351.1 0 0 1-15.6-101c-1-7.7-2.5-16.4 2.7-22 7.3-8 14-14.8 14.8-26.2.8-10.7-2.8-22.4-5-32.8a809.4 809.4 0 0 0-17.3-64.7c-6.6-21.7-13.9-43.2-21.3-64.6-6.9-20-13.5-40.3-22.5-59.5-17-36.5-46-63.5-81.6-81.6-9-4.5-27-20.5-36.3-24-8.5-3.4-8.5 6.3-16.9 2.6-6.7-2.9-13-6.7-16.7-13.2-4-7-14.3-16.9-15.9-25-3.3-17.4.3-32.2-12-45.3a90 90 0 0 0-41.1-23.8c-33.7-9.3-78.5-2.8-98.8 28.5-9.7 14.9-13 33-26.2 45.1-11.4 10.7-8.8 18-23.6 23.4-.9.3-23.6-4.5-24.4-4.2-16.2-3.5-31.7 6.2-46.5 11.8a325.4 325.4 0 0 0-63 32.3 399.2 399.2 0 0 0-102.3 98.5 482.5 482.5 0 0 0-76.4 161c-1.7 6.4-3.5 13-1.5 19.4 1.7 5.3 5.4 9.2 9.8 12.4 6 4.3 18 7 17.7 15.7-.1 6.6-2.4 13.5-3.5 20-1.3 7.7-2.3 15.5-3.4 23.2-4.8 35.4-8.6 71-10.3 106.6a920 920 0 0 0-.5 106c.1 2.3.8 4.5 2 6.2-1 .4-1.2 2.4.1 2.7l2.7.5a12 12 0 0 0 7 2.4l5.5.2c19.3 4 38.6 7.9 58.1 10.8 23.8 3.5 47.6 6.3 71.5 8.7 49.2 4.8 98 3.2 147.1.6a1877 1877 0 0 1 147.4-2c49.2 1.4 98.4 3.5 147.6 4.4 55 1 110-.5 164.8-5 7.5-.5 12.2-6.5 10.7-14-8.9-44.7-19-89.1-27-134Z" fill="#ffdbb4"/><path d="m201 597.5 1.2-.4c14.5-5.7 29.6-14.8 45.4-11.4.5-.2 10.8 1.9 17.9 3.2l-6.7 7L247 598c40.7 67.1 88.8 100.7 144.3 100.7 55.5 0 97.7-33.6 126.4-100.7l4-1c.4 0 1 .2 1.5.4 9.3 3.6 27.4 19.6 36.3 24.1 35.6 18 64.5 45 81.6 81.6 8.7 18.6 15.2 38 21.8 57.5l.7 2c7.4 21.4 14.7 43 21.3 64.6 6.3 20.4 12 41 16.6 61.8l.7 2.9c2.2 10.4 5.8 22 5 32.8a29 29 0 0 1-3 10.7l-80.4 29 38.4 261.3c-35.1 1.5-70.3 2-105.5 1.3-49.2-.9-98.4-3-147.6-4.3-47.7-1.2-95.3-.7-143 1.7l-12 .6a946.3 946.3 0 0 1-139.5-1l-3.1-.3v-38.3l16.3-212.9-83-15.6-81.3-39.5a21.7 21.7 0 0 1-5.6-8.8c-1.9-6-.5-12 1-18l.5-1.3a492.8 492.8 0 0 1 76.4-161A399.3 399.3 0 0 1 138 629.7c19.8-13 40.9-23.9 63-32.3Z" fill="#e78276"/><path d="M232.2 584.6c5.1-.3 10.3.6 15.4 1 .4.1.6.8 0 .9-9 1.9-18 4.5-26.9 7.1l-3.8 1.2c-10 3-19.8 6-29.6 10-19.4 7.9-37.8 18.5-54.8 30.8C67.2 682.8 20 754.3-9.9 828.3a526 526 0 0 0-24.3 77c-.4 1.6-2 5.4-1 7 .7 1.3 3.6 2.1 5 2.9l4.5 2.3 25.2 12.9 2.3 1.1c38 18.6 78.4 34.4 121 35.5l.4-3.7a342 342 0 0 1 9.9-60c.3-1 1.6-.6 1.7.3 3 23.1 2 46.4 1 69.7-1.8 41-4.3 82.2-6.5 123.3-1.2 20.6-2.6 41-3.9 61.7-1.3 20.5-1.7 41.6-4.7 62-.6 4.6-6 7-10 6.6-4.4-.5-7.9-4.5-8-9 0-11.9 1.5-24 2.4-35.8l2.5-33.8c3.1-41.1 6.8-82.2 10.2-123.3a4771 4771 0 0 1 3.8-43.7C76.4 979.8 34.2 963-6.1 943.5c-.6 13.2-2 26.5-3.4 39.6-3.8 36.8-7.1 73.6-9.6 110.5a2254.2 2254.2 0 0 0-4.2 92.7l-.2 7c0 4.4-.5 8.5-4.3 11.7-3.7 3.3-8.9 3.5-12.6 0-5-4.6-4.2-10.9-4-17.1a1675.6 1675.6 0 0 1 1.8-47.2 1321 1321 0 0 1 10.5-109.5l2-14c3.5-26 7.5-52.7 15.5-77.9-3.1-1.5-6.2-3-9.3-4.7-5.5-2.7-11.2-5.4-16.6-8.4-4.2-2.5-7.9-5.8-9-10.8-1.4-5.5.6-11.5 2-16.9v-.4a502 502 0 0 1 26.6-80 523.2 523.2 0 0 1 67.8-117 353.8 353.8 0 0 1 88.7-83.3 239 239 0 0 1 53.8-25.7 142.6 142.6 0 0 1 42.8-7.5Zm90.1-66c6-6.5 18.1.2 15.2 8.8a108.2 108.2 0 0 1-34.7 52A79.4 79.4 0 0 1 247 598l1.7 2.4a321.1 321.1 0 0 0 46.1 52.6c36 31.2 84.8 48 132 36 37.1-9.4 69.8-38.8 79.4-76.2-1.3.6-3 .9-4.8.5-7.7-1.7-15.3-9.8-20.3-15.6-5.3-6.3-9.5-13-12.6-20.7-5.6-14-7.4-32.1.3-45.7 1-1.7 3-.7 3.3 1l.3 2.5c1.5 12.7 3.3 25 9.3 36.6a76 76 0 0 0 18.2 23.1c2.6 2 5.8 3.6 8.1 6l.5.4c.6-5 4.1-7.3 7.6-7.2 3.3.2 7.3 1.6 8.8 2.3l.1.1a341 341 0 0 1 65.1 42 259 259 0 0 1 88.4 129c7.5 25.3 11.8 51.4 16.3 77.4l2.8 16c4.2 23.9 8.9 48.4 18.4 70.7 2.5 5.7.6 11.1-5.5 13.4A1493 1493 0 0 1 688 953c3.7 16 6 32.5 8.7 48.5 6 34.1 13.2 68 19.4 102 3.2 17.5 6.1 35 9.3 52.3l4.7 25.2 2.4 13.6.1.7c.5 2.4 1 4.9.4 7.3-.8 2.7-2.9 4.6-4.8 6.6-1.6 1.6-3.8 1.6-5.7.7l-.7-.3c-3.4-1.6-6-3.2-7.3-7-.7-2.5-1-5.2-1.5-7.7a3535.6 3535.6 0 0 1-7.8-43.6l-1.6-9.1c-5.2-31.4-10.2-62.9-12.8-94.5-1-14-2.3-28.1-3.5-42.2l-.9-10.5c-1.1-13.3-2.5-27-2.7-40.5l-4.5 1.6L657 964c-5.5 2-12.5 6-18.4 5.2-2.9-.3-5-1.2-6.8-2.9 2 28.8 4.8 57.4 8.5 86a1965.7 1965.7 0 0 0 22 135c.6 3.2 1.4 6.4 1.9 9.6.5 3.7-.5 5.9-2.5 9-1.7 2.4-5 3.7-7.8 2-3.6-2.3-5.5-4.3-6.5-8.4-1-3.7-1.6-7.6-2.3-11.4a1654.2 1654.2 0 0 1-11.4-65.2c-7.8-52-12.7-104.4-15.2-156.8a1388 1388 0 0 1-1.4-77.8c0-13.3.5-26.6 1.4-39.9 1-13.4 3-26.5 4.8-39.8 0-.5.7-.5.7 0 .8 14.9 2.1 29.8 2.8 44.7.6 14.3.9 28.5 1.4 42.8.6 18.7 1.5 37.5 2.7 56.2a9.6 9.6 0 0 1 8.5-3.1c4.7-1 9.7-3.4 14.1-5l16.8-5.5 26.4-8.7a679 679 0 0 1-18-80.8l-2-12.3c-4-24.2-8.5-48.5-15.8-72a229.8 229.8 0 0 0-34.8-68.2 370.2 370.2 0 0 0-52.7-55.3C557 627 539.7 614 523 600c.1.9.2 2 0 3-3.5 25.9-17 50-35.8 67.9-37.7 36-93.6 43.4-142 26.5-46.7-16.3-88-55-102.6-102.8-.3-.8.8-1 1.3-.5l2.4 3.3c0-.4.2-.9.7-1a129 129 0 0 0 46.6-29.2 100.2 100.2 0 0 0 21.3-33.3l.4-1c1.7-5 3.2-10.2 7-14.2Z" fill="#000"/></g><g transform="matrix(.99789 0 0 1 156 62)"><g fill-rule="evenodd" clip-rule="evenodd"><path d="M431.6 424.8c-4-5.8-13.5-48.4-19.6-55 .5-25 7.4-112-12.4-151.2 4.2-4.2 15.3-40.5 12.4-54.3 9.4-28.8-50.7-74.5-73.5-86.8C232.2 20.5 78.3 83.4 30 188.9 1 252.5.4 323.6-2.8 392c-.4 14.7-1.8 29.5-1.8 44 2.1 13 12.3 26 4.6 36.7-8.5 5.9-25.8 20.3-18 28.4 4.4 3.8 11.6 1.6 16.5 5.2 2.5 1.4 4 4.4 7 4.9 26.5-1 45.2-1.1 71.8-2.2 11.7-.4 29.4 4.6 42.8-5.3 46.8 26 27.2-11.7 36.7-38.5 28.7 9.7 86 40.7 116.7 41.7 25 3.1 48.3-11.4 72.8-8 30.4 11.2 66.1 13.7 94-5.4 7-5 14.7.8 23.5-4.6 17-8.2-23.6-55-32.2-64Z" fill="#ffdbb4"/><path d="M30 189C78.3 83.3 232.2 20.4 338.5 77.4c22.8 12.3 82.9 58 73.5 86.8 2.2 10.4-3.7 33.7-8.4 46.3-22.2 16.4-86.8 13-194-10.2l-4.1-.9-36.7 21.7-15 56.5c-10 10-18.2 22.2-24.5 36.6 0 0-15-16.6-37.5-14.5A95.6 95.6 0 0 0 59.5 320c-6.7 7.2-6.8 23.3-.4 48.3l.4 1.5 32.3 10h15l41 50.2 6 51.7c-1.3 22.6 3.8 42.7-33.7 21.8-13.4 9.9-31.1 5-42.8 5.3-26.6 1-45.3 1.2-71.9 2.2-2.9-.5-4.4-3.5-7-5-4.8-3.5-12-1.3-16.5-5-7.7-8.2 9.6-22.6 18.1-28.5 7.7-10.7-2.5-23.8-4.6-36.6 0-14.6 1.4-29.4 1.8-44l.3-6.2C.5 319.3 1.9 250.6 30 189Zm373 204.5 9.4-35.4-.2 5.3-.2 6.5c6.1 6.5 15.7 49 19.6 55l.9.9c10.1 10.9 47.8 55 31.3 63-8.8 5.4-16.5-.4-23.5 4.6-27.9 19.1-63.6 16.6-94 5.3-3.6-.5-7.1-.6-10.6-.4l-1.5-4.6 33.3-28.6 35.6-71.6Z" fill="#2c1b18"/><path d="M396.8 215.3c-.4-2.2 2.6-3.8 3.8-1.6 8.4 16 11.8 34.5 14.7 52.2 3 17.8 5 35.7 5.1 53.8.1 14-1.1 28-3.5 42l.3 1 1.6 5.4.8 2.8 4.7 15.7c3.4 10.9 7 21.8 11.4 32.4 4.3 10.3 9.5 20.2 15.7 29.5 6 9 15.4 16.5 19.6 26.4 1.5 3.5-.7 8-4.7 7.5-.3.3-.7.6-1.3.6-3 .3-6 0-9.2-.3a1.4 1.4 0 0 1 0-2.7c1.4 0 2.7-.2 4-.3-9-5.3-15.4-15.7-20.5-24.1a176 176 0 0 1-15.6-35 274.8 274.8 0 0 1-10.2-42.2 294 294 0 0 1-11.4 37.2l-.6 1.6C390.9 444.5 376.7 472 353 490l-3.3 2.3 1.3.8c1.4.7 2.7 1.5 4 2 4.8 2.3 10 4 15 5.2 10.7 2.5 21.8 1.8 32.6 2.1 3.6.2 5.6 5.5 2 7.2a49.4 49.4 0 0 1-37.2.5 66.7 66.7 0 0 1-24-13.9c-23.7 13.3-53.1 14.7-79.4 10-13.7-2.4-27-7-38.7-14.6a68.2 68.2 0 0 1-25-29c-.4-1 1-2.3 1.9-1.3 17.9 21.8 48.8 31 76 32.6 14.4 1 29.3.2 43.2-4.1a78.8 78.8 0 0 0 34-21.7c19.2-20.4 30.8-48 39-74.4 9-28.6 13.3-58.7 14.2-88.7.4-15.2-.2-30.5-2.5-45.5-2.4-15-6.8-29.4-9.4-44.2Zm-269-129c1.2-.7 2.1 1 1 1.8a286.7 286.7 0 0 0-58.6 62c-29.9 42.5-49 91.6-58 142.7a486.9 486.9 0 0 0-6 91.4c.2 12 1 24.2 1.7 36.3l.9 13.4c.4 6.3.7 12.5.5 18.8l-.1 1.4c-.4 7.3.3 14.7-1.5 21.8-1 3.7-6.1 4.3-8 1l-1-1.8a89.3 89.3 0 0 1-16.4 19.2c3-.7 6-1 9.2-.7 5 .6 9.3 2.5 12.5 5.8 3-1.4 6.3-2.3 10-2.3 2.7 0 4.7 3.1 3.2 5.5-3.1 4.8-7.4 7.4-12.3 10a6.2 6.2 0 0 1-9-3.3v-.3c-1.4-4.6-9-3.9-12.7-3.2l-1 .3c-6.8 1.4-13.4 3.2-20.2 1.3-4.4-1.2-5.6-7.8-1.3-10 13.4-7 24.7-16.4 36.4-25.8-2.6-6.3-4-13.3-5.7-19.7-2.4-9-3-18.7-4-28a522 522 0 0 1-2-53c.6-59.6 10.8-119.4 36.8-173.4a270.8 270.8 0 0 1 44.1-65 212.9 212.9 0 0 1 61.5-46.2Zm-20.9 292c-.7-1 .7-2.2 1.6-1.6a120.3 120.3 0 0 1 43.9 56.3c9 22.2 14.6 49.4 5.7 72.6-1.4 3.7-8.3 5-9 0-3-22.6-3.6-45.2-10.4-67.2a211.8 211.8 0 0 0-31.8-60.1ZM91 451.7c.1-.4.8-.4.8 0-.5 8-.9 16-1.9 24l-1.7 11.5c-.5 4-.4 8-2.7 11.3-3 4.5-11.1 3.2-10.9-3 .2-4.2 2.2-6.9 4-10.6a102 102 0 0 0 3.2-7.3l1.4-3.7c3-7.4 5.7-14.6 7.8-22.2Zm-36.6-21.2c0-.6 1-.4 1 .2a261.5 261.5 0 0 1-6.8 48.7l-.5 2.1c-1.2 5.3-2 11.5-4.7 16.2-2.7 4.8-9 1.3-8.2-3.4 1-5.6 4.4-11.2 6.4-16.5a357 357 0 0 0 12.8-47.2Zm68.3 31.4.2-.3c1-1 2.3-.3 2.8.7 1.8 4.4.9 9.6.7 14.2v1c0 4.8 0 9.2-2.1 13.5-2.6 5.3-9.5 2-10-2.7-.6-5 1.8-10.1 3.4-15 1-3 1.7-6.1 3.2-9-1.3.3-2.5.8-3.7 1-.6.2-.8-.6-.3-.7 2-.7 4.2-1.2 5.8-2.7Zm272.6 15.5c-.6-.7.2-1.6 1-1.2a85.7 85.7 0 0 0 29.6 8.4c4.6.4 4.7 7.8 0 7.3-11.2-1-23-6-30.6-14.5ZM52.6 323.7c8.6-19.3 35.7-36.4 54-18.5.3.4 0 1.1-.6 1-11.3-4.8-25.1 1.2-33 9.7a41.3 41.3 0 0 0-10.7 24.6 35.1 35.1 0 0 0 7.6 25.8c3.2 3.8 7.5 7.3 12.6 7.7 5 .5 9.4-3.1 14.2-4.1 3.7-.7 6.4 1.5 6.8 5.1.8 8-7.2 13.3-14 14.6a29.5 29.5 0 0 1-21.3-4.1c-20.5-13-25-40.8-15.6-61.8Zm192.6-189c3.7-3.6 10 0 8.7 5-3 10.8-9.2 20-16 28.7a258.7 258.7 0 0 1-21.4 23.8 201.8 201.8 0 0 1-24.4 20.4l-2.6 1.9c-6.1 4.3-12.6 8.6-19.5 11.7a184.5 184.5 0 0 1-9.7 41.8 201 201 0 0 1-18 37.2l-1 1.7c-6.8 10.7-14.8 22.7-26.1 28.5l-1 .4c2.5 1.7 4.6 3.8 6 6.9 1.3 3.3-1.6 6.5-4.4 7.6-6 2.3-11.7-1.6-17-5.9l-.6 1.6c-1.2 3.3-1.6 6.8-4.6 9-1.5 1-3.3.1-4.2-1-3-4 .1-9.4 2.7-12.6l1.2-1.3A27 27 0 0 0 90 338c-6.2-3.3-15.4-3.9-19 3.4-.2.6-1.1.3-1.1-.3 0-9 9.2-13.8 17.1-14.5a34 34 0 0 1 16.7 4l1 .4c1.9 1 3.9 1.8 5.8 2.7-.3-.8-.3-1.8.2-2.7 6-11.8 16.3-21.3 23.8-32.2a193.8 193.8 0 0 0 30.2-70.5c-.9.2-1.9-.6-1.8-1.5.1-2.2 1.2-4.2 3.1-5a190 190 0 0 0 3.2-35.3c0-1 1.3-.9 1.4 0 1 10.5 1 21.2.2 31.8 5-4.6 10.3-9 15-13.7 7.3-7.1 14.4-14.4 21.1-22 7-7.7 13.4-15.7 19.4-24.2l3.1-4.4c4.8-6.8 9.7-13.6 15.8-19.4Zm-9.4-76c41.1-2.6 85 2.4 122 21.7a115 115 0 0 1 47.3 46.6c6.7 12 11.7 25.1 13.7 38.7 2 14-.4 26.4-9.3 37.5-3.5 4.4-9.5-.6-8.6-5 5.3-27.6-3.3-54.8-18.6-77.6-22.3-33.1-61.1-47.8-99-54.4a273.8 273.8 0 0 0-56.2-3.9c-14.4.5-29.1 1.9-42.8 6.7-.5.2-.8-.7-.2-1a177 177 0 0 1 51.7-9.4Zm61 62.2c2.1-1.3 4.7 0 5.5 2.2 2.5 7.7-2.9 17.8-6.5 24.5a137 137 0 0 1-14.7 21.2 112.2 112.2 0 0 1-40.6 31.1c-1 .5-2.1-.7-1.2-1.5 12-11.3 23-23.3 32.5-36.8 4.6-6.7 8.5-13.7 12.2-21 3.3-6.4 6.5-15.7 12.8-19.7Zm69.2 9c1.4-4.7 9-3.9 8.8 1.2-.8 13.2-7 26.5-13.8 37.7-7 11.5-15.8 21.7-26 30.6-.4.4-1.1-.2-.7-.7 8.8-9.6 15.8-20.5 21-32.3 5.2-11.8 7.2-24.2 10.7-36.4Zm-38.3-2c1.5-4.2 8.5-3.9 8.1 1-1.2 13.5-9 27.6-16.4 38.7a132.6 132.6 0 0 1-28.8 31c-.4.3-1-.2-.6-.6a123 123 0 0 0 32.6-51.5c2-6.2 3-12.6 5.1-18.7Z" fill="#000"/></g></g><g transform="translate(315 248)"><',post:'></g><g transform="translate(279 400)"></g><g transform="translate(179 343)"></g><g transform="translate(203 303)"></g></g></svg>',f:{idle:'g fill-rule="evenodd" clip-rule="evenodd"><path d="M79.2 197.8c11-6.6 51.7-1.8 83.8 0 25.5 1.4 43.7-1.4 49.5 2.5 13.1 8.9 6.8 51.7-16 57.6-22.6 5.8-106.6 14-121 0-14.6-14-15.9-48.3 3.7-60.1Z" fill="#fff"/><path d="M93.3 186.5c17.2-2.1 33.8 3.1 50.6 5.8a236.6 236.6 0 0 0 32 3c.2-1.6 1-3 3-4 4-1.7 7.1-2.5 11.4-2.4 4 .2 8 .6 11.9 1.3a37 37 0 0 1 19.4 9.4c12 11.8 10.1 30.9.9 43.8-19.2 26.7-54.1 28-84 27.6h-2.8c-27.3-.5-66.3 3.6-78.7-27.4a43.6 43.6 0 0 1 1.7-35.6c6.6-13 20.6-19.8 34.6-21.5Zm85.2 44.4h-.2c-12.6.5-25.2.8-37.8 1a500.6 500.6 0 0 0 2.3 17.3c.2 1.1.8 2.8.6 3.8v.4a3.8 3.8 0 0 1 2 2.2c9.8 0 20.3-.1 30.2-1.9v-.2c.2-1.3.8-2.1 1.5-2.7.7-4 .6-8.4.9-12.4l.5-7.5Zm-47.6 1.2c-9 .2-18 .3-27.1.2h-4.2c1 4.6 1.9 9.2 2.6 14 .9 4.8-3.4 8-7.2 7.8l1.3.2c11.6 1.6 23.7 1.2 35.5 1.2-.6-3.7-.4-8-.5-11v-.5l-.4-11.9Zm-61.5-.8c.3 2.4 1 4.8 1.8 7 4 9.3 12.8 13.6 22.2 15.5-1.7-.6-3-2-3.3-4.2A128 128 0 0 1 89 232c-6.6 0-13.1-.2-19.6-.8Zm143.2-2c-4.7 1-10 .6-14.6.8l-12.9.5.6 8.8c.3 3.7.3 7.7 1 11.5 8.7-3 16.4-7.7 22.2-15.2 1.4-1.9 2.7-4 3.7-6.4ZM91.4 201.8c-7.8 1.8-15 5.7-19 12.8a27 27 0 0 0-3.2 14c6.5-.7 13.2-1 19.8-1.2l.1-3.6.1-3c.2-5.9.3-13.2 2.2-19Zm40 .7-3.3-.4c-9.5-1-19-2.2-28.4-1.6l-4.2.5c1.7 6 1.5 13.1 2.2 19.1l1 6.9h1.7c10.1-.6 20.3-1 30.5-1.4V218c.2-4.8-.1-10.3.6-15.4Zm47.6-.8a190.6 190.6 0 0 1-41.5 1.4l.5 6.2 1.3 12.4.5 3.6 37.5-1.9h1.7l.5-7c.4-4.6.7-9.2 1.3-13.8l-.4-.1-1.4-.8Zm4.4 1.7 1.2 19.6 8.2-.4 4.2-.2c5.3-.3 12.2-2 17.5-.4.4-4.8-1-9.5-5.3-12.7-7.7-5.7-17.3-3.7-25.8-5.9Zm-28.2-58.3c12.3-7 43-14.2 45 7.9 1 10.1-6.6 18.6-15.5 22.3l-.3.1c-8.3 3.4-23 7.3-30.1 0-6-6.2 2-17.2 9.3-12.2 3.9 2.6 11.9.7 16.1-.6h.3c4.6-1.4 10.7-5.7 8.8-11.3-1.7-5-8.8-6-13.3-6-6.7-.3-13.2 1.2-19.8 1.7-1 0-1.3-1.4-.5-2Zm50.8-35.5c16.7-.8 27 17.4 23.2 32.3-.6 2.6-3.5 5-6.3 4.8h-.7l-1-.2c-2.7-.8-5-3.5-4.8-6.4v-.8c.4-7-.4-15.1-8.7-16.8-7.1-1.5-11 5.3-11.2 11.6 0 1.1-1.2 2-2.2 1.3-5.2-3-6-9.3-4-14.6a17.2 17.2 0 0 1 15.7-11.2Zm-123.6 3.9c12.2-4 25.2 2.4 31.1 13.1 2 .6 4.1 2.2 3.8 4.6-.4 3.5-1 5.7-3.4 8.4-3.8 4.1-11 2-12.5-3.1v-.2c-1.9-6.6-9.1-11-15.7-8.7-7.8 2.7-7.5 10.9-13 15.6-.6.6-1.4.7-2.1.3-5.8-2.8-4.8-11.1-2.7-16 2.7-6.2 8-11.8 14.5-14ZM66 76.7c9.8-10 35.5-19.7 42.2-1.2 1.3 3.5-1.5 8.2-5.1 9-6 1.2-11.4-1.4-17.3-1a26 26 0 0 0-13.8 5c-10.7 8.3-13 22.3-20.5 32.9-.4.5-1 .3-1.1-.3a58.4 58.4 0 0 1 15.6-44.4ZM194 66.8a33 33 0 0 1 20.5 0 39.7 39.7 0 0 1 23 18.6c.8 1.5 1.7 4.4 2.6 6.2 5.1 3 7.3 9.7 2.7 14.5l-.2.3-.6.6a9.9 9.9 0 0 1-9.6 2.5c-7.5-2.2-8.4-8.1-11-14.4a25.8 25.8 0 0 0-8.3-10.6 39.8 39.8 0 0 0-32.6-5.4c-.5.1-1.1-.6-.8-1 2-2.6 3-4.6 5.7-6.6 2.6-2 5.5-3.6 8.6-4.7Z" fill="#000"/></g',mad:'path fill-rule="evenodd" clip-rule="evenodd" d="M195.6 205.7a29.7 29.7 0 0 0-26.6.3 73.6 73.6 0 0 0-25.3 21.7c-2.7 3.3-5.2 6.8-7.8 10.3l-3.1 4.4-.7.8c-1.7 2.2-4 5.2-4.8 8-.4 1-.5 2-.4 3l.5 1.3c-1.4.4-2.3 0-2.9-.6-1-1-1.3-2.6-1.3-4.5 0-6.5 4.2-16 6-20l.4-1a75.8 75.8 0 0 1 30.7-36.5c13.7-7.6 29.9-9 44-1.8 15.7 7.9 20 23.6 21.7 39.7a8 8 0 0 1-2.5 6.5c-2 2-4.7 3.2-7.2 3.2a9.9 9.9 0 0 1-9.8-9.8v-1.5a37 37 0 0 0-2.5-14.8 18.1 18.1 0 0 0-8.4-8.7Zm-20.8-72.3c7.6 4.6 19 15.3 11 26.6-9.6 10-23.4-1.4-30.2-6.6-6.3-4-13.3 6.3-7.5 11 49 36.3 69-29.8 30.5-36.4-4.2-.8-5.8 4-3.8 5.4Zm-63.6 1.5a10 10 0 0 1-6.5 1c-2-.5-3.9-1.6-5.6-3.6-2.3-2.7-4-6.5-3-10.1l.4-1c.4-1 1-2 1.6-3 .4-2 .5-3.3.5-4.5v-1a20.3 20.3 0 0 1 1.4-6 195 195 0 0 1-7.7-2.9 202.2 202.2 0 0 1-27.4-13 84 84 0 0 1-5.7-4.1l-1-.9-.6 1.3c-.6.5-1 .6-1.4.4-.4 0-.8-.4-1-.8a2.5 2.5 0 0 1 .7-3c1.8-1.5 4.3-.9 6.4-.5l.9.2 9.7 2 3.9 1 4.4 1c16.9 3.8 33.7 7.7 51 9.4l1.7.1c3.1.3 5.8 1.6 7.6 3.7 1.7 1.9 2.5 4.4 2.1 7.4a9.8 9.8 0 0 1-12.2 8.2 542 542 0 0 1-16-4.6l1.3 3c1 2.5 2 5.2 2.1 8 .1 2.5-.6 5-1.9 7a14 14 0 0 1-5.7 5.3Zm120.2-61.5c-1.4 1.8-2.9 3.4-4.4 5-3.2 3.2-6.5 6.6-10 9.6l-3.8 3.4-1.4 1.2-.8.7.6.7.5.6c2 3.2 3 6.6 4 10 .8 2.4 1.6 4.7 2.6 7l.3.7c1.3 2.8 1.6 5.7 1 8.3a10.6 10.6 0 0 1-7.3 7.4c-2.9.6-5.8.2-8.2-1.2-2.3-1.3-4-3.4-4.9-6.2a44.4 44.4 0 0 1-1.8-14.6 7.8 7.8 0 0 1-7.5 1.8c-2.2-.6-4.3-2-5.7-3.8a8.6 8.6 0 0 1-2-5.7c.1-1.8.9-3.7 2.5-5.4l1.5-1.6c1.2-1.1 2.8-2 4.4-2.5a8 8 0 0 1 4.7 0c2-.5 3.2-1.1 4.4-1.7l2.3-1.1 10.4-4.6 9-3.9 9.6-4Z" fill="#000"/',oops:'g clip-rule="evenodd"><path fill-rule="evenodd" d="M166.7 208c11.9 0 16.9 1.9 24.6 6.4 7.7 4.5 16 10.4 18 19.2 1.8 8.1-1.8 16-9.8 19.2-4.4 1.7-55.5 5.8-63.6 6.3-8 .6-15.6 0-20.8-5.4-13.3-13.8 5.2-31.7 17-38.3a70 70 0 0 1 34.6-7.5Zm-2.8 9.2c-8.9 0-23.5 6.6-23.5 9.8 0 3.1 42.6 0 43.5-2.7 1-2.8-11-7-20-7Zm7-72.8c7.5 4.6 19 15.3 10.8 26.6-9.5 10-23.3-1.4-30-6.6-6.4-4-13.4 6.3-7.6 11 49 36.3 69-29.8 30.5-36.4-4.2-.8-5.8 4-3.8 5.4Zm-85.4-41.6c13-9.5 32.1-2.2 35.3 12.6 2.2 1.2 3.4 3 3.7 5.7v.7c.4 3.2-2.5 6.3-5.4 7-3.2 1-5.7.6-8.7-.8-2.8-1.3-3.8-5-3.3-7.8v-.3c.8-3.5-2.2-6.9-5.2-8.3-3.4-1.5-7.3-.5-10.2 1.5-3.3 2.3-6 6.3-7 10.2v.4c-.8 3.4-1.3 9.7 2 11.7.5.3.1 1.1-.5 1-7.1-1.2-11.4-5.5-11.4-13.2 0-8.1 4.3-15.7 10.7-20.4ZM204 100c12.8-4.6 28.9 7.6 24 21.8-3.3 9.3-15.9 5.5-14.7-3.8v-.2c.8-4.9-2.9-7.2-7.4-5.6-6.6 2.4-10.2 12.8-7.1 19 .4.7-.7 1.3-1.1.6l-.5-.7c-3.5-5.5-6.6-9.6-5.5-16.7A19 19 0 0 1 204 100Zm-26-33.7c-.1-.6.6-1 1.1-.9 4.6 1.2 8.7 4.5 12.9 6.6 4.5 2.4 9.2 4.3 14 5.7 4.9 1.3 9.7 2 14.7 2 5.4 0 10.7-2.1 16-2 8 .3 12.1 11.9 4.3 15.9-11.4 5.8-28.4 1.6-39.5-3.3-9-3.8-23-13-23.6-24Zm-58 2.7c4-5.4 12.5-5.7 16.2.6 3.8 6.5-.8 13-7.2 14.4-11.9 5.3-24 9.4-37 11l-1.7.3c-11.3 1.4-25.5 2-35.7-3-1-.6-.7-2.1.3-2.4 5.8-1.7 12.2-1.6 18-2.7a149 149 0 0 0 16.7-3.8c10.8-3.3 21-8 30.3-14.4Z" fill="#000"/><path d="M133.2 229.7s10.2-16.5 26.9-16.5 36 8.7 34.7 12.8c-.7 2.2-16.3 8.5-42.2 8.7-6.4 0-19.4-5-19.4-5Z" stroke="#22252B" stroke-width="1.5"/></g',glee:'path fill-rule="evenodd" clip-rule="evenodd" d="M167 221.4c1.5-2.7 5-5.2 8.2-4.8 14.5 1.7 14.5 19.2 9 29.5a27 27 0 0 1-25.6 13.6c-10.8-.8-20-7.1-24-17.2-2.7-6.7-4-19 3.2-23.5h.5c3.4 4 3.5 10 6.5 14.4 2.8 4.1 7 7.5 12.1 8 3.8.4 7.6-1 9.1-4.3.8-1.9.7-2.9.4-4.1l-.3-1.1c-.9-3.9-1.3-6.8.8-10.5Zm3.8-77c7.6 4.6 19 15.3 11 26.6-9.6 10-23.4-1.4-30.2-6.6-6.3-4-13.3 6.3-7.5 11 49 36.3 69-29.8 30.5-36.4-4.2-.8-5.8 4-3.8 5.4Zm-79.7-31.5c4.6-7 15.2-6 17.7 2.3 1.4 4.5-.5 8.5-.4 13 0 3.7-.2 8-1.3 11.6a19.5 19.5 0 0 1-19 14A23.5 23.5 0 0 1 67.8 140c-3.7-8-3-16.1-.2-24.2.1-.4.6-.5 1-.2 3.1 3.4 5.5 7 7.9 10.8l2.5 4c1.9 2.8 4.6 6.6 8.2 6.4h.5c1-.2.9 0 1.6-1.3.4-.6.3-1.8.5-2.5v-.4l-.2-2.2v-.3c-.3-5.4-1.8-12.4 1.5-17.3Zm117.5 4.6c-.9-8.9 11.6-10.8 15.8-4.3 2.2 3.5 2.8 7.8 3.3 11.9l.2 1.9c.5 4.2.7 8.6-1.1 12.5a15.7 15.7 0 0 1-15.9 8.9 19.3 19.3 0 0 1-15.3-9.9c-2.8-5-5.5-14.9-2.2-20.2.2-.3.6-.3.9 0 3.1 2.7 3.7 7.9 5.5 11.5 2 3.8 5 7.5 9.4 8 4.2.6 5.9-1.7 4.8-5.8-1.4-5.3-5-8.8-5.4-14.5ZM94.4 60l2-.8c7-2.6 16.7-5.7 22.4 0 3.5 3.5 4.2 8.7 1.7 13-3 5.2-8.5 5.3-13.8 6-6 1-12 2.6-17.6 5-6.3 2.6-12.1 6-17.8 9.6-5.5 3.5-10.9 9.3-17.4 10.4-.2 0-.5 0-.6-.4-1.5-6.3 2.6-12.6 6.3-17.5A72.8 72.8 0 0 1 94.4 60Zm127.3 22.6.6-.1c4.3-.7 8.1-.6 11.3 2.8a9 9 0 0 1 2.3 9.3c-1.1 3.1-3.5 6.3-7 7a115.8 115.8 0 0 1-36.7.1c-5.4-.7-10.9-1.7-16.1-3.2l-2.5-.7c-4.4-1.2-9.4-2.5-12.6-5.8-1.1-1.1-.5-2.8.9-3.3 5.6-2.2 13.2-1 19.2-1.2 6.9-.2 13.8-.8 20.7-1.5 6.8-.7 13.3-2.2 20-3.4Z" fill="#000"/'}},
+ fashu:{pre:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 704 704" fill="none" shape-rendering="auto" width="96" height="96"><metadata xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/"><rdf:RDF><rdf:Description><dc:title>Open Peeps</dc:title><dc:creator>Pablo Stanley</dc:creator><dc:source xsi:type="dcterms:URI">https://www.openpeeps.com/</dc:source><dcterms:license xsi:type="dcterms:URI">https://creativecommons.org/publicdomain/zero/1.0/</dcterms:license><dc:rights>Remix of „Open Peeps” (https://www.openpeeps.com/) by „Pablo Stanley”, licensed under „CC0 1.0” (https://creativecommons.org/publicdomain/zero/1.0/)</dc:rights></rdf:Description></rdf:RDF></metadata><mask id="viewboxMask"><rect width="704" height="704" rx="0" ry="0" x="0" y="0" fill="#fff" /></mask><g mask="url(#viewboxMask)"><g fill-rule="evenodd" clip-rule="evenodd"><path d="M705.3 1074a2351.1 2351.1 0 0 1-15.6-101c-1-7.7-2.5-16.4 2.7-22 7.3-8 14-14.8 14.8-26.2.8-10.7-2.8-22.4-5-32.8a809.4 809.4 0 0 0-17.3-64.7c-6.6-21.7-13.9-43.2-21.3-64.6-6.9-20-13.5-40.3-22.5-59.5-17-36.5-46-63.5-81.6-81.6-9-4.5-27-20.5-36.3-24-8.5-3.4-8.5 6.3-16.9 2.6-6.7-2.9-13-6.7-16.7-13.2-4-7-14.3-16.9-15.9-25-3.3-17.4.3-32.2-12-45.3a90 90 0 0 0-41.1-23.8c-33.7-9.3-78.5-2.8-98.8 28.5-9.7 14.9-13 33-26.2 45.1-11.4 10.7-8.8 18-23.6 23.4-.9.3-23.6-4.5-24.4-4.2-16.2-3.5-31.7 6.2-46.5 11.8a325.4 325.4 0 0 0-63 32.3 399.2 399.2 0 0 0-102.3 98.5 482.5 482.5 0 0 0-76.4 161c-1.7 6.4-3.5 13-1.5 19.4 1.7 5.3 5.4 9.2 9.8 12.4 6 4.3 18 7 17.7 15.7-.1 6.6-2.4 13.5-3.5 20-1.3 7.7-2.3 15.5-3.4 23.2-4.8 35.4-8.6 71-10.3 106.6a920 920 0 0 0-.5 106c.1 2.3.8 4.5 2 6.2-1 .4-1.2 2.4.1 2.7l2.7.5a12 12 0 0 0 7 2.4l5.5.2c19.3 4 38.6 7.9 58.1 10.8 23.8 3.5 47.6 6.3 71.5 8.7 49.2 4.8 98 3.2 147.1.6a1877 1877 0 0 1 147.4-2c49.2 1.4 98.4 3.5 147.6 4.4 55 1 110-.5 164.8-5 7.5-.5 12.2-6.5 10.7-14-8.9-44.7-19-89.1-27-134Z" fill="#d08b5b"/><path d="m201 597.5 1.2-.4c14.5-5.7 29.6-14.8 45.4-11.4.5-.2 10.8 1.9 17.9 3.2l-6.7 7L247 598c40.7 67.1 88.8 100.7 144.3 100.7 55.5 0 97.7-33.6 126.4-100.7l4-1c.4 0 1 .2 1.5.4 9.3 3.6 27.4 19.6 36.3 24.1 35.6 18 64.5 45 81.6 81.6 8.7 18.6 15.2 38 21.8 57.5l.7 2c7.4 21.4 14.7 43 21.3 64.6 6.3 20.4 12 41 16.6 61.8l.7 2.9c2.2 10.4 5.8 22 5 32.8a29 29 0 0 1-3 10.7l-80.4 29 38.4 261.3c-35.1 1.5-70.3 2-105.5 1.3-49.2-.9-98.4-3-147.6-4.3-47.7-1.2-95.3-.7-143 1.7l-12 .6a946.3 946.3 0 0 1-139.5-1l-3.1-.3v-38.3l16.3-212.9-83-15.6-81.3-39.5a21.7 21.7 0 0 1-5.6-8.8c-1.9-6-.5-12 1-18l.5-1.3a492.8 492.8 0 0 1 76.4-161A399.3 399.3 0 0 1 138 629.7c19.8-13 40.9-23.9 63-32.3Z" fill="#fdea6b"/><path d="M232.2 584.6c5.1-.3 10.3.6 15.4 1 .4.1.6.8 0 .9-9 1.9-18 4.5-26.9 7.1l-3.8 1.2c-10 3-19.8 6-29.6 10-19.4 7.9-37.8 18.5-54.8 30.8C67.2 682.8 20 754.3-9.9 828.3a526 526 0 0 0-24.3 77c-.4 1.6-2 5.4-1 7 .7 1.3 3.6 2.1 5 2.9l4.5 2.3 25.2 12.9 2.3 1.1c38 18.6 78.4 34.4 121 35.5l.4-3.7a342 342 0 0 1 9.9-60c.3-1 1.6-.6 1.7.3 3 23.1 2 46.4 1 69.7-1.8 41-4.3 82.2-6.5 123.3-1.2 20.6-2.6 41-3.9 61.7-1.3 20.5-1.7 41.6-4.7 62-.6 4.6-6 7-10 6.6-4.4-.5-7.9-4.5-8-9 0-11.9 1.5-24 2.4-35.8l2.5-33.8c3.1-41.1 6.8-82.2 10.2-123.3a4771 4771 0 0 1 3.8-43.7C76.4 979.8 34.2 963-6.1 943.5c-.6 13.2-2 26.5-3.4 39.6-3.8 36.8-7.1 73.6-9.6 110.5a2254.2 2254.2 0 0 0-4.2 92.7l-.2 7c0 4.4-.5 8.5-4.3 11.7-3.7 3.3-8.9 3.5-12.6 0-5-4.6-4.2-10.9-4-17.1a1675.6 1675.6 0 0 1 1.8-47.2 1321 1321 0 0 1 10.5-109.5l2-14c3.5-26 7.5-52.7 15.5-77.9-3.1-1.5-6.2-3-9.3-4.7-5.5-2.7-11.2-5.4-16.6-8.4-4.2-2.5-7.9-5.8-9-10.8-1.4-5.5.6-11.5 2-16.9v-.4a502 502 0 0 1 26.6-80 523.2 523.2 0 0 1 67.8-117 353.8 353.8 0 0 1 88.7-83.3 239 239 0 0 1 53.8-25.7 142.6 142.6 0 0 1 42.8-7.5Zm90.1-66c6-6.5 18.1.2 15.2 8.8a108.2 108.2 0 0 1-34.7 52A79.4 79.4 0 0 1 247 598l1.7 2.4a321.1 321.1 0 0 0 46.1 52.6c36 31.2 84.8 48 132 36 37.1-9.4 69.8-38.8 79.4-76.2-1.3.6-3 .9-4.8.5-7.7-1.7-15.3-9.8-20.3-15.6-5.3-6.3-9.5-13-12.6-20.7-5.6-14-7.4-32.1.3-45.7 1-1.7 3-.7 3.3 1l.3 2.5c1.5 12.7 3.3 25 9.3 36.6a76 76 0 0 0 18.2 23.1c2.6 2 5.8 3.6 8.1 6l.5.4c.6-5 4.1-7.3 7.6-7.2 3.3.2 7.3 1.6 8.8 2.3l.1.1a341 341 0 0 1 65.1 42 259 259 0 0 1 88.4 129c7.5 25.3 11.8 51.4 16.3 77.4l2.8 16c4.2 23.9 8.9 48.4 18.4 70.7 2.5 5.7.6 11.1-5.5 13.4A1493 1493 0 0 1 688 953c3.7 16 6 32.5 8.7 48.5 6 34.1 13.2 68 19.4 102 3.2 17.5 6.1 35 9.3 52.3l4.7 25.2 2.4 13.6.1.7c.5 2.4 1 4.9.4 7.3-.8 2.7-2.9 4.6-4.8 6.6-1.6 1.6-3.8 1.6-5.7.7l-.7-.3c-3.4-1.6-6-3.2-7.3-7-.7-2.5-1-5.2-1.5-7.7a3535.6 3535.6 0 0 1-7.8-43.6l-1.6-9.1c-5.2-31.4-10.2-62.9-12.8-94.5-1-14-2.3-28.1-3.5-42.2l-.9-10.5c-1.1-13.3-2.5-27-2.7-40.5l-4.5 1.6L657 964c-5.5 2-12.5 6-18.4 5.2-2.9-.3-5-1.2-6.8-2.9 2 28.8 4.8 57.4 8.5 86a1965.7 1965.7 0 0 0 22 135c.6 3.2 1.4 6.4 1.9 9.6.5 3.7-.5 5.9-2.5 9-1.7 2.4-5 3.7-7.8 2-3.6-2.3-5.5-4.3-6.5-8.4-1-3.7-1.6-7.6-2.3-11.4a1654.2 1654.2 0 0 1-11.4-65.2c-7.8-52-12.7-104.4-15.2-156.8a1388 1388 0 0 1-1.4-77.8c0-13.3.5-26.6 1.4-39.9 1-13.4 3-26.5 4.8-39.8 0-.5.7-.5.7 0 .8 14.9 2.1 29.8 2.8 44.7.6 14.3.9 28.5 1.4 42.8.6 18.7 1.5 37.5 2.7 56.2a9.6 9.6 0 0 1 8.5-3.1c4.7-1 9.7-3.4 14.1-5l16.8-5.5 26.4-8.7a679 679 0 0 1-18-80.8l-2-12.3c-4-24.2-8.5-48.5-15.8-72a229.8 229.8 0 0 0-34.8-68.2 370.2 370.2 0 0 0-52.7-55.3C557 627 539.7 614 523 600c.1.9.2 2 0 3-3.5 25.9-17 50-35.8 67.9-37.7 36-93.6 43.4-142 26.5-46.7-16.3-88-55-102.6-102.8-.3-.8.8-1 1.3-.5l2.4 3.3c0-.4.2-.9.7-1a129 129 0 0 0 46.6-29.2 100.2 100.2 0 0 0 21.3-33.3l.4-1c1.7-5 3.2-10.2 7-14.2Z" fill="#000"/></g><g transform="matrix(.99789 0 0 1 156 62)"><g fill-rule="evenodd" clip-rule="evenodd"><path d="M402 224.2c-9-38.1-28.8-73.6-60.4-102.3C246.2 27.6 71.2 78.8 72 220.8a188.6 188.6 0 0 0-3.7 50.6c.4 7.2 3.6 17.2-.6 23.7-9.5 12.2-15 21.2-11.8 37.3A39.6 39.6 0 0 0 81.2 362c7.8 2.2 15.1 7 18 14.5 17.3 31.6 30.1 58 57.4 79.6 7 5.5 79.3 38.9 103 38.9 69.7 0 157.5-25.2 159-103 .2-17.1-2.8-34.4-4.7-51.4-4.5-38.7-3-78.8-11.8-116.3Z" fill="#d08b5b"/><path d="M400.5 205.1c0-.4.7-.5.8 0 2.6 9.1 4 18.5 6.1 27.8 2 9 3.8 18 5.3 27a1428 1428 0 0 1 7.6 51.5l.6 4.3c4 30.3 10.4 61.8 4.7 92.2-4.8 26-21 47-42 62.3a182.2 182.2 0 0 1-67.9 29.1c-25.6 5.7-56 7.4-77-11.4-8.3-7.5 3.1-22.5 12.2-15.7 21.3 16 48.3 11.3 72.4 5l.7-.3c21-5.6 42.3-14.1 59-28.5a84.3 84.3 0 0 0 28.7-62c.6-13.6-.6-27.2-2-40.7l-.1-1.5c-1.6-15.4-3.3-30.8-4.8-46.3-1.4-14-2.6-28.2-3.2-42.3l-.3-7.2c-.6-14.4-1.4-29-.8-43.3ZM150.9 85.6c34.6-18 74.4-24.4 113-18.4 37 5.8 71 25 96.4 52.4a158 158 0 0 1 30.5 45.8 117.1 117.1 0 0 1 9.3 40.3c.2 4.3-1.1 8.4-1 12.8 0 .7-1 .8-1.2.2-1.2-5-4-8.7-5.9-13.4-1.4-3.5-2.9-6.9-4.5-10.3l-1.3-2.9c-4-8.5-8.6-16.6-13.2-24.7a175 175 0 0 0-35.4-43.6 153 153 0 0 0-89-38.6 163.3 163.3 0 0 0-98.2 23.5 152 152 0 0 0-62.7 78.5c-5.8 16.3-9 33.3-9.8 50.6-.3 8.7 0 17.5.6 26.3l.3 4.1c.4 5 .6 10-.1 14.9a36.8 36.8 0 0 1 16.3-1.5 20 20 0 0 1 16.9 11.9c.2.4-.2.8-.6.6-4.8-2.4-12.6-1.2-17.6 0-5.3 1.4-10 3.7-14.5 6.7a37.7 37.7 0 0 0-16.4 24.6 31.9 31.9 0 0 0 9.1 26.5c3.5 3.6 7.6 6.7 12.2 8.7 5.7 2.3 11.2 2.3 16.2 6.1 3 2.4 2.3 6.5.2 9.2 10.5 11.5 19.8 24 30.3 35.6 4.8 5.3 9.6 10.7 14.3 16.2l1.7 2c4.7 5.7 12 11.6 14.2 18.7 1.3 4.4-3.4 10-8.1 8-7.3-3-12.5-11-17.4-17l-.4-.5c-5.1-6.3-9.7-13-14-20l-1.3-2.3c-7.6-12.8-15-26-19.9-40l-1 .9c-7 5-17 1.1-24-2-6.6-3.1-12.6-7.7-17.3-13.2a49.6 49.6 0 0 1-11.5-43 51 51 0 0 1 24-32.6c-5.6-6.3-7.9-14.9-9.4-23.2A143 143 0 0 1 59 231a180 180 0 0 1 15.2-62.6c15.4-35.4 42.5-65 76.8-82.8Zm-73 236c7.3-1.4 14.1-1.7 21.1 1.3 7.6 3.4 13 8.9 18 15.4 5.6 7.3-9 15.3-12.6 5.6v-.3c-1-3-2.8-5.7-5-8.3-.7 1-1.6 2-2.6 2.5-1.3.6-3.2.1-3.5-1.5-.4-1.8 0-4 1-5.5l.2-.2c-5-4-11.1-7-16.5-8-.6 0-.6-1 0-1Z" fill="#000"/></g></g><g transform="translate(315 248)"><',post:'></g><g transform="translate(279 400)"><path fill-rule="evenodd" clip-rule="evenodd" d="M230 34c11.7.8 22.7 8 32.8 13.7a67 67 0 0 1 22.6 24l.4.6c.3.5-.3 1-.8.9-9.6-4.9-19.6-8.7-29-14-9-5.6-20.3-7.5-29.5-12.6-5.2-4-3.6-12.3 3.4-12.6Zm-30.5 5.7c.4 2.7-.7 6.9-4.2 8.1-6.1 2.2-11.8 3.4-18 5l-8 2.3c-15.4 4.4-31 9-44.7 15.9l-.4-.2c-10-6.2 44.8-32 63.7-36.2 3.5-.8 11 1 11.6 5Z" fill="#000"/></g><g transform="translate(179 343)"></g><g transform="translate(203 303)"></g></g></svg>',f:{idle:'path fill-rule="evenodd" clip-rule="evenodd" d="M146.6 241a40.7 40.7 0 0 1-17.1-13.2c-1.5-2-2-4.2-1.6-6.2a8.9 8.9 0 0 1 9.6-7.2c1.9.3 3.7 1.3 5.2 3.5l.3.4a27 27 0 0 0 10 8.3c3.6 1.8 7.8 2.6 12.1 2.1 8.3-1 14-5.4 20-11.4l2.2-2.3c.5-.8 1.1-1.2 1.9-1.5a4 4 0 0 1 4.6 1.6c.4.7.7 1.5.6 2.5a25.7 25.7 0 0 1-8.5 16.2c-5.1 4.9-12 8.2-18.4 9.4-7.1 1.3-14.4.4-21-2.3Zm24.2-96.6c7.6 4.6 19 15.3 11 26.6-9.6 10-23.4-1.4-30.2-6.6-6.3-4-13.3 6.3-7.5 11 49 36.3 69-29.8 30.5-36.4-4.2-.8-5.8 4-3.8 5.4ZM83 102c.8-10.3 16.6-12.7 18.1-2.4a42 42 0 0 1-4.3 25.9c-4 7.9-14 4.2-14.7-3-1-9.7.3-14 .9-20.5Zm120-4.5c2.2-3 5.4-4.9 9.2-3.8 11.9 3.5 8.4 20.4 4.2 28.6-2.3 4.4-9.6 5.6-12.9 1.6-5.4-6.4-8-19.1-1.1-25.5l.6-1ZM96.6 56.8l1.9-.3c5.8-1 13-2 17.1 2.7 2.2 2.5 3 7 0 9.4-5.1 4.2-10.8 2.6-17 3-5.1.2-10 1-14.9 2.5C73 77 64.2 82.8 55 88.9c-1.2.8-2.4-.7-1.9-1.8a59.3 59.3 0 0 1 26-24.1 64 64 0 0 1 17.5-6.2Zm95.6-4.6 1.4.3c15.7 3.2 36 9.8 43.4 25.1.3 2.2 0 2.7-.3 3-.2.3-.4.7-1.4 1A36 36 0 0 1 226 78l-2.8-1.4a77.7 77.7 0 0 0-10.1-4.3c-7.5-2.4-15.1-4.1-23-5a9.4 9.4 0 0 1-4.5-1.8 7 7 0 0 1-2.6-4 7 7 0 0 1 .8-5.8 7.4 7.4 0 0 1 3.6-3.1c1.5-.6 3.2-.8 4.9-.4Z" fill="#000"/',mad:'g fill-rule="evenodd" clip-rule="evenodd"><path d="M107 148c18.2 0 33-13 33-29s-14.8-29-33-29-33 13-33 29 14.8 29 33 29ZM226.5 141c16.3 0 29.5-11.2 29.5-25s-13.2-25-29.5-25-29.5 11.2-29.5 25 13.2 25 29.5 25ZM119.7 216.6c4.8-12.8 32.5-23.9 51.5-23.9s49.7 11 49.7 11L212 228s-80-3.4-84.7-3.4c-4.6 0-12.4 4.9-7.7-8Z" fill="#fff"/><path d="M156.5 188.5c20.5-.8 58.6 3 74.1 15 16 12.1-4 50.9-6.3 50.8-23-.9-45.7 2.4-68.4 5.5l-4.5.6c-15.3 2.1-36.7 5.8-44-11.8-9-30.6 18.4-60.3 49-60.1Zm36.2 13a148.6 148.6 0 0 0-37-1c-11 1.2-21.4 4.2-28.3 12.5 1.7.3 3.2 1.5 4.2 3.2 14.8.4 30-.2 45 .6 8.4.1 17 1 25.3.6 7.2-.3 5.2-6.3 6.2-11.4a62.8 62.8 0 0 0-15.4-4.6ZM58 85.5c14.8-24.4 59.4-9.2 81.8-4.1 17.1-3.8 18.8 24.7 1 21.8a32 32 0 0 1-7.2 43.2C99.4 175 36.6 128.4 80 95c.5-4.1 6-5.3 9.3-7l-1.1-.2a52.1 52.1 0 0 0-28.7-.5c-1 0-1.5-1-1.4-1.8Zm120.8 50.8c7.6 4.6 19 15.3 11 26.6-9.6 10-23.4-1.4-30.2-6.6-6.3-4-13.3 6.3-7.5 11 49 36.3 69-29.8 30.5-36.4-4.2-.8-5.8 4-3.8 5.4ZM256.5 59c.5 0 .7.7.4 1-9.3 9.2-21 16-31.4 23.8a44.6 44.6 0 0 1 37.4 30c4.6 25.4-32 37-51.4 29.4-16.1-5.6-27.8-21.2-19-37.8-9.2 0-18.5-12-11.7-18.8 6-6.2 13-2.5 15.6-4l3-1.5c18-9.6 36.8-18.8 57-22Zm-124.8 51.4c-11.6-18.3-57.3-18.7-56 9.6 1.8 37.2 75.6 28.8 56-9.6ZM226 94.7c-8.6-1.8-16.1 8-21 5.5-27.2 31 28.2 49 46.4 25.2 10-12.8-13.2-30.4-25.4-30.7ZM111 112c11.2-4 11 12.6 2.7 16-9.5 3.7-12.7-16.2-2.8-16Zm101.1 1.8c-.6-10.2 14.9-14.9 18.8-4.7 5.4 13.7-18 20.6-18.8 4.7Z" fill="#231F20"/></g',oops:'path fill-rule="evenodd" clip-rule="evenodd" d="M189 229.1c6.4-1.5 11.3 3.9 10.1 10-1.3 6.6-8.3 8.8-14.2 8.6-6.7-.2-13.3-1.6-20-1.9-7-.3-13.8-.3-20.7-.1-6.4.1-13 1.3-19.3.3-2.4-.4-2.2-3.7-.6-4.8 4.8-3.5 11-4.9 16.5-6.3a131.8 131.8 0 0 1 35.4-4.4c2.7 0 6 .6 8.7 0 1.3-.2 2.7-1 4.2-1.4Zm-18.2-84.7c7.6 4.6 19 15.3 11 26.6-9.6 10-23.4-1.4-30.2-6.6-6.3-4-13.3 6.3-7.5 11 49 36.3 69-29.8 30.5-36.4-4.2-.8-5.8 4-3.8 5.4ZM116.1 110c10-1.7 11.8 12.7 1.8 13.7l-6.3.6.5 2 .2 2c.3 3.5-2.2 7.2-5.1 8.9-3 1.8-7.5 2-10.5 0a11 11 0 0 1-4-4 11.5 11.5 0 0 1-1.8-6c-4.6 1.3-9.3 3-14 3.8l.5.5c.1.2 0 .4-.2.3l-2.3-.5-2.2.2c-1.2 0-2.2-1.5-1-2.6a47.7 47.7 0 0 1 16.3-9.7l5.6-2.3c7.2-3 14.8-5.6 22.5-7Zm81.2 4.4c6.6-.7 13.2-.4 19.8 0 11.2.7 6.5 17-2.5 13.2.1.6.2 1.2 0 1.7-.3 2.9-1.2 5.3-3.8 6.8a8 8 0 0 1-8 0 9.3 9.3 0 0 1-4.4-6.4c-.6-2.2-.3-4 0-6.1 0-.7.4-1.4.8-2l-1.9-.4c-5.6-1.3-11-1-16.6-1.8-.6-.1-.7-1-.2-1.3 5-2.4 11.4-3 16.8-3.7ZM115 64.3c3.9-1.4 8.7 1 10.6 4.3 2.2 3.8 1.3 8.2-1.5 11.3-4.1 5-12.1 8-18 10.7l-.5.3a167.4 167.4 0 0 1-47.8 15.5c-2.7.3-4.8-.5-7.4-.5-.4 0-.5-.5-.2-.7 2.4-1.5 4.2-3.5 6.9-5l8.3-4.3a299.3 299.3 0 0 0 33.3-20.3c5.3-3.8 10.2-9 16.3-11.3Zm68-3c4.8-1 9.6 1.2 11 6 1.3 4.7 0 5.7 3.5 9 3 2.7 6 5.1 9.1 7.4l4.6 3.5c8.4 6.1 16.8 12 26.4 16.1.8.4.3 1.6-.4 1.6a92 92 0 0 1-43.7-8.6A37.6 37.6 0 0 1 177 82.7c-4.3-7.3-4.2-19.5 6.2-21.5Z" fill="#000"/',glee:'g fill-rule="evenodd" clip-rule="evenodd"><path d="M97.8 210.4c16.7-11.2 101.5-9 109.3-.4 7.9 8.6 26 33.1-12.8 45.2-38.7 12-86.7 7.9-99.2-7l-.7-.8c-11.8-14.4-13-26 3.4-37Z" fill="#fff"/><path d="M170.8 144.4c7.6 4.6 19 15.3 11 26.6-9.6 10-23.4-1.4-30.2-6.6-6.3-4-13.3 6.3-7.5 11 49 36.3 69-29.8 30.5-36.4-4.2-.8-5.8 4-3.8 5.4Zm-68.2-87.6 1.9-.3 1-.2c5.6-.9 12.2-1.5 16.1 3 2.2 2.4 3 7 0 9.3-5.1 4.2-10.8 2.6-17 3-5.1.2-10 1-14.9 2.5C79 77 70.2 82.8 61 88.9c-1.2.8-2.4-.7-1.9-1.8a59.3 59.3 0 0 1 26-24.1 64 64 0 0 1 17.5-6.2Zm49.7 143.5c16.5 1.2 52-6.7 66.9 5C274.9 275 54 293 77.8 216c15.2-25 50.2-15 74.5-15.6Zm-2.8 42c-4-.4-9 2.9-10.2 5.4-1.2 2.4-.7 7.7-.7 8.6 7.1.7 14.3.8 21.4.4-1.8-6.2-1.9-13.5-10.5-14.4Zm32.8 10.3c-1.1-7.6-6.6-9.4-11-8.3-4.5 1.2-7.1 6.3-6.8 11 0 .3-.2.5-.3.8 6.1-.7 12.2-2 18.1-3.5Zm-50.4-9c-2.5-3.8-8.7-5.7-12.6-5-6.4 1.3-7.1 9.4-7.1 11.1a113 113 0 0 0 21.7 5.6l.1-1c.2-2.1.3-7-2-10.6Zm72.4-.6c-6.5-10.1-20.6-2.9-19.5 8.2l3.8-1.2c5.1-1.8 10.8-4 15.7-7Zm-51.6-35c-8.9-.8-16.1-.5-21.9.6l-.1 1.9c-.7 6.7-1.5 13.2 2 15.9 2.8 2.2 12.3 2 18.6.4 1.6-.4 3.6-14.2 1.4-18.8Zm13.6-.8c-1.4 6.6-2 14.6.8 17 3 2.5 12.6 2.1 15.2.4 2.2-1.4 2.1-8.1 1.3-15.7a96 96 0 0 0-17.3-1.7Zm-39.4 1.4h-4.5c-4.1.1-8.6.4-12.8 1.3-8.4 18.1 22.2 21.3 17.5-.6l-.2-.7Zm60.6.5v1c-.3 5-.1 11.8 2.7 13.6 4.1 2.7 12 2.1 16.1-10.2-1.4-3.7-16.2-4.2-18.8-4.4ZM106.2 101c1.8 0 3.5.6 5 1.7 1.6 1.1 3 2.7 4 4.7 2.2 3.8 3.6 9 3.6 14.8 0 5.7-1.4 11-3.5 14.7-1.2 2-2.5 3.6-4 4.7a8.5 8.5 0 0 1-5 1.7c-1.8 0-3.5-.6-5-1.7-1.6-1-3-2.7-4.1-4.7-2.2-3.8-3.6-9-3.6-14.7 0-5.8 1.4-11 3.6-14.8 1.1-2 2.5-3.6 4-4.7a8.5 8.5 0 0 1 5-1.7Zm112.3 0c1.7 0 3.4.6 5 1.7 1.5 1.1 2.9 2.7 4 4.7 2.2 3.8 3.5 9 3.5 14.8 0 5.7-1.3 11-3.5 14.7-1.1 2-2.5 3.6-4 4.7a8.5 8.5 0 0 1-5 1.7c-1.8 0-3.5-.6-5-1.7-1.6-1-3-2.7-4-4.7-2.3-3.8-3.6-9-3.6-14.7 0-5.8 1.3-11 3.5-14.8 1.2-2 2.5-3.6 4-4.7a8.5 8.5 0 0 1 5-1.7Zm-15.3-48.8 1.4.3 1 .2c15.5 3.3 35.1 9.9 42.4 25 .3 2.1 0 2.6-.3 2.9-.2.3-.4.7-1.4 1A36 36 0 0 1 237 78l-2.8-1.4a77.7 77.7 0 0 0-10.1-4.3c-7.5-2.4-15.1-4.1-23-5a9.4 9.4 0 0 1-4.5-1.8 7 7 0 0 1-2.6-4 7 7 0 0 1 .8-5.8 7.4 7.4 0 0 1 3.6-3.1c1.5-.6 3.2-.8 4.9-.4Z" fill="#000"/></g'}},
 };
+function avaSVG(i){
+  const A=AVA[i]; if(!A||!A.pre) return '';
+  if(!A.f) return A.pre + A.post;              // 真人头像没有表情差分
+  const m = tilt[i]? 'mad' : (mood[i]||'idle');
+  return A.pre + (A.f[m]||A.f.idle) + A.post;
+}
+
+/* ═══ 人物池：每局随机抽三个上桌。prof 是牌风，persona 给 DeepSeek，talk 是嘴 ═══ */
+const ROSTER=[
+ {key:'laoli',name:'老李',ava:AVATARS.laoli,
+  persona:'你是老李，天津人，六十来岁，老实人，牌好就实话实说，很少诈唬；一被人抓到就上头，上头的时候用天津话骂街（嘛、介、崴泥、打镲）。说话短促。',
+  prof:{passReal:.22,passBluff:.72,bigPlay:.50,truthMax:.90,junkMix:.10,
+   callBase:.07,callPerCard:.055,crowd:.06,sniper:0,counts:0,guard:.90,exitD:.85,speed:[900,1800],tiltable:2,chatty:.42,
+   talk:{
+     play:['就介个','跟一手','得嘞','稳当的'],bluff:['……跟一个吧','就当有','凑合一手'],
+     pass:['我过','手里没有','介轮不掺和'],call:['我不信','你打镲呢吧','翻开我瞅瞅'],
+     caught:['哎哟喂','让你逮着了','介把崴泥了','我说我嘛手气'],clear:['我说嘛来着','冤枉好人不是','介回信我了吧'],
+     win:['我就说','可不咋地','瞅着就不对'],lose:['我介眼神','白饶了','嗨，白背一手'],
+     tilt:['介都嘛事儿啊！','气得我脑仁儿疼','缺德带冒烟儿的','我介暴脾气上来了','甭拦着我','老没溜儿！'],
+     threat:['他快没牌了','拦着点他'],last:['我就剩俩了','快了快了'],over:['出完喽！'],
+     salty:{tilt:['操，邪了门了','我去你大爷的','气死我了真他妈的','什么王八羔子牌','妈了个巴子的','操蛋玩意儿'],
+       caught:['操，栽了','他妈的让你逮着了','我操，真背'],call:['放屁，我不信','你大爷的，翻开','吹牛逼呢吧你'],
+       clear:['冤枉你爷爷呢','他妈的我是真的'],win:['我就说你这孙子在吹'],lose:['妈的，白瞎','操，看走眼了']}}}},
+ {key:'wangjie',name:'王姐',ava:AVATARS.wangjie,
+  persona:'你是王姐，天津人，五十来岁，牌桌上的老手，特别爱诈唬，嘴上最不饶人；输了牌会上头，用天津话骂街。说话爱调侃、损人。',
+  prof:{passReal:.10,passBluff:.42,bigPlay:.60,truthMax:.70,junkMix:.32,
+   callBase:.12,callPerCard:.065,crowd:.10,sniper:0,counts:0,guard:.80,exitD:.50,speed:[450,1100],tiltable:2,chatty:.55,
+   talk:{
+     play:['给你个大的','瞅我的','接着','甭磨叽'],bluff:['满上！','介把稳的','怕了吧','爱信不信'],
+     pass:['介轮不玩','我歇会儿','你们打'],call:['吹吧你！','翻开瞅瞅','你介脸都不红'],
+     caught:['让你蒙对一回','行行行算你狠','我介是给你留面子'],clear:['傻了吧','让你抓','介回学乖了吧'],
+     win:['我就说你在吹','逮着了吧','姐还瞅不出来？'],lose:['算你运气','介回真让你蒙对了','邪门儿'],
+     tilt:['你个老没溜儿的！','打镲呢吧你！','我跟你没完','姐今儿跟你耗上了','你介人损不损啊','气死我得了'],
+     threat:['他要跑了！','甭让他出完'],last:['我可就剩两张了','瞅好了啊'],over:['收工，回家'],
+     salty:{tilt:['你个王八羔子！','操，你还来劲了','去你大爷的！','傻逼玩意儿','妈了个巴子','姐跟你没完'],
+       caught:['他妈的算你狠','行，妈的，姐认了','操，阴沟里翻船'],call:['放你妈的屁，翻开！','吹牛逼呢你','我看你就是虚的'],
+       clear:['傻逼了吧','让你抓，孙子'],win:['我就说你他妈在吹','逮着你了吧孙子','吹逼露馅了吧'],
+       lose:['操，算你走运','邪了门儿了他妈的']}}}},
+ {key:'xiaozhao',name:'小赵',ava:AVATARS.xiaozhao,
+  persona:'你是小赵，天津人，三十来岁，话少，算得很准。说话简短、冷，上头也就蹦一两个字。',
+  prof:{passReal:.18,passBluff:.50,bigPlay:.55,truthMax:.85,junkMix:.18,
+   callBase:.04,callPerCard:.09,crowd:.08,sniper:1,counts:1,guard:.98,exitD:.95,speed:[1100,2200],tiltable:1,chatty:.28,
+   talk:{
+     play:['嗯','跟','走着'],bluff:['嗯'],pass:['过'],call:['数不对','不可能','你少算一张'],
+     caught:['失误','算差了'],clear:['说了是真的'],win:['嗯','没算错'],lose:['记着了'],
+     tilt:['崴泥','嘛玩意儿','行，你狠'],threat:['他还剩两张','该拦了'],last:['俩'],over:['完了'],
+     salty:{tilt:['操','妈的','真他妈邪门'],caught:['操，失误','妈的，算漏了'],
+       call:['放屁，数不对','吹逼'],win:['傻逼'],lose:['操']}}}},
+ {key:'tiezi',name:'铁子',ava:AVATARS.tiezi,
+  persona:'你是铁子，东北人，四十来岁，大嗓门豪爽，最爱梭哈式的大吹特吹，抓人也痛快；上头了嗷嗷叫。一口东北话（哎呀妈呀、整、老铁、削你、瞅你咋地）。',
+  prof:{passReal:.10,passBluff:.32,bigPlay:.78,truthMax:.60,junkMix:.42,
+   callBase:.13,callPerCard:.05,crowd:.07,sniper:0,counts:0,guard:.75,exitD:.35,speed:[450,950],tiltable:2,chatty:.62,
+   talk:{
+     play:['整！','瞅我的','来了老弟','干就完了'],bluff:['梭了！','整个大的','虚啥啊','就这么地'],
+     pass:['歇一手','这轮不整','你们先造'],call:['瞅你咋地','我寻思你在吹','掀开看看'],
+     caught:['哎呀妈呀','完犊子了','整劈叉了','让你逮着了'],clear:['咋地，是真的吧','瞅把你能耐的','服不服'],
+     win:['我就寻思你在吹','咋样老弟','让你嘚瑟'],lose:['哎妈，走眼了','算你能耐','再来'],
+     tilt:['急眼了啊我','别拦着我','整死你们','嗷嗷造！','谁也别想跑'],
+     threat:['那谁要跑了','快拦着'],last:['就剩俩了啊','马上到站'],over:['完事儿，收摊！'],
+     salty:{tilt:['我操，急眼了','削你信不信','妈了个巴子的','整他妈啥玩意儿'],
+       caught:['我操，完犊子','妈呀，露馅了'],call:['吹牛逼呢吧','掀开，我看你就是虚的'],
+       clear:['咋地，傻逼了吧'],win:['吹逼让我逮着了吧'],lose:['操，走眼了']}}}},
+ {key:'chenjiaoshou',name:'陈教授',ava:AVATARS.chenjiaoshou,
+  persona:'你是陈教授，苏州人，退休老教授，说话文绉绉慢条斯理，牌算得极细，几乎不诈唬，可一抓一个准。偶尔冒一句吴侬软语（阿是、蛮好、勿要）。骂人也文雅，最重就是"荒谬"。',
+  prof:{passReal:.30,passBluff:.75,bigPlay:.30,truthMax:.95,junkMix:.06,
+   callBase:.03,callPerCard:.10,crowd:.10,sniper:0,counts:1,guard:.97,exitD:.97,speed:[1400,2600],tiltable:0,chatty:.38,
+   talk:{
+     play:['依我看，就它','顺理成章','蛮好'],bluff:['姑且一试'],
+     pass:['静观其变','不急于一时','让贤'],call:['数目对不上','恕我直言，存疑','阿是在骗人？'],
+     caught:['失算了','惭愧惭愧','大意了'],clear:['清者自清','我从不妄言','勿要乱讲'],
+     win:['果然如此','意料之中','数学不会骗人'],lose:['是我多虑了','失敬失敬'],
+     tilt:['荒谬','成何体统'],threat:['此人将胜，诸位','该拦一拦了'],last:['只剩两张了'],over:['承让'],
+     salty:{tilt:['荒谬！简直荒谬！','岂有此理'],call:['一派胡言，翻开'],win:['班门弄斧'],lose:['罢了罢了']}}}},
+ {key:'yaomei',name:'幺妹',ava:AVATARS.yaomei,
+  persona:'你是幺妹，四川人，二十来岁的辣妹子，嘴快手快，最爱抓人，被抓了也不服。一口川话（要得、锤子、铲铲、你吹啥子嘛、巴适）。',
+  prof:{passReal:.12,passBluff:.40,bigPlay:.55,truthMax:.70,junkMix:.30,
+   callBase:.14,callPerCard:.06,crowd:.09,sniper:0,counts:0,guard:.85,exitD:.60,speed:[400,900],tiltable:1,chatty:.65,
+   talk:{
+     play:['要得','看到起','接倒','麻利点'],bluff:['豁你的','稳起','怕啥子嘛'],
+     pass:['这轮不来','歇哈儿','你们耍'],call:['你吹啥子嘛','铲铲，翻开','豁哪个喃'],
+     caught:['遭了','被你逮到了嗦','算你凶'],clear:['锤子，是真的三','冤枉老子','说了没豁你'],
+     win:['豁不到我','就晓得你在吹','幺妹眼睛尖得很'],lose:['豁，真的嗦','算你狡猾'],
+     tilt:['惹毛我了哈','龟儿的','老子跟你拼了','安逸了嗦'],
+     threat:['他要跑了！','拦到拦到'],last:['就剩两张咯','巴适'],over:['耍完了，收工'],
+     salty:{tilt:['龟儿子的！','锤子！','老子日你先人板板','惹毛老子了'],
+       caught:['遭了，日的','妈卖批，栽了'],call:['豁你妈哦，翻开','吹你妈的牛'],
+       clear:['傻儿嗦','喊你抓'],win:['吹牛逼遭逮到了嘛','龟儿跑不脱'],lose:['日的，算你凶']}}}},
+ {key:'fashu',name:'发叔',ava:AVATARS.fashu,
+  persona:'你是发叔，广东人，五十多岁的精明生意人，最怕背牌堆亏本，能过就过，出手极稳；但账算得精，该抓时不手软。粤味普通话（有冇搞错、唔该、顶你个肺、发达咯、蚀本）。',
+  prof:{passReal:.35,passBluff:.80,bigPlay:.35,truthMax:.90,junkMix:.12,
+   callBase:.05,callPerCard:.08,crowd:.08,sniper:1,counts:0,guard:.92,exitD:.92,speed:[800,1600],tiltable:1,chatty:.45,
+   talk:{
+     play:['稳阵','就咁','唔该','照计划来'],bluff:['搏一铺'],
+     pass:['唔玩住','等阵先','你哋来'],call:['有冇搞错','条数唔啱喔','呃鬼食豆腐'],
+     caught:['弊了','蚀本了','畀你捉到'],clear:['我几时呃过人','冤枉好人','睇清楚先啦'],
+     win:['我一早睇穿你','condo唔住了啩','发达咯'],lose:['蚀了一铺','当交学费'],
+     tilt:['顶你个肺','搞搞震','好心你啦'],threat:['佢就快赢了','快啲拦住'],last:['仲有两张','就快收工'],over:['收工数钱'],
+     salty:{tilt:['顶你个肺！','扑街仔','丢，激死我'],caught:['丢，畀你捉到','扑街，蚀大了'],
+       call:['呃你老母，翻开','吹咩啊你'],win:['扑街仔，畀我捉到啦'],lose:['丢，睇错你']}}}}
+];
+let NAMES=['你','老李','王姐','小赵'], AVA=['',AVATARS.laoli,AVATARS.wangjie,AVATARS.xiaozhao];
+const PROFILE={}, PERSONA={};
+function pickCast(){
+  const pool=ROSTER.slice();
+  for(let i=pool.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[pool[i],pool[j]]=[pool[j],pool[i]];}
+  CASTKEY={};
+  let k=0;
+  for(let i=0;i<4;i++){
+    if(SEATK[i]!=='ai'){ delete PROFILE[i]; delete PERSONA[i]; continue; }
+    const c=pool[k++];
+    NAMES[i]=c.name; AVA[i]=c.ava; CASTKEY[i]=c.key;
+    PROFILE[i]=c.prof; PERSONA[i]=c.persona;
+  }
+}
+let CASTKEY={};
+// 真人座位的头像：名字第一个字画进圆里
+function humanAva(name){
+  const ch=esc((name||'人').slice(0,1));
+  return {pre:'<svg viewBox="0 0 48 48"><rect width="48" height="48" fill="#0F2A20"/>'+
+    '<circle cx="24" cy="24" r="15" fill="none" stroke="#8A6B34" stroke-width="1.2" opacity=".7"/>'+
+    '<text x="24" y="31" text-anchor="middle" font-family="Songti SC,STSong,serif" font-size="18" fill="#F4EBD6">'+ch+'</text></svg>',
+    post:'', f:null};
+}
 let tilt={}, bubble=null;
 let known=[{},{},{},{}], roundLeaderId=null, humCaughtS=0, humHonestS=0;
+let mood=['','idle','idle','idle'];
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const pick=a=>(a&&a.length)? a[Math.random()*a.length|0] : '';
 
 // 大场面（翻牌、终局）才劳驾大模型；出牌斗嘴那种一秒就过去的场合，等它回话黄花菜都凉了
 function aiBanter(p,evText){
+  if(NET&&!NET.host) return;                 // DeepSeek 只在房主那儿跑
   if(!SET.ai||!KEY) return;
   const myEpoch=banterEpoch;
   const ctl=new AbortController();
@@ -735,10 +957,9 @@ function aiBanter(p,evText){
       response_format:{type:'json_object'},
       max_tokens:60, temperature:1.2,
       messages:[
-        {role:'system',content:PERSONA[p]+
-          ' 你们仨都是天津卫的，一律说天津话，把味儿说足：嘛、介（这）、甭、瞅、得嘞、崴泥、打镲、没溜儿、哏儿 随手用。'+
+        {role:'system',content:PERSONA[p]+' 说话保持你自己的方言味儿。'+
           (SET.salty
-            ? '可以带脏字（他妈的、王八羔子、去你大爷的、放屁 这个级别），牌桌斗嘴的劲儿，别升级到人身侮辱。'
+            ? '骂街要够味儿：操、他妈的、妈了个巴子、王八羔子、孙子、傻逼玩意儿、放你妈的屁，这个级别随便用，就是天津牌桌上急眼的劲儿。骂牌骂局骂手气都行，别碰人家里人、别用歧视性字眼。'
             : '别带脏字。')+
           ' 你正在打扑克牌游戏「说瞎话」。根据刚发生的事说一句话，最多 14 个字，要像牌桌上脱口而出的，'+
           '可以翻旧账（下面给了你们的旧账）。只输出 JSON：{"talk":"..."}'},
@@ -758,11 +979,20 @@ function aiBanter(p,evText){
 }
 
 async function takeTurn(p){
+  if(!tilt[p]) mood[p]='idle';       // 轮到自己，表情归位（上头的还绷着脸）
   const plan=aiPlan(p);
   await sleep(ponderMs(p,plan));          // 想多久，看牌情
-  const r=aiApply(p,plan);
+  const P=PROFILE[p], hot=!!tilt[p];
   if(tilt[p]) tilt[p]--;
-  return r;
+  if(plan.act==='call'){ chat(p, hot?'tilt':'call', .8); return {t:'call',seat:p}; }
+  if(plan.act==='pass'){ chat(p, hot&&Math.random()<.5?'tilt':'pass', hot?.8:undefined); return {t:'pass',seat:p}; }
+  const after=hands[p].length-plan.cards.length;
+  const runner=[0,1,2,3].find(i=>i!==p&&hands[i].length<=2);   // 谁快出完了
+  if(hot && Math.random()<.60) chat(p,'tilt',1);               // 正上头，先骂两句
+  else if(after<=2 && after>0 && Math.random()<.45) chat(p,'last',1);
+  else if(runner!==undefined && Math.random()<.30) chat(p,'threat',1);
+  else chat(p, plan.lying?'bluff':'play');
+  return {t:'play',seat:p,cards:plan.cards,rank:plan.rank};
 }
 
 /* ═══ 本地 AI ═══ */
@@ -790,7 +1020,7 @@ function aiPlan(p){
   if(canCall&&aiChallenge(p,P,hot)) return {act:'call'};
 
   hand.forEach(c=>{if(!isJoker(c))(by[rk(c)]=by[rk(c)]||[]).push(c);});
-  const jokers=SET.wild?hand.filter(isJoker):[];
+  const jokers=ECFG.wild?hand.filter(isJoker):[];
   const threat=[0,1,2,3].find(i=>i!==p&&hands[i].length<=2);   // 有人快跑了
 
   if(currentRank!==null){                       // 要不要过
@@ -809,7 +1039,7 @@ function aiPlan(p){
   if(lead){
     const sets=Object.keys(by).map(r=>({r:+r,n:by[r].length})).sort((x,y)=>y.n-x.n);
     if(!sets.length) rank=jokers.length?(Math.random()*13|0):(Math.random()*13|0);
-    else if(hand.length<=SET.max&&sets[0].n+jokers.length>=hand.length)
+    else if(hand.length<=ECFG.max&&sets[0].n+jokers.length>=hand.length)
       rank=sets[0].r;                           // 一把梭：全手一次真着出完，稳赢
     else if(hand.length<=7&&sets.length>1)
       rank=sets[sets.length-1].r;               // 残局先清零头小对，把大套留着真着收官
@@ -818,27 +1048,27 @@ function aiPlan(p){
   let truth=(by[rank]||[]).slice();
   // 王是收官的胶水：能让这一手真着出完全手，才舍得掺进去
   if(jokers.length){
-    if(truth.length+jokers.length>=hand.length&&hand.length<=SET.max) truth=truth.concat(jokers);
+    if(truth.length+jokers.length>=hand.length&&hand.length<=ECFG.max) truth=truth.concat(jokers);
     else if(!truth.length&&hand.length<=2) truth=jokers.slice();
   }
 
   let cards;
-  if(hand.length<=SET.max&&Math.random()<P.bigPlay){
-    cards=hand.slice(0,Math.min(SET.max,hand.length));         // 孤注一掷（下面的收官纪律会拦下大部分瞎话收官）
+  if(hand.length<=ECFG.max&&Math.random()<P.bigPlay){
+    cards=hand.slice(0,Math.min(ECFG.max,hand.length));         // 孤注一掷（下面的收官纪律会拦下大部分瞎话收官）
   }else if(truth.length){
-    const k = Math.random()<P.truthMax ? Math.min(truth.length,SET.max)
-                                       : Math.min(truth.length,SET.max,1+(Math.random()*3|0));
+    const k = Math.random()<P.truthMax ? Math.min(truth.length,ECFG.max)
+                                       : Math.min(truth.length,ECFG.max,1+(Math.random()*3|0));
     cards=truth.slice(0,k);
     let mix=hot?P.junkMix+.30:P.junkMix;
     if(pile.length<=4) mix+=.10;                // 堆小，掺一张假的便宜
     if(pile.length>12) mix*=.5;                 // 堆大，被逮着背不起
-    if(Math.random()<mix&&cards.length<SET.max){
-      const junk=hand.filter(c=>!cards.includes(c)&&!(SET.wild&&isJoker(c)))
+    if(Math.random()<mix&&cards.length<ECFG.max){
+      const junk=hand.filter(c=>!cards.includes(c)&&!(ECFG.wild&&isJoker(c)))
                      .sort((x,y)=>by[rk(x)].length-by[rk(y)].length)[0];
       if(junk!==undefined) cards.push(junk);
     }
   }else{
-    const pool=hand.filter(c=>!(SET.wild&&isJoker(c)));
+    const pool=hand.filter(c=>!(ECFG.wild&&isJoker(c)));
     const sorted=pool.sort((x,y)=>by[rk(x)].length-by[rk(y)].length);
     let bn=Math.random()<.7?1:2;
     if(pile.length>10) bn=1;                    // 堆大，瞎话吹小点
@@ -858,32 +1088,14 @@ function aiPlan(p){
   }
   return {act:'play',rank:rank,cards:cards,lying:lying};
 }
-function aiApply(p,plan){
-  const P=PROFILE[p];
-  const hot=!!tilt[p];
-  if(plan.act==='call'){ chat(p, hot?'tilt':'call', .8); return 'call'; }
-  if(plan.act==='pass'){ chat(p, hot&&Math.random()<.5?'tilt':'pass', hot?.8:undefined); return 'pass'; }
-
-  const after=hands[p].length-plan.cards.length;
-  const runner=[0,1,2,3].find(i=>i!==p&&hands[i].length<=2);   // 谁快出完了
-  if(hot && Math.random()<.60) chat(p,'tilt',1);               // 正上头，先骂两句
-  else if(after<=2 && after>0 && Math.random()<.45) chat(p,'last',1);
-  else if(runner!==undefined && Math.random()<.30) chat(p,'threat',1);
-  else chat(p, plan.lying?'bluff':'play');
-
-  hands[p]=hands[p].filter(c=>!plan.cards.includes(c));
-  finishPlay(p,plan.rank,plan.cards);
-  return 'play';
-}
-
-// rate 不给就按这个人的话痨程度来；翻牌那几下是重头戏，调用处会调高
 function chat(p,kind,rate){
+  if(NET&&!NET.host) return;                 // 台词由房主统一广播，客机只负责演
   const P=PROFILE[p];
   if(Math.random() > (rate===undefined?P.chatty:rate)) return;
   let pool=P.talk[kind]||[];
   const S=P.talk.salty;
   if(SET.salty&&S&&S[kind]&&S[kind].length){
-    pool = Math.random()<.6 ? S[kind] : pool;   // 开了荤口，六成说荤的
+    pool = Math.random()<.75 ? S[kind] : pool;  // 开了荤口，四分之三说荤的
   }
   const line=pick(pool); if(!line) return;
   speak2(p,line);
@@ -891,15 +1103,16 @@ function chat(p,kind,rate){
 function speak2(p,line){
   bubble={p:p,text:String(line).slice(0,16),pop:true};  // 只弹气泡，不占日志；16 字封顶，最多两行
   render();
+  if(NET&&NET.host&&NET.started) netAll({t:'talk',seat:p,text:bubble.text});
 }
 
 function aiChallenge(p,P,hot){
-  const cap=4+(SET.wild?2:0), R=lastPlay.rank, k=lastPlay.cards.length, q=lastPlay.player;
+  const cap=4+(ECFG.wild?2:0), R=lastPlay.rank, k=lastPlay.cards.length, q=lastPlay.player;
   const mine=hands[p].filter(c=>fits(c,R)).length;
   if(k+mine>cap) return true;                   // 铁证：加上我攥着的，数就放不下了
   let knownElse=0;
   if(P.counts){                                 // 小赵记得翻开过的牌都到了谁手里
-    for(let i=0;i<4;i++) if(i!==p&&i!==q) knownElse+=(known[i][R]||0)+(SET.wild?(known[i].j||0):0);
+    for(let i=0;i<4;i++) if(i!==p&&i!==q) knownElse+=(known[i][R]||0)+(ECFG.wild?(known[i].j||0):0);
     if(k+mine+knownElse>cap) return true;       // 铁证二：明牌都对不上
   }
   const left=hands[q].length;
@@ -920,41 +1133,35 @@ function aiChallenge(p,P,hot){
   let prob=P.callBase + mine*P.callPerCard;     // 我攥着越多，他越可疑
   const before=Math.max(0,roundClaimed-k), room=Math.max(0,cap-mine-knownElse-k);
   if(before>room) prob+=P.crowd*Math.min(4,before-room);   // 这轮吹过头了，气氛可疑
-  if(k>=3) prob+=.06*(k-2);
+  if(k>=3) prob+=.09*(k-2);
   if(left<=2) prob+=.15+(P.sniper?.10:0);       // 快出完的人，重点照顾
   else if(P.sniper&&left<=4) prob+=.06;
-  if(q===0){                                    // 对真人看信用：惯犯多抓，老实人少抓（旧账也算）
+  if(q===mySeat&&SEATK[q]==='human'){           // 对本机真人看信用：惯犯多抓，老实人少抓（旧账也算）
     // 白纸记录 ≈ 一般人的吹牛率(~0.35)，别一上来就当嫌疑人
     const c=MEM.humanCaught+humCaughtS, h=(MEM.humanHonest||0)+humHonestS;
     prob*= Math.min(1.35, .5+1.4*((c+.7)/(c+h+2)));
   }
   if(P.counts&&(known[q][R]||0)>=k) prob*=.5;   // 明知他有真牌，少冤枉
-  if(hot) prob+=.12;
-  prob*=Math.max(.45,1.15-.035*pile.length);    // 堆越大，抓错越亏
-  if(hands[p].length<=4) prob*=.6;              // 自己快赢了，背不起一堆牌
+  if(hot) prob+=.16;
+  prob*=Math.max(.55,1.15-.028*pile.length);    // 堆越大，抓错越亏（但也别怂到不敢抓）
+  if(hands[p].length<=4) prob*=.7;              // 自己快赢了，背不起一堆牌
   else if(pile.length<=3) prob*=1.1;
   if(passStreak===2&&left<=4) prob+=.15;        // 再过就烧堆白送他先手
   return Math.random()<prob;
 }
 
-/* ═══ 出牌 ═══ */
-function finishPlay(p,rank,cards){
-  if(currentRank===null){currentRank=rank;roundClaimed=0;roundLeaderId=p;}
-  for(const r in known[p]) known[p][r]=Math.max(0,known[p][r]-cards.length);  // 他出了牌，明牌可能被打掉
-  roundClaimed+=cards.length;
-  pile.push(...cards);
-  lastPlay={player:p,rank:rank,cards:cards};
-  if(hands[p].length===0&&!outQueue.includes(p)) outQueue.push(p);
-  say(nm(p)+' 报 '+cards.length+' 个 '+RANKS[rank]+(hands[p].length===0?' —— 手牌出完了！':''));
-  Sfx.play(cards.length);
-  stage(claimHTML(p,cards.length,rank)+pileHTML(cards.length));
+/* ═══ 展示层：把引擎吐出的事件演出来（声音/台词/表情/记牌都在这层）═══ */
+function presentPlayed(ev){
+  const p=ev.seat;
+  for(const r in known[p]) known[p][r]=Math.max(0,known[p][r]-ev.n);  // 他出了牌，明牌可能被打掉
+  say(nm(p)+' 报 '+ev.n+' 个 '+RANKS[ev.rank]+(ev.out?' —— 手牌出完了！':''));
+  Sfx.play(ev.n);
+  stage(claimHTML(p,ev.n,ev.rank)+pileHTML(ev.n));
   render();
 }
-
 /* ═══ 翻牌 ═══ */
-async function resolveChallenge(q){
-  const p=lastPlay.player, cards=lastPlay.cards;
-  const truth=cards.every(c=>fits(c,lastPlay.rank));
+async function presentReveal(ev){
+  const p=ev.target, q=ev.by, cards=ev.cards, truth=ev.truth;
   bubble=null;
   say(nm(q)+' 喊了说瞎话');
   Sfx.call();
@@ -963,112 +1170,342 @@ async function resolveChallenge(q){
   Sfx.flip();
   render(); await sleep(1000);
   if(truth) Sfx.truth(); else Sfx.lie();
-  if(p===0){ if(truth){MEM.humanHonest=(MEM.humanHonest||0)+1;humHonestS++;} else {MEM.humanCaught++;humCaughtS++;} }
-  if(q===0){ if(truth) MEM.humanBadCall++; else MEM.humanGoodCall++; }
+  if(p===mySeat){ if(truth){MEM.humanHonest=(MEM.humanHonest||0)+1;humHonestS++;} else {MEM.humanCaught++;humCaughtS++;} }
+  if(q===mySeat){ if(truth) MEM.humanBadCall++; else MEM.humanGoodCall++; }
   saveMem();
-  if(p!==0){ chat(p, truth?'clear':'caught', .85);     // 被抓的人先反应
-    aiBanter(p, '你报 '+cards.length+' 个 '+RANKS[lastPlay.rank]+'，被 '+
-      (q===0?'真人玩家':NAMES[q])+' 喊说瞎话翻开了 —— '+
+  if(isAI(p)){ chat(p, truth?'clear':'caught', .85);   // 被抓的人先反应
+    aiBanter(p, '你报 '+cards.length+' 个 '+RANKS[ev.rank]+'，被 '+
+      (isAI(q)?NAMES[q]:'真人玩家'+(q===mySeat?'':NAMES[q]))+' 喊说瞎话翻开了 —— '+
       (truth?'你说的是真话，他冤枉你，这堆牌归他背':'你真在吹，让他逮个正着，你把整桌牌收走')); }
   stage('<div class="who">'+nm(q)+' 喊：说瞎话！</div>'+
         '<div class="reveal">'+cards.map(faceUp).join('')+'</div>', truth?'真话':'瞎话');
   await sleep(1300);
 
-  const loser = truth? q : p;      // 输的收牌
-  const next  = truth? p : q;      // 赢的接着出
-  const n=pile.length;
-  pile.forEach(c=>fresh.add(c));
-  hands[loser].push(...pile); hands[loser].sort((a,b)=>sortKey(a)-sortKey(b));
+  const loser=ev.loser, next=ev.next, pn=ev.picked;
+  if(isAI(loser)) mood[loser]='oops';
+  if(isAI(next))  mood[next]='glee';
+  ev.gained.forEach(c=>fresh.add(c));
   cards.forEach(c=>{ const key=isJoker(c)?'j':rk(c); known[loser][key]=(known[loser][key]||0)+1; }); // 桌面见过的牌，全桌都记得到了谁手里
-  Sfx.pickup(n);
-  if(loser!==0&&PROFILE[loser].tiltable) tilt[loser]=PROFILE[loser].tiltable;  // 谁收了牌谁上头
-  outQueue=outQueue.filter(i=>hands[i].length===0);
-  pile=[];currentRank=null;roundClaimed=0;passStreak=0;turn=next;
-  say(truth ? nm(p)+' 说的是真话 — '+nm(loser)+' 收走 '+n+' 张'
-            : nm(p)+' 真在骗人 — 收走 '+n+' 张');
-  stage('<div class="who">'+nm(loser)+' 收走了 '+n+' 张</div>'+
+  Sfx.pickup(pn);
+  if(isAI(loser)&&PROFILE[loser]&&PROFILE[loser].tiltable) tilt[loser]=PROFILE[loser].tiltable;  // 谁收了牌谁上头
+  say(truth ? nm(p)+' 说的是真话 — '+nm(loser)+' 收走 '+pn+' 张'
+            : nm(p)+' 真在骗人 — 收走 '+pn+' 张');
+  stage('<div class="who">'+nm(loser)+' 收走了 '+pn+' 张</div>'+
         '<div class="plaque">'+nm(next)+' 接着出</div>');
-  if(q!==0){ chat(q, truth?'lose':'win', .70);         // 抓的人再回一句
-    aiBanter(q, '你抓 '+(p===0?'真人玩家':NAMES[p])+'，翻开 —— '+
-      (truth?'抓错了，人家是真的，'+n+' 张牌全归你背':'抓对了，他在吹，他收走 '+n+' 张')); }
+  if(isAI(q)){ chat(q, truth?'lose':'win', .70);       // 抓的人再回一句
+    aiBanter(q, '你抓 '+(isAI(p)?NAMES[p]:'真人玩家'+(p===mySeat?'':NAMES[p]))+'，翻开 —— '+
+      (truth?'抓错了，人家是真的，'+pn+' 张牌全归你背':'抓对了，他在吹，他收走 '+pn+' 张')); }
   render(); await sleep(1000);
 }
-async function burnRound(){
-  const p=lastPlay.player, n=pile.length;
+async function presentBurn(ev){
   bubble=null;
   Sfx.burn();
-  if(SET.burn){
-    pile=[];
-    say('三家都过 — 桌上 '+n+' 张作废，'+nm(p)+' 开新一轮');
-    stage('<div class="who">三家都过</div><div class="plaque">'+n+' 张作废</div>'+
-          '<div class="note">由 '+nm(p)+' 开新一轮</div>');
+  if(!ev.eaten){
+    say('三家都过 — 桌上 '+ev.n+' 张作废，'+nm(ev.leader)+' 开新一轮');
+    stage('<div class="who">三家都过</div><div class="plaque">'+ev.n+' 张作废</div>'+
+          '<div class="note">由 '+nm(ev.leader)+' 开新一轮</div>');
   }else{
-    pile.forEach(c=>fresh.add(c));
-    hands[p].push(...pile); hands[p].sort((a,b)=>sortKey(a)-sortKey(b));
-    outQueue=outQueue.filter(i=>hands[i].length===0);
-    pile=[];
-    say('三家都过 — '+nm(p)+' 收走 '+n+' 张，开新一轮');
-    stage('<div class="who">三家都过</div><div class="plaque">'+nm(p)+' 收走 '+n+' 张</div>');
+    ev.gained.forEach(c=>fresh.add(c));
+    say('三家都过 — '+nm(ev.leader)+' 收走 '+ev.n+' 张，开新一轮');
+    stage('<div class="who">三家都过</div><div class="plaque">'+nm(ev.leader)+' 收走 '+ev.n+' 张</div>');
   }
-  currentRank=null;roundClaimed=0;passStreak=0;turn=p;
   render(); await sleep(1200);
 }
+
+/* ═══ 联机：主机权威制。引擎只在房主手机上跑，客机收事件、发动作。
+   信令走 PeerJS（只牵线，之后点对点直连），房号四位。═══ */
+function loadPeerLib(){
+  return new Promise((res,rej)=>{
+    if(window.Peer) return res();
+    const urls=['https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js',
+                'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js'];
+    let i=0;
+    (function next(){
+      if(i>=urls.length) return rej(new Error('联机组件加载不了，检查网络'));
+      const sc=document.createElement('script');
+      sc.src=urls[i++]; sc.onload=()=>res(); sc.onerror=next;
+      document.head.appendChild(sc);
+    })();
+  });
+}
+const peerOpts=()=>window.__peerOpts||{};        // 测试时指到本地信令服务器
+const ROOMPFX='shuoxiahua-v1-';
+const newRoomCode=()=>{const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789';let c='';for(let i=0;i<4;i++)c+=A[Math.random()*A.length|0];return c;};
+const PROXY_PROF=(()=>null)();   // 掉线代打用的牌风，开局后填
+
+function netAll(m){ if(NET&&NET.host) NET.conns.forEach(c=>{try{c.send(m);}catch(e){}}); }
+function netStatus(t){ ['netStatus','netStatusH'].forEach(id=>{const el=$(id); if(el) el.textContent=t;}); }
+function netFail(msg){
+  if(NET&&NET.guard){ clearInterval(NET.guard); }
+  netStatus(msg);
+  if(NET&&NET.peer){ try{NET.peer.destroy();}catch(e){} }
+  if(NET&&NET.started&&!NET.host&&!over){ say('⚠ '+msg); render(); }
+  NET=null;
+}
+
+/* ── 房主 ── */
+async function hostRoom(){
+  await loadPeerLib();
+  const code=newRoomCode();
+  const peer=new Peer(ROOMPFX+code,peerOpts());
+  NET={host:true,peer:peer,code:code,conns:[],started:false,waitRemote:null,waitSeat:-1};
+  netStatus('正在开房…');
+  peer.on('open',()=>{ netStatus(''); paintLobby(); });
+  peer.on('error',e=>{
+    if(e.type==='unavailable-id'){ try{peer.destroy();}catch(_){} hostRoom(); }
+    else netFail(e.type==='network'?'连不上联机服务器':'联机出错：'+e.type);
+  });
+  peer.on('connection',conn=>{
+    conn.on('data',m=>hostMsg(conn,m));
+    conn.on('close',()=>hostDrop(conn));
+  });
+}
+function hostMsg(conn,m){
+  if(!NET||!NET.host) return;
+  if(m.t==='join'){
+    if(NET.started||NET.conns.length>=3){ conn.send({t:'full'}); return; }
+    if(m.v!==VERSION){ conn.send({t:'badver',v:VERSION}); return; }
+    conn.seat=NET.conns.length+1;
+    conn.pname=String(m.name||'玩家').replace(/[<>&"]/g,'').slice(0,6)||'玩家';
+    NET.conns.push(conn);
+    lobbyBroadcast(); paintLobby();
+  }else if(m.t==='act'&&NET.started){
+    if(NET.waitRemote&&conn.seat===NET.waitSeat&&m.act&&m.act.seat===conn.seat){
+      const r=NET.waitRemote; NET.waitRemote=null; r(m.act);
+    }
+  }
+}
+function hostDrop(conn){
+  if(!NET||!NET.host) return;
+  if(!NET.started){
+    NET.conns=NET.conns.filter(c=>c!==conn);
+    NET.conns.forEach((c,i)=>c.seat=i+1);
+    lobbyBroadcast(); paintLobby();
+    return;
+  }
+  const st=conn.seat;
+  if(SEATK[st]==='remote'){
+    SEATK[st]='ai';
+    PROFILE[st]=JSON.parse(JSON.stringify(ROSTER[0].prof)); PROFILE[st].chatty=0;
+    PERSONA[st]='';
+    say('⚠ '+NAMES[st]+' 掉线了，AI 代打'); render();
+    netAll({t:'talkless',seat:st,name:NAMES[st]});
+    if(NET.waitRemote&&NET.waitSeat===st){ const r=NET.waitRemote; NET.waitRemote=null;
+      takeTurn(st).then(r); }
+  }
+}
+function lobbyBroadcast(){
+  const names=[NET.myName].concat(NET.conns.map(c=>c.pname));
+  NET.conns.forEach(c=>c.send({t:'lobby',names:names,yourSeat:c.seat}));
+}
+function envelope(){
+  return {turn:turn,over:over,cnt:hands.map(h=>h.length),pileN:pile.length,
+    currentRank:currentRank,passStreak:passStreak,
+    lp:lastPlay?{player:lastPlay.player,n:lastPlay.cards.length,rank:lastPlay.rank}:null};
+}
+function netBroadcastEvs(evs){
+  if(!(NET&&NET.host&&NET.started)) return;
+  const env=envelope();
+  NET.conns.forEach(c=>{
+    const mine=evs.map(ev=>{
+      if((ev.e==='reveal'&&ev.loser!==c.seat)||(ev.e==='burn'&&ev.eaten&&ev.leader!==c.seat)){
+        const cp=Object.assign({},ev); cp.gained=[]; return cp;   // 收进别人手里的牌，别人看不见
+      }
+      return ev;
+    });
+    try{c.send({t:'ev',evs:mine,env:env});}catch(e){}
+  });
+}
+function netSendStart(){
+  const env=envelope();
+  NET.conns.forEach(c=>{
+    try{c.send({t:'start',v:VERSION,seat:c.seat,names:NAMES.slice(),seatk:SEATK.slice(),
+      castKeys:CASTKEY,ecfg:ECFG,hand:hands[c.seat],env:env});}catch(e){}
+  });
+}
+function startNetGame(){
+  if(!NET||!NET.host||NET.started) return;
+  NET.started=true;
+  for(let i=1;i<4;i++) SEATK[i]=NET.conns.find(c=>c.seat===i)?'remote':'ai';
+  SEATK[0]='human'; mySeat=0;
+  NAMES[0]=NET.myName;
+  AVA[0]=null;
+  NET.conns.forEach(c=>{ NAMES[c.seat]=c.pname; AVA[c.seat]=humanAva(c.pname); });
+  $('netSheet').classList.remove('on');
+  $('startSheet')&&$('startSheet').remove();
+  newGame();
+}
+function waitRemote(seat){
+  return new Promise(res=>{
+    NET.waitRemote=res; NET.waitSeat=seat;
+    NET.timer=setTimeout(()=>{
+      if(NET&&NET.waitRemote&&NET.waitSeat===seat){
+        const r=NET.waitRemote; NET.waitRemote=null;
+        say(NAMES[seat]+' 想太久，这一手 AI 代出'); render();
+        const bak=PROFILE[seat];
+        PROFILE[seat]=PROFILE[seat]||JSON.parse(JSON.stringify(ROSTER[0].prof));
+        takeTurn(seat).then(a=>{ if(bak===undefined) delete PROFILE[seat]; r(a); });
+      }
+    },90000);
+  }).finally(()=>{ if(NET&&NET.timer){clearTimeout(NET.timer);NET.timer=null;} });
+}
+
+/* ── 客机 ── */
+async function joinRoom(code,name){
+  await loadPeerLib();
+  const peer=new Peer(peerOpts());
+  NET={host:false,peer:peer,q:Promise.resolve(),pendCards:null,started:false};
+  netStatus('正在连接…');
+  peer.on('error',e=>netFail(e.type==='peer-unavailable'?'没找到这个房号，检查一下':
+    (e.type==='network'?'连不上联机服务器':'联机出错：'+e.type)));
+  peer.on('open',()=>{
+    const conn=peer.connect(ROOMPFX+code.toUpperCase(),{reliable:true});
+    NET.conn=conn;
+    conn.on('open',()=>{ conn.send({t:'join',name:name,v:VERSION}); netStatus('等房主开局…'); });
+    conn.on('data',m=>{ NET.q=NET.q.then(()=>clientMsg(m)).catch(e=>{console.error(e); say('⚠ 出错：'+e.message); render(); clientAfter();}); });
+    conn.on('close',()=>{ if(NET&&!over) netFail('和房主断线了'); });
+  });
+}
+async function clientMsg(m){
+  if(!NET) return;
+  if(m.t==='lobby'){ netStatus('已入座（'+m.names.join('、')+'）等房主开局…'); }
+  else if(m.t==='badver'){ netFail('版本不一致：房主 v'+m.v+'，你 v'+VERSION+'，都刷新到最新再来'); }
+  else if(m.t==='full'){ netFail('房间满了或已经开打'); }
+  else if(m.t==='talk'){ speak2(m.seat,m.text); }
+  else if(m.t==='talkless'){ say('⚠ '+m.name+' 掉线了，AI 代打'); render(); }
+  else if(m.t==='nak'){ say('⚠ '+m.msg); render(); clientTurn(); }
+  else if(m.t==='start'){ await clientStart(m); }
+  else if(m.t==='ev'&&NET.started){ clientApply(m.env,m.evs); await presentEvents(m.evs); clientAfter(); }
+}
+async function clientStart(m){
+  NET.started=true;
+  mySeat=m.seat; SEATK=m.seatk; NAMES=m.names; ECFG=m.ecfg; CASTKEY=m.castKeys;
+  AVA=[null,null,null,null];
+  for(let i=0;i<4;i++){
+    AVA[i]= SEATK[i]==='ai'? AVATARS[m.castKeys[i]] : (i===mySeat?null:humanAva(NAMES[i]));
+    delete PROFILE[i]; delete PERSONA[i];
+    if(SEATK[i]==='ai'){ const r=ROSTER.find(x=>x.key===m.castKeys[i]);
+      if(r){ PROFILE[i]=r.prof; PERSONA[i]=r.persona; } }
+  }
+  hands=[[],[],[],[]];
+  m.env.cnt.forEach((c,i)=>{hands[i]=Array(c).fill(-1);});
+  hands[mySeat]=m.hand.slice().sort((a,b)=>sortKey(a)-sortKey(b));
+  pile=Array(m.env.pileN).fill(-1);
+  clientEnv(m.env);
+  winner=null;logs=[];selected=new Set();fresh=new Set();outQueue=[];
+  tilt={};bubble=null;mood=['idle','idle','idle','idle'];known=[{},{},{},{}];banterEpoch++;
+  $('netSheet').classList.remove('on');
+  $('overSheet').classList.remove('on');
+  const st=$('startSheet'); if(st) st.remove();
+  // 看门狗：网络时序偶尔会把"该我出牌"的提示弄丢，5 秒一查，发现悬空就重新拉起
+  if(!NET.guard) NET.guard=setInterval(()=>{
+    if(!NET||!NET.started){ return; }
+    if(!over&&turn===mySeat&&!humanResolve&&!$('rankSheet').classList.contains('on')) clientAfter();
+  },5000);
+  playControls(); paintRules(); render();
+  $('hand').innerHTML=''; $('handct').textContent='';
+  Sfx.deal();
+  await dealAnim();
+  hands[mySeat].forEach(c=>fresh.add(c));
+  render();
+  say('发牌完毕');
+  clientAfter();
+}
+function clientEnv(env){
+  turn=env.turn; over=env.over; currentRank=env.currentRank; passStreak=env.passStreak;
+  lastPlay=env.lp?{player:env.lp.player,rank:env.lp.rank,cards:Array(env.lp.n).fill(-1)}:null;
+}
+function clientApply(env,evs){
+  for(const ev of evs){
+    if(ev.e==='played'){
+      if(ev.seat===mySeat&&NET.pendCards){ hands[mySeat]=hands[mySeat].filter(c=>!NET.pendCards.includes(c)); NET.pendCards=null; }
+      else if(ev.seat!==mySeat) hands[ev.seat]=Array(Math.max(0,hands[ev.seat].length-ev.n)).fill(-1);
+    }else if(ev.e==='reveal'){
+      if(ev.loser===mySeat&&ev.gained.length) hands[mySeat]=hands[mySeat].concat(ev.gained).sort((a,b)=>sortKey(a)-sortKey(b));
+      else if(ev.loser!==mySeat) hands[ev.loser]=Array(hands[ev.loser].length+ev.picked).fill(-1);
+    }else if(ev.e==='burn'&&ev.eaten){
+      if(ev.leader===mySeat&&ev.gained.length) hands[mySeat]=hands[mySeat].concat(ev.gained).sort((a,b)=>sortKey(a)-sortKey(b));
+      else if(ev.leader!==mySeat) hands[ev.leader]=Array(hands[ev.leader].length+ev.n).fill(-1);
+    }
+  }
+  clientEnv(env);
+  env.cnt.forEach((c,i)=>{ if(i!==mySeat&&hands[i].length!==c) hands[i]=Array(c).fill(-1); });
+  pile=Array(env.pileN).fill(-1);
+}
+function clientAfter(){
+  if(over) return;
+  render();
+  if(turn===mySeat) clientTurn();
+  else $('hint').innerHTML='<span class="thinking">'+NAMES[turn]+' 在想…</span>';
+}
+async function clientTurn(){
+  const act=await humanTurn();
+  if(act.t==='play') NET.pendCards=act.cards.slice();
+  try{ NET.conn.send({t:'act',act:act}); }catch(e){ netFail('发不出去，可能断线了'); }
+  $('hint').innerHTML='';
+}
+
 function finish(p){
-  over=true;
-  MEM.games++; MEM.wins[p]++; MEM.lastWinner=p; saveMem();
-  if(p===0){ Sfx.win();
-    const j=1+(Math.random()*3|0);
-    aiBanter(j, '这一局真人玩家先出完牌，赢了。你们仨都输给他了，酸他一句或者服个软');
-  } else { Sfx.lose(); chat(p,'over',.8); render();
-    aiBanter(p, '这一局你先出完牌，你赢了，得意一句'); }
-  $('winner').textContent = p===0?'你赢了':NAMES[p]+' 赢了';
-  $('overText').textContent = p===0?'最后一手没人敢抓。':NAMES[p]+' 的牌先走完，没人抓住。';
+  MEM.games++; MEM.winsBy=MEM.winsBy||{}; MEM.winsBy[NAMES[p]]=(MEM.winsBy[NAMES[p]]||0)+1;
+  MEM.lastWinner=NAMES[p]; saveMem();
+  if(p===mySeat){ Sfx.win();
+    const ais=[0,1,2,3].filter(isAI);
+    if(ais.length) aiBanter(ais[Math.random()*ais.length|0], '这一局真人玩家先出完牌，赢了。你们都输给他了，酸他一句或者服个软');
+  } else { Sfx.lose(); if(isAI(p)){ chat(p,'over',.8); render(); aiBanter(p, '这一局你先出完牌，你赢了，得意一句'); } }
+  $('winner').textContent = p===mySeat?'你赢了':NAMES[p]+' 赢了';
+  $('overText').textContent = p===mySeat?'最后一手没人敢抓。':NAMES[p]+' 的牌先走完，没人抓住。';
   $('overSheet').classList.add('on');
 }
 
-/* ═══ 主循环 ═══ */
-// 出完牌的人，要等他那一手不再能被抓（有人盖过去 / 一轮作废 / 翻牌没抓着）才算赢
-function checkOut(){
-  const w=outQueue.find(i=>hands[i].length===0&&
-        !(lastPlay&&lastPlay.player===i&&currentRank!==null));
-  if(w===undefined) return false;
-  finish(w); return true;
+/* ═══ 主循环：拿动作 → 进引擎 → 演事件。联机时动作换成从网上来，其余不变 ═══ */
+async function presentEvents(evs){
+  for(const ev of evs){
+    if(ev.e==='played'){ presentPlayed(ev); if(!over) await sleep(560); }
+    else if(ev.e==='passed'){
+      Sfx.pass();
+      say(nm(ev.seat)+' 过');
+      stage(claimHTML(ev.claimSeat,ev.claimN,ev.rank)+pileHTML()+
+            '<div class="note"><b>'+nm(ev.seat)+'</b> 过了 · 轮到 '+nm((ev.seat+1)%4)+' 抓</div>');
+      render(); await sleep(720);
+    }
+    else if(ev.e==='burn'){ await presentBurn(ev); }
+    else if(ev.e==='reveal'){ await presentReveal(ev); }
+    else if(ev.e==='win'){ finish(ev.seat); }
+  }
 }
 async function loop(){
   while(!over){
     render();
-    let acted;
-    if(turn===0) acted=await humanTurn();
-    else{
+    let action;
+    if(turn===mySeat&&SEATK[turn]==='human') action=await humanTurn();
+    else if(SEATK[turn]==='remote'){
       stage((currentRank===null
-        ? '<div class="who">轮到</div><div class="plaque">'+NAMES[turn]+'</div><div class="note">他来定点数</div>'
+        ? '<div class="who">轮到</div><div class="plaque">'+NAMES[turn]+'</div>'
         : claimHTML(lastPlay.player,lastPlay.cards.length,currentRank)+pileHTML()+
-          '<div class="note">轮到 <b>'+NAMES[turn]+'</b> · 只有他能抓</div>'));
-      $('hint').innerHTML = '<span class="thinking">'+NAMES[turn]+' 在想…</span>';
-      acted=await takeTurn(turn);
+          '<div class="note">等 <b>'+NAMES[turn]+'</b> 出牌…</div>'));
+      $('hint').innerHTML='<span class="thinking">'+NAMES[turn]+' 在想…</span>';
+      action=await waitRemote(turn);
       $('hint').textContent='';
     }
-
-    if(acted==='call'){
-      await resolveChallenge(turn);
-      if(checkOut()) break;
-      continue;
+    else{
+      stage((currentRank===null
+        ? '<div class="who">轮到</div><div class="plaque">'+NAMES[turn]+'</div>'
+        : claimHTML(lastPlay.player,lastPlay.cards.length,currentRank)+pileHTML()+
+          '<div class="note">轮到 <b>'+NAMES[turn]+'</b></div>'));
+      $('hint').innerHTML = '<span class="thinking">'+NAMES[turn]+' 在想…</span>';
+      action=await takeTurn(turn);
+      $('hint').textContent='';
     }
-    if(acted==='pass'){
-      passStreak++;
-      Sfx.pass();
-      say(nm(turn)+' 过');
-      stage(claimHTML(lastPlay.player,lastPlay.cards.length,currentRank)+pileHTML()+
-            '<div class="note"><b>'+nm(turn)+'</b> 过了 · 轮到 '+nm((turn+1)%4)+' 抓</div>');
-      render(); await sleep(720);
-      if(passStreak>=3){ await burnRound(); if(checkOut()) break; }
-      else turn=(turn+1)%4;
-      continue;
+    let evs;
+    try{ evs=engineApply(action); }
+    catch(err){
+      say('⚠ '+err.message); render();
+      if(SEATK[action.seat]==='remote'){ const c=NET&&NET.conns.find(x=>x.seat===action.seat);
+        if(c) try{c.send({t:'nak',msg:err.message});}catch(e){} }
+      continue;                                             // 非法动作：引擎打回，重新轮询
     }
-    passStreak=0;
-    turn=(turn+1)%4;
-    await sleep(560);
-    if(checkOut()) break;
+    netBroadcastEvs(evs);
+    await presentEvents(evs);
   }
 }
 
@@ -1103,12 +1540,12 @@ $('rulesBtn').onclick=()=>{paintRules();$('rulesSheet').classList.add('on');};
 $('rulesClose').onclick=()=>$('rulesSheet').classList.remove('on');
 function paintMem(){
   $('memLine').textContent = MEM.games
-    ? '一共 '+MEM.games+' 局 · 你赢 '+MEM.wins[0]+'，老李 '+MEM.wins[1]+'，王姐 '+MEM.wins[2]+'，小赵 '+MEM.wins[3]+
+    ? '一共 '+MEM.games+' 局 · '+winsLine()+
       ' · 你吹牛被逮 '+MEM.humanCaught+' 次，抓对 '+MEM.humanGoodCall+'、抓错 '+MEM.humanBadCall
     : '还没打过，白纸一张。';
 }
 $('memReset').onclick=()=>{
-  MEM.games=0;MEM.wins=[0,0,0,0];MEM.lastWinner=null;
+  MEM.games=0;MEM.winsBy={};MEM.lastWinner=null;
   MEM.humanCaught=0;MEM.humanHonest=0;MEM.humanGoodCall=0;MEM.humanBadCall=0;
   saveMem();paintMem();Sfx.tick();
 };
@@ -1121,7 +1558,10 @@ $('keyInput').addEventListener('input',e=>{
 });
 $('setClose').onclick=()=>{$('setSheet').classList.remove('on');newGame();};
 $('setBack').onclick=()=>{$('setSheet').classList.remove('on');render();updateControls();};
-$('againBtn').onclick=()=>newGame();
+$('againBtn').onclick=()=>{
+  if(NET&&!NET.host){ $('overText').textContent='等房主再开一局…'; return; }
+  newGame();
+};
 
 $('ver').textContent='v'+VERSION;
 $('verFull').textContent='说瞎话 v'+VERSION;
@@ -1153,11 +1593,13 @@ async function newGame(){
   if(dealing) return;
   dealing=true;
   $('overSheet').classList.remove('on');
-  deal(); playControls(); paintRules(); render();
+  deal();
+  if(NET&&NET.host&&NET.started) netSendStart();
+  playControls(); paintRules(); render();
   $('hand').innerHTML=''; $('handct').textContent='';   // 牌先扣着，飞完再亮
-  stage('<div class="who">洗牌</div><div class="plaque">发 牌</div>');
+  stage('');
   await dealAnim();
-  hands[0].forEach(c=>fresh.add(c));                    // 亮手牌时从下面滑进来
+  hands[mySeat].forEach(c=>fresh.add(c));               // 亮手牌时从下面滑进来
   render();
   dealing=false;
   say('发牌完毕，你先出');
@@ -1166,6 +1608,42 @@ async function newGame(){
 
 $('sver').textContent='v'+VERSION;
 $('startRules').onclick=()=>{paintRules();$('rulesSheet').classList.add('on');};
+function savedName(){ try{return localStorage.getItem('sxh_name')||'';}catch(e){return '';} }
+function keepName(v){ try{localStorage.setItem('sxh_name',v);}catch(e){} }
+function paintLobby(){
+  if(!NET||!NET.host) return;
+  $('roomCode').textContent=NET.code;
+  const others=NET.conns.map(c=>c.pname);
+  $('lobbyList').textContent = others.length? '你、'+others.join('、')+
+    (others.length<3?'（还有 '+(3-others.length)+' 个空位，AI 补）':'（满员）') : '就你一个（其余 AI 补）';
+}
+$('hostBtn').onclick=async ()=>{
+  Sfx.wake();
+  $('netHost').style.display='block'; $('netJoin').style.display='none';
+  $('hostName').value=savedName()||'房主';
+  $('netSheet').classList.add('on');
+  try{ await hostRoom(); }catch(e){ $('netStatusH').textContent=e.message; }
+};
+$('joinBtn').onclick=()=>{
+  Sfx.wake();
+  $('netJoin').style.display='block'; $('netHost').style.display='none';
+  $('joinName').value=savedName();
+  $('netSheet').classList.add('on');
+};
+$('hostGo').onclick=()=>{
+  if(!NET||!NET.host) return;
+  NET.myName=($('hostName').value.trim()||'房主').slice(0,6);
+  keepName(NET.myName);
+  startNetGame();
+};
+$('hostCancel').onclick=()=>{ if(NET){try{NET.peer.destroy();}catch(e){}} NET=null; $('netSheet').classList.remove('on'); };
+$('joinGo').onclick=async ()=>{
+  const code=$('joinCode').value.trim().toUpperCase(), nm=($('joinName').value.trim()||'玩家').slice(0,6);
+  if(code.length!==4){ $('netStatus').textContent='房号是四位'; return; }
+  keepName(nm);
+  try{ await joinRoom(code,nm); }catch(e){ $('netStatus').textContent=e.message; }
+};
+$('joinCancel').onclick=()=>{ if(NET){try{NET.peer.destroy();}catch(e){}} NET=null; $('netSheet').classList.remove('on'); };
 $('startBtn').onclick=()=>{
   Sfx.wake();                                           // 这一下点击顺便把 iOS 的声音解锁了
   $('startSheet').classList.add('gone');
