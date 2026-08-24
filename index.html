@@ -174,7 +174,9 @@ button.act.primary{background:var(--brass);border-color:var(--brass);color:#2016
 button.act.danger{background:var(--red);border-color:var(--red);color:#FFF3E8;font-weight:600}
 button.act:disabled{opacity:.3;cursor:default}
 button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
-#hint{font-size:12.5px;color:var(--dim);text-align:center;margin-top:9px;min-height:17px;line-height:1.5}
+#hint{font-size:12.5px;color:var(--dim);text-align:center;margin-top:9px;min-height:17px;line-height:1.45;
+  max-height:3.1em;overflow:hidden}
+#hint b{color:var(--brass);font-weight:600}
 
 /* ─── 弹层 ─── */
 .sheet{position:fixed;inset:0;background:rgba(4,14,10,.82);display:none;
@@ -215,6 +217,7 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
   #stage{min-height:158px;padding:14px 12px;margin:4px 0 2px}
   .plaque{font-size:22px;padding:7px 16px}
   #log{margin:7px 2px 2px;min-height:46px;font-size:12px;line-height:1.65}
+  #hint{font-size:11px;max-height:2.9em;margin-top:6px}
   .label{margin-bottom:6px}
 }
 @media (max-height:620px){
@@ -272,11 +275,10 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
   <div class="opt"><div class="q">三家都过之后，桌上那堆牌</div>
     <div class="seg" data-k="burn">
       <button data-v="1">作废不要</button><button data-v="0">最后出牌的人收走</button></div></div>
-  <div class="opt"><div class="q">谁由 DeepSeek 来打</div>
-    <div class="seg" data-k="ai1"><button data-v="0">老李 本地</button><button data-v="1">老李 DeepSeek</button></div>
-    <div class="seg" data-k="ai2" style="margin-top:7px"><button data-v="0">王姐 本地</button><button data-v="1">王姐 DeepSeek</button></div>
-    <div class="seg" data-k="ai3" style="margin-top:7px"><button data-v="0">小赵 本地</button><button data-v="1">小赵 DeepSeek</button></div>
-  </div>
+  <div class="opt"><div class="q">让 DeepSeek 帮他们斗嘴</div>
+    <div class="seg" data-k="ai">
+      <button data-v="1">开（要填 key）</button><button data-v="0">只用写好的词</button></div>
+    <div class="tip">牌怎么打永远是本地说了算，大模型只负责翻牌和终局时现编台词，还会翻旧账。没网、没 key、超时，都自动用写好的词。</div></div>
   <div class="opt"><div class="q">他仨嘴里干不干净</div>
     <div class="seg" data-k="salty">
       <button data-v="1">带脏字，过瘾</button><button data-v="0">文明点</button></div></div>
@@ -285,9 +287,12 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
       <button data-v="1">开</button><button data-v="0">关</button></div></div>
   <div class="opt"><div class="q">DeepSeek API Key</div>
     <input id="keyInput" type="password" placeholder="sk-..." autocomplete="off">
-    <div class="tip" id="keyTip">不填就全部用本地 AI。只存在这台手机上，不写进文件。</div>
+    <div class="tip" id="keyTip">不填就全用写好的词。只存在这台手机上，不写进文件。</div>
   </div>
-  <p>牌桌规则（王、张数、作废）下一局生效；音效和谁由 DeepSeek 打，马上生效。</p>
+  <div class="opt"><div class="q">旧账</div>
+    <div class="tip" id="memLine"></div>
+    <button class="act" id="memReset" style="width:100%;margin-top:6px">旧账一笔勾销</button></div>
+  <p>牌桌规则（王、张数、作废）下一局生效；其余马上生效。</p>
   <div style="display:flex;gap:8px">
     <button class="act" id="setBack" style="flex:1">继续这一局</button>
     <button class="act primary" id="setClose" style="flex:1">开新一局</button>
@@ -321,8 +326,8 @@ const sortKey=c=>isJoker(c)?100+c:c;
 const nm=i=>i===0?'你':NAMES[i];
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.5';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
-const SET={wild:1,max:4,burn:1,ai1:0,ai2:0,ai3:0,sound:1,salty:1};
+const VERSION='1.7';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const SET={wild:1,max:4,burn:1,ai:1,sound:1,salty:1};
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
      if(_s&&typeof _s==='object') for(const k in SET) if(typeof _s[k]==='number') SET[k]=_s[k];
 }catch(e){}
@@ -407,7 +412,8 @@ function deal(){
   pile=[];currentRank=null;lastPlay=null;roundClaimed=0;passStreak=0;
   over=false;logs=[];selected=new Set();fresh=new Set();outQueue=[];
   turn=0;                          // 真人玩家开第一轮
-  tilt={}; bubble=null;
+  tilt={}; bubble=null; banterEpoch++;
+  known=[{},{},{},{}]; roundLeaderId=null;
   Sfx.deal();
 }
 function say(t){logs.unshift(t);logs=logs.slice(0,3);}
@@ -476,10 +482,21 @@ function humanTurn(){
     }else{
       stage(claimHTML(lastPlay.player,lastPlay.cards.length,currentRank)+pileHTML()+
             '<div class="note">该你了 · 跟着报 <b>'+RANKS[currentRank]+'</b>、过、或者抓他</div>');
-      $('hint').textContent = canCall()
-        ? '现在只有你能抓 '+nm(lastPlay.player)+'。你要是过了，就轮到 '+nm((0+1)%4)+' 抓。'
-        : '报几张就出几张，是不是 '+RANKS[currentRank]+' 随你'+
+      if(canCall()){
+        const cap=4+(SET.wild?2:0), k=lastPlay.cards.length;
+        const mine=hands[0].filter(c=>fits(c,currentRank)).length;
+        let ev='';
+        if(k+mine>cap)
+          ev=' 你攥着 '+mine+' 张能当 '+RANKS[currentRank]+' 的 —— 他报 '+k+' 张，数不可能，<b>他一定在吹</b>！';
+        else if(mine>0)
+          ev=' 你攥着 '+mine+' 张，他手里的 '+RANKS[currentRank]+' 最多还剩 '+(cap-mine-k)+' 张。';
+        if(hands[lastPlay.player].length===0)
+          ev+=' <b>他这一手出完就赢了</b> —— 是真的你抓不抓都输，是吹的只有抓才有救。';
+        $('hint').innerHTML='现在只有你能抓 '+nm(lastPlay.player)+'。你要是过了，就轮到 '+nm((0+1)%4)+' 抓。'+ev;
+      }else{
+        $('hint').textContent='报几张就出几张，是不是 '+RANKS[currentRank]+' 随你'+
           (SET.wild?'，王当 '+RANKS[currentRank]+' 用不算骗':'')+'。';
+      }
     }
     updateControls();
   });
@@ -548,136 +565,43 @@ function commitPlay(rank){
 }
 
 
-/* ═══ DeepSeek 接管某个座位 ═══ */
+/* ═══ 跨局的账本：谁赢过几把、真人啥牌风，都记在手机里 ═══ */
+const MEM=(function(){
+  const d={games:0,wins:[0,0,0,0],lastWinner:null,humanCaught:0,humanHonest:0,humanGoodCall:0,humanBadCall:0};
+  try{ const m=JSON.parse(localStorage.getItem('sxh_mem')||'null');
+       if(m&&typeof m==='object') for(const k in d) if(m[k]!==undefined) d[k]=m[k]; }catch(e){}
+  return d;
+})();
+function saveMem(){ try{ localStorage.setItem('sxh_mem',JSON.stringify(MEM)); }catch(e){} }
+function memSummary(){
+  if(!MEM.games) return '这是你们头一回坐一桌打牌。';
+  const L=['你们一共打过 '+MEM.games+' 局：真人赢 '+MEM.wins[0]+' 局，老李 '+MEM.wins[1]+
+           '，王姐 '+MEM.wins[2]+'，小赵 '+MEM.wins[3]+'。'];
+  if(MEM.lastWinner!==null) L.push('上一局是'+(MEM.lastWinner===0?'真人玩家':NAMES[MEM.lastWinner])+'赢的。');
+  if(MEM.humanCaught+MEM.humanGoodCall+MEM.humanBadCall>0)
+    L.push('真人玩家的老底：吹牛被逮过 '+MEM.humanCaught+' 次，抓人抓对 '+MEM.humanGoodCall+
+           ' 次、抓错 '+MEM.humanBadCall+' 次。');
+  return L.join('');
+}
+
+/* ═══ DeepSeek 只管嘴，不管牌 ═══ */
 const MODEL='deepseek-v4-flash';
 const ENDPOINT='https://api.deepseek.com/chat/completions';
 const DEFAULT_KEY='';            // key 不写在文件里，去设置里填
-let KEY=DEFAULT_KEY, aiWarned=false;
+let KEY=DEFAULT_KEY, aiWarned=false, banterEpoch=0;
 try{ const k=localStorage.getItem('ds_key'); if(k!==null) KEY=k; }catch(e){}
 
 const PERSONA={
- 1:'你是老李，天津人，六十来岁，老实人，牌好就实话实说，很少诈唬；一被人抓到就上头，下一轮容易乱来，上头的时候会骂街。说话短促。',
- 2:'你是王姐，天津人，五十来岁，牌桌上的老手，特别爱诈唬，喜欢多报几张吓唬人，嘴上最不饶人；输了牌会上头骂街。说话爱调侃、损人。',
- 3:'你是小赵，天津人，三十来岁，话少，算得很准，专挑手牌快出完的人下手。说话简短、冷，上头也就蹦一两个字。'
+ 1:'你是老李，天津人，六十来岁，老实人，牌好就实话实说，很少诈唬；一被人抓到就上头，上头的时候会骂街。说话短促。',
+ 2:'你是王姐，天津人，五十来岁，牌桌上的老手，特别爱诈唬，嘴上最不饶人；输了牌会上头骂街。说话爱调侃、损人。',
+ 3:'你是小赵，天津人，三十来岁，话少，算得很准。说话简短、冷，上头也就蹦一两个字。'
 };
-const cardName=c=>isJoker(c)?(c===53?'大王':'小王'):RANKS[rk(c)]+SUITS[st(c)];
-
-function buildPrompt(p){
-  const hand=hands[p], cap=4+(SET.wild?2:0);
-  const sn=i=>i===p?'你自己':(i===0?'真人玩家':NAMES[i]);
-  const list=hand.map((c,i)=>(i+1)+'.'+cardName(c)).join(' ');
-  const canCallNow = currentRank!==null && lastPlay && lastPlay.player!==p;
-  const L=[];
-  L.push('【你的手牌】共 '+hand.length+' 张：'+list);
-  L.push('【各家剩牌】'+[0,1,2,3].map(i=>sn(i)+' '+hands[i].length+' 张').join('，'));
-  L.push('【桌上】扣着 '+pile.length+' 张');
-  if(currentRank===null){
-    L.push('【局面】新一轮，由你开局。你必须出牌，并且自己定一个点数。');
-  }else{
-    const R=RANKS[currentRank], lastN=lastPlay.cards.length;
-    const mine=hand.filter(c=>fits(c,currentRank)).length;
-    L.push('【局面】本轮点数是 '+R+'。上一手是 '+sn(lastPlay.player)+' 报的 '+lastN+' 个 '+R+'。');
-    L.push('【下面的数已经替你算好，别自己数】'+
-      '全场 '+R+' 总共最多 '+cap+' 张（4 张 '+R+(SET.wild?' 加 2 张王，王算任意点数':'')+'）。'+
-      '你自己手上能当 '+R+' 用的有 '+mine+' 张，所以别人手里最多还有 '+(cap-mine)+' 张。'+
-      (lastN>cap-mine
-        ? ' 他这一手报了 '+lastN+' 张，超过了 '+(cap-mine)+'，他一定在骗 —— 抓他。'
-        : ' 他这一手报 '+lastN+' 张，数目上是可能的。')+
-      '（本轮到目前为止各家一共声称打出 '+roundClaimed+' 张。'+
-      (roundClaimed>cap
-        ? '这个数已经超过 '+cap+' 了，说明这一轮里有人在吹 —— 但早先那些声称本身可能就是假的，'+
-          '假牌不消耗真牌，所以这不能证明最后这一手是假的。别拿这个当铁证。'
-        : '还没超。')+'）');
-    L.push('【抓错的代价】现在桌上扣着 '+pile.length+' 张。抓对了他收走，抓错了这 '+pile.length+
-           ' 张全归你，等于白白多背一手牌。没把握就别抓，出牌或者过都行。');
-    L.push(canCallNow? '【你的权利】现在只有你能抓 '+sn(lastPlay.player)+'。你要是过了，抓的机会就传给下一家。'
-                     : '【你的权利】上一手是你自己打的，不能抓自己。');
-  }
-  const hist=logs.slice().reverse().map(t=>t.replace(/^你 /,'真人玩家 ').replace(/ 你 /g,' 真人玩家 '));
-  L.push('【最近战况】'+(hist.length?hist.join('；'):'刚开局'));
-  L.push('');
-  L.push('可选动作：');
-  L.push('play — 出牌。cards 填手牌编号（1~'+hand.length+'），1 到 '+SET.max+' 张。'+
-         (currentRank===null?'rank 填你要报的点数。':'rank 必须是 '+RANKS[currentRank]+'。')+
-         '打出去的牌可以不是那个点数，那就是在说瞎话。');
-  if(currentRank!==null){
-    const myFit=hand.filter(c=>fits(c,currentRank)).length;
-    L.push('pass — 过，这一手不出牌。注意：过是下策。你手里能当 '+RANKS[currentRank]+' 用的有 '+myFit+
-      ' 张'+(myFit?'，有牌就出，实在不行就说瞎话混过去，老过牌等于把主动权白送人':
-      '，没真牌也可以拿别的牌说瞎话顶上，敢吹才像玩这个游戏的')+
-      '。只有牌堆大到不敢冒险、或者你想把抓人的机会让给下家时，过才划算。');
-  }
-  if(canCallNow) L.push('call — 喊说瞎话，抓 '+sn(lastPlay.player)+'。抓错了桌上 '+pile.length+' 张全归你。');
-  L.push('');
-  L.push('只返回 JSON，不要别的：{"action":"play|pass|call","rank":"K","cards":[1,2],"talk":"一句话，10 字以内"}');
-  return L.join('\n');
-}
-
-async function askDeepSeek(p){
-  const ctl=new AbortController();
-  const timer=setTimeout(()=>ctl.abort(),6000);
-  try{
-    const r=await fetch(ENDPOINT,{method:'POST',signal:ctl.signal,
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+KEY},
-      body:JSON.stringify({
-        model:MODEL,
-        thinking:{type:'disabled'},
-        response_format:{type:'json_object'},
-        max_tokens:200, temperature:1.1,
-        messages:[
-          {role:'system',content:PERSONA[p]+
-            ' 你们仨都是天津卫的，talk 一律说天津话，把味儿说足：嘛、介（这）、甭、麻利儿、瞅、'+
-            '得嘞、崴泥、打镲、没溜儿、哏儿、可不咋地 这类词随手用。'+
-            (SET.salty
-              ? '骂街用天津的骂法，可以带脏字（他妈的、王八羔子、去你大爷的、放屁 这个级别），牌桌斗嘴的劲儿，别升级到人身侮辱。'
-              : '骂街也用天津的骂法，但别带脏字。')+
-            ' 你在玩扑克牌游戏「说瞎话」，目标是先把手牌出完。'+
-            '出牌时点数可以骗人，张数不能骗。有人喊说瞎话就翻开验：说谎的收走整桌牌，冤枉人的自己收走整桌牌。'+
-            '你的牌风要敢出敢吹：手里有真牌就跟，没真牌也常用假牌顶上去，把过牌当最后的退路，一场牌里过个一两次就够了。'+
-            '只输出 JSON，不要解释。talk 用中文口语，像牌桌上真人说的话。'},
-          {role:'user',content:buildPrompt(p)}
-        ]})});
-    clearTimeout(timer);
-    if(!r.ok) throw new Error('HTTP '+r.status+(r.status===401?'（key 不对）':r.status===402?'（余额不足）':''));
-    const d=await r.json();
-    return JSON.parse(d.choices[0].message.content);
-  }finally{ clearTimeout(timer); }
-}
-
-// 严格校验，不合法就退回本地 AI
-function applyLLM(p,d){
-  if(!d||typeof d!=='object') return null;
-  const hand=hands[p];
-  const canCallNow = currentRank!==null && lastPlay && lastPlay.player!==p;
-  const talk=typeof d.talk==='string'? d.talk.slice(0,24) : '';
-  const speak=()=>{ if(talk) speak2(p,talk); };
-
-  if(d.action==='call'){ if(!canCallNow) return null; speak(); return 'call'; }
-  if(d.action==='pass'){ if(currentRank===null) return null; speak(); return 'pass'; }
-  if(d.action!=='play') return null;
-
-  let rank;
-  if(currentRank!==null) rank=currentRank;
-  else{
-    rank=RANKS.indexOf(String(d.rank).toUpperCase().trim());
-    if(rank<0) return null;
-  }
-  if(!Array.isArray(d.cards)) return null;
-  const idx=[...new Set(d.cards.map(n=>parseInt(n,10)-1))];
-  if(idx.length<1||idx.length>SET.max) return null;
-  if(idx.some(i=>!(i>=0&&i<hand.length))) return null;
-  const cards=idx.map(i=>hand[i]);
-  hands[p]=hand.filter(c=>!cards.includes(c));
-  speak();
-  finishPlay(p,rank,cards);
-  return 'play';
-}
 
 /* ═══ 三个对手：都是天津卫的，说话带味儿，上头了骂街 ═══ */
 const PROFILE={
  1:{ /* 老李 —— 天津老爷子，实在人，牌好就实说；一被逮着就上头，接着两手乱来 */
    passReal:.22, passBluff:.72, bigPlay:.50, truthMax:.90, junkMix:.10,
-   callBase:.04, callPerCard:.04, crowd:.05, sniper:0, speed:[900,1800], tiltable:2, chatty:.42,
+   callBase:.04, callPerCard:.04, crowd:.05, sniper:0, counts:0, guard:.90, exitD:.85, speed:[900,1800], tiltable:2, chatty:.42,
    talk:{
      play  :['就介个','跟一手','得嘞','稳当的'],
      bluff :['……跟一个吧','就当有','凑合一手'],
@@ -698,7 +622,7 @@ const PROFILE={
              lose:['妈的，白瞎']}} },
  2:{ /* 王姐 —— 天津大姐，爱诈唬爱多报，嘴最不饶人，出手快 */
    passReal:.10, passBluff:.42, bigPlay:.60, truthMax:.70, junkMix:.32,
-   callBase:.07, callPerCard:.05, crowd:.09, sniper:0, speed:[450,1100], tiltable:2, chatty:.55,
+   callBase:.07, callPerCard:.05, crowd:.09, sniper:0, counts:0, guard:.80, exitD:.50, speed:[450,1100], tiltable:2, chatty:.55,
    talk:{
      play  :['给你个大的','瞅我的','接着','甭磨叽'],
      bluff :['满上！','介把稳的','怕了吧','爱信不信'],
@@ -719,7 +643,7 @@ const PROFILE={
              win:['我就说你他妈在吹','逮着你了吧孙子']}} },
  3:{ /* 小赵 —— 天津小伙儿，话少算得准，专挑快出完的人下手；上头也就一手 */
    passReal:.18, passBluff:.50, bigPlay:.55, truthMax:.85, junkMix:.18,
-   callBase:.02, callPerCard:.07, crowd:.07, sniper:1, speed:[1100,2200], tiltable:1, chatty:.28,
+   callBase:.02, callPerCard:.07, crowd:.07, sniper:1, counts:1, guard:.98, exitD:.95, speed:[1100,2200], tiltable:1, chatty:.28,
    talk:{
      play  :['嗯','跟','走着'],
      bluff :['嗯'],
@@ -738,23 +662,50 @@ const PROFILE={
              call:['放屁，数不对']}} }
 };
 let tilt={}, bubble=null;
+let known=[{},{},{},{}], roundLeaderId=null, humCaughtS=0, humHonestS=0;
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const pick=a=>(a&&a.length)? a[Math.random()*a.length|0] : '';
 
+// 大场面（翻牌、终局）才劳驾大模型；出牌斗嘴那种一秒就过去的场合，等它回话黄花菜都凉了
+function aiBanter(p,evText){
+  if(!SET.ai||!KEY) return;
+  const myEpoch=banterEpoch;
+  const ctl=new AbortController();
+  const timer=setTimeout(()=>ctl.abort(),5000);
+  const hist=logs.slice(0,3).reverse().map(x=>String(x).replace(/<[^>]*>/g,''))
+                 .map(t=>t.replace(/^你 /,'真人玩家 ').replace(/ 你 /g,' 真人玩家 '));
+  fetch(ENDPOINT,{method:'POST',signal:ctl.signal,
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+KEY},
+    body:JSON.stringify({
+      model:MODEL,
+      thinking:{type:'disabled'},
+      response_format:{type:'json_object'},
+      max_tokens:60, temperature:1.2,
+      messages:[
+        {role:'system',content:PERSONA[p]+
+          ' 你们仨都是天津卫的，一律说天津话，把味儿说足：嘛、介（这）、甭、瞅、得嘞、崴泥、打镲、没溜儿、哏儿 随手用。'+
+          (SET.salty
+            ? '可以带脏字（他妈的、王八羔子、去你大爷的、放屁 这个级别），牌桌斗嘴的劲儿，别升级到人身侮辱。'
+            : '别带脏字。')+
+          ' 你正在打扑克牌游戏「说瞎话」。根据刚发生的事说一句话，最多 14 个字，要像牌桌上脱口而出的，'+
+          '可以翻旧账（下面给了你们的旧账）。只输出 JSON：{"talk":"..."}'},
+        {role:'user',content:'【旧账】'+memSummary()+'\n【最近几手】'+(hist.join('；')||'刚开局')+
+          '\n【刚发生】'+evText+'\n你（'+NAMES[p]+'）说一句：'}
+      ]})})
+    .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(d=>{
+      const t=JSON.parse(d.choices[0].message.content).talk;
+      if(myEpoch!==banterEpoch) return;              // 这句话属于上一局/上一幕，扔掉
+      if(typeof t==='string'&&t.trim()) speak2(p,t.trim());
+    })
+    .catch(e=>{
+      if(!aiWarned){ aiWarned=true; say('DeepSeek 没接上，先用写好的词'); render(); }
+    })
+    .finally(()=>clearTimeout(timer));
+}
+
 async function takeTurn(p){
-  if(SET['ai'+p]&&KEY){
-    try{
-      const d=await askDeepSeek(p);
-      const r=applyLLM(p,d);
-      if(r) return r;
-    }catch(e){
-      if(!aiWarned){ aiWarned=true;
-        const m=String(e.message||e);
-        say('DeepSeek 没接上（'+(m.includes('abort')?'超时':m)+'），先用本地 AI');
-      }
-    }
-  }
   const plan=aiPlan(p);
   await sleep(ponderMs(p,plan));          // 想多久，看牌情
   const r=aiApply(p,plan);
@@ -778,9 +729,17 @@ function ponderMs(p,plan){
 function aiPlan(p){
   const P=PROFILE[p], hand=hands[p], by={};
   const hot=!!tilt[p];
-  if(currentRank!==null&&lastPlay&&lastPlay.player!==p&&aiChallenge(p,P,hot)) return {act:'call'};
+  const canCall=currentRank!==null&&lastPlay&&lastPlay.player!==p;
+
+  // 有人刚打出最后一手：这时只有抓和过两条路 ——
+  // 跟着出一手，等于替他把这局锁死（他的牌再也没人能翻），亲手送他赢
+  if(canCall&&hands[lastPlay.player].length===0)
+    return aiChallenge(p,P,hot)? {act:'call'} : {act:'pass'};
+  if(canCall&&aiChallenge(p,P,hot)) return {act:'call'};
+
   hand.forEach(c=>{if(!isJoker(c))(by[rk(c)]=by[rk(c)]||[]).push(c);});
   const jokers=SET.wild?hand.filter(isJoker):[];
+  const threat=[0,1,2,3].find(i=>i!==p&&hands[i].length<=2);   // 有人快跑了
 
   if(currentRank!==null){                       // 要不要过
     const real=hand.filter(c=>fits(c,currentRank)).length;
@@ -788,38 +747,65 @@ function aiPlan(p){
     if(hot) pp*=.5;
     if(pile.length>10) pp+=.18;
     if(hand.length<=4) pp*=.3;
+    if(threat!==undefined) pp*=.6;              // 有人要跑，不能歇着
+    if(passStreak===2&&lastPlay&&hands[lastPlay.player].length<=4) pp*=.4;  // 再过一手就烧堆，等于白送他一轮先手
     if(Math.random()<pp) return {act:'pass'};
   }
+
   let rank=currentRank;
-  if(rank===null){
-    let best=-1,bc=0;
-    for(const r in by) if(by[r].length>bc){bc=by[r].length;best=+r;}
-    rank = best<0 ? (Math.random()*13|0) : best;
+  const lead=rank===null;
+  if(lead){
+    const sets=Object.keys(by).map(r=>({r:+r,n:by[r].length})).sort((x,y)=>y.n-x.n);
+    if(!sets.length) rank=jokers.length?(Math.random()*13|0):(Math.random()*13|0);
+    else if(hand.length<=SET.max&&sets[0].n+jokers.length>=hand.length)
+      rank=sets[0].r;                           // 一把梭：全手一次真着出完，稳赢
+    else if(hand.length<=7&&sets.length>1)
+      rank=sets[sets.length-1].r;               // 残局先清零头小对，把大套留着真着收官
+    else rank=sets[0].r;                        // 平时出最长的套
   }
   let truth=(by[rank]||[]).slice();
-  if(jokers.length&&(hand.length<=5||truth.length)&&Math.random()<.5) truth=truth.concat(jokers);
+  // 王是收官的胶水：能让这一手真着出完全手，才舍得掺进去
+  if(jokers.length){
+    if(truth.length+jokers.length>=hand.length&&hand.length<=SET.max) truth=truth.concat(jokers);
+    else if(!truth.length&&hand.length<=2) truth=jokers.slice();
+  }
 
   let cards;
   if(hand.length<=SET.max&&Math.random()<P.bigPlay){
-    cards=hand.slice(0,Math.min(SET.max,hand.length));
+    cards=hand.slice(0,Math.min(SET.max,hand.length));         // 孤注一掷（下面的收官纪律会拦下大部分瞎话收官）
   }else if(truth.length){
     const k = Math.random()<P.truthMax ? Math.min(truth.length,SET.max)
                                        : Math.min(truth.length,SET.max,1+(Math.random()*3|0));
     cards=truth.slice(0,k);
-    if(Math.random()<(hot?P.junkMix+.30:P.junkMix)&&cards.length<SET.max){
+    let mix=hot?P.junkMix+.30:P.junkMix;
+    if(pile.length<=4) mix+=.10;                // 堆小，掺一张假的便宜
+    if(pile.length>12) mix*=.5;                 // 堆大，被逮着背不起
+    if(Math.random()<mix&&cards.length<SET.max){
       const junk=hand.filter(c=>!cards.includes(c)&&!(SET.wild&&isJoker(c)))
-                     .sort((a,b)=>by[rk(a)].length-by[rk(b)].length)[0];
+                     .sort((x,y)=>by[rk(x)].length-by[rk(y)].length)[0];
       if(junk!==undefined) cards.push(junk);
     }
   }else{
     const pool=hand.filter(c=>!(SET.wild&&isJoker(c)));
-    const sorted=pool.sort((a,b)=>by[rk(a)].length-by[rk(b)].length);
-    cards=sorted.slice(0,Math.min(sorted.length,Math.random()<.7?1:2));
+    const sorted=pool.sort((x,y)=>by[rk(x)].length-by[rk(y)].length);
+    let bn=Math.random()<.7?1:2;
+    if(pile.length>10) bn=1;                    // 堆大，瞎话吹小点
+    cards=sorted.slice(0,Math.min(sorted.length,bn));
     if(!cards.length) cards=hand.slice(0,1);
   }
-  return {act:'play',rank:rank,cards:cards,lying:!cards.every(c=>fits(c,rank))};
-}
 
+  let lying=!cards.every(c=>fits(c,rank));
+  // 收官纪律：最后一手几乎必被翻，说着瞎话收官等于自首。
+  // 改成只出真的那几张（不收官），或者干脆过，把真着收官留到下一轮。
+  if(lying&&cards.length===hand.length&&Math.random()<(hot?P.exitD*.5:P.exitD)){
+    const tr=cards.filter(c=>fits(c,rank));
+    if(tr.length) cards=tr;
+    else if(!lead) return {act:'pass'};
+    else if(cards.length>1) cards=cards.slice(0,cards.length-1);
+    lying=!cards.every(c=>fits(c,rank));
+  }
+  return {act:'play',rank:rank,cards:cards,lying:lying};
+}
 function aiApply(p,plan){
   const P=PROFILE[p];
   const hot=!!tilt[p];
@@ -855,35 +841,54 @@ function speak2(p,line){
   render();
 }
 
-function aiChallenge(q,P,hot){
-  const cap = 4 + (SET.wild?2:0);                       // 这个点数全场最多几张
-  const mine=hands[q].filter(c=>fits(c,lastPlay.rank)).length;
-  const k=lastPlay.cards.length;
-  const before=Math.max(0,roundClaimed-k);              // 这一手之前，本轮声称过的张数
+function aiChallenge(p,P,hot){
+  const cap=4+(SET.wild?2:0), R=lastPlay.rank, k=lastPlay.cards.length, q=lastPlay.player;
+  const mine=hands[p].filter(c=>fits(c,R)).length;
+  if(k+mine>cap) return true;                   // 铁证：加上我攥着的，数就放不下了
+  let knownElse=0;
+  if(P.counts){                                 // 小赵记得翻开过的牌都到了谁手里
+    for(let i=0;i<4;i++) if(i!==p&&i!==q) knownElse+=(known[i][R]||0)+(SET.wild?(known[i].j||0):0);
+    if(k+mine+knownElse>cap) return true;       // 铁证二：明牌都对不上
+  }
+  const left=hands[q].length;
 
-  // 唯一铁的推理：我自己攥着 mine 张，他最多只可能有 cap-mine 张真的
-  if(k+mine>cap) return true;
+  if(left===0){
+    // 他这一手出完就赢。这里的账很简单：他要是真的，抓不抓我都输；
+    // 他要是吹的，只有抓才有救。所以宁可错抓，不可放过。
+    const behind=(q-p-1+4)%4;                   // 我后面还剩几道闸
+    let prob = behind===0? P.guard : P.guard*(behind===1?.72:.55);
+    if(q===roundLeaderId) prob*=.65;            // 点数他自己定的，多半早备好了真牌
+    else prob=Math.min(.99,prob*1.3);           // 被点数逼出来的收官，可疑得很
+    if(P.counts&&(known[q][R]||0)>=k) prob*=.4; // 小赵记得他手里真有这个数
+    prob+=.06*mine;
+    if(hot) prob=Math.min(.99,prob+.1);
+    return Math.random()<prob;
+  }
 
-  const room=Math.max(0,cap-mine-k);                    // 除了这一手，这个点数还剩几张空间
-  let prob=P.callBase + mine*P.callPerCard;             // 我攥着越多，他越可疑
-  // 本轮声称的总数已经超了 —— 说明这轮有人在吹，但不一定是最后出牌这个人，
-  // 所以只当作"气氛可疑"，加一点点，不再当成铁证。
-  if(before>room) prob += P.crowd*Math.min(4,before-room);
-  if(k>=3) prob += .06*(k-2);                           // 一次报一大把，稍微可疑
-
-  const left=hands[lastPlay.player].length;
-  if(left===0) prob=Math.max(prob,.75);                 // 他这手出完就赢，不抓就输
-  else if(left<=2) prob+=.20+(P.sniper?.12:0);
-  else if(P.sniper&&left<=4) prob+=.06;                 // 小赵盯着快出完的人
-  if(hot) prob+=.12;                                    // 上头了乱抓
-  if(pile.length>16) prob*=.55;                         // 牌堆越大，抓错越亏
-  else if(pile.length<=3) prob*=1.15;
+  let prob=P.callBase + mine*P.callPerCard;     // 我攥着越多，他越可疑
+  const before=Math.max(0,roundClaimed-k), room=Math.max(0,cap-mine-knownElse-k);
+  if(before>room) prob+=P.crowd*Math.min(4,before-room);   // 这轮吹过头了，气氛可疑
+  if(k>=3) prob+=.06*(k-2);
+  if(left<=2) prob+=.15+(P.sniper?.10:0);       // 快出完的人，重点照顾
+  else if(P.sniper&&left<=4) prob+=.06;
+  if(q===0){                                    // 对真人看信用：惯犯多抓，老实人少抓（旧账也算）
+    // 白纸记录 ≈ 一般人的吹牛率(~0.35)，别一上来就当嫌疑人
+    const c=MEM.humanCaught+humCaughtS, h=(MEM.humanHonest||0)+humHonestS;
+    prob*= Math.min(1.35, .5+1.4*((c+.7)/(c+h+2)));
+  }
+  if(P.counts&&(known[q][R]||0)>=k) prob*=.5;   // 明知他有真牌，少冤枉
+  if(hot) prob+=.12;
+  prob*=Math.max(.45,1.15-.035*pile.length);    // 堆越大，抓错越亏
+  if(hands[p].length<=4) prob*=.6;              // 自己快赢了，背不起一堆牌
+  else if(pile.length<=3) prob*=1.1;
+  if(passStreak===2&&left<=4) prob+=.15;        // 再过就烧堆白送他先手
   return Math.random()<prob;
 }
 
 /* ═══ 出牌 ═══ */
 function finishPlay(p,rank,cards){
-  if(currentRank===null){currentRank=rank;roundClaimed=0;}
+  if(currentRank===null){currentRank=rank;roundClaimed=0;roundLeaderId=p;}
+  for(const r in known[p]) known[p][r]=Math.max(0,known[p][r]-cards.length);  // 他出了牌，明牌可能被打掉
   roundClaimed+=cards.length;
   pile.push(...cards);
   lastPlay={player:p,rank:rank,cards:cards};
@@ -906,7 +911,13 @@ async function resolveChallenge(q){
   Sfx.flip();
   render(); await sleep(1000);
   if(truth) Sfx.truth(); else Sfx.lie();
-  if(p!==0) chat(p, truth?'clear':'caught', .85);      // 被抓的人先反应
+  if(p===0){ if(truth){MEM.humanHonest=(MEM.humanHonest||0)+1;humHonestS++;} else {MEM.humanCaught++;humCaughtS++;} }
+  if(q===0){ if(truth) MEM.humanBadCall++; else MEM.humanGoodCall++; }
+  saveMem();
+  if(p!==0){ chat(p, truth?'clear':'caught', .85);     // 被抓的人先反应
+    aiBanter(p, '你报 '+cards.length+' 个 '+RANKS[lastPlay.rank]+'，被 '+
+      (q===0?'真人玩家':NAMES[q])+' 喊说瞎话翻开了 —— '+
+      (truth?'你说的是真话，他冤枉你，这堆牌归他背':'你真在吹，让他逮个正着，你把整桌牌收走')); }
   stage('<div class="who">'+nm(q)+' 喊：说瞎话！</div>'+
         '<div class="reveal">'+cards.map(faceUp).join('')+'</div>', truth?'真话':'瞎话');
   await sleep(1300);
@@ -916,6 +927,7 @@ async function resolveChallenge(q){
   const n=pile.length;
   pile.forEach(c=>fresh.add(c));
   hands[loser].push(...pile); hands[loser].sort((a,b)=>sortKey(a)-sortKey(b));
+  cards.forEach(c=>{ const key=isJoker(c)?'j':rk(c); known[loser][key]=(known[loser][key]||0)+1; }); // 桌面见过的牌，全桌都记得到了谁手里
   Sfx.pickup(n);
   if(loser!==0&&PROFILE[loser].tiltable) tilt[loser]=PROFILE[loser].tiltable;  // 谁收了牌谁上头
   outQueue=outQueue.filter(i=>hands[i].length===0);
@@ -924,7 +936,9 @@ async function resolveChallenge(q){
             : nm(p)+' 真在骗人 — 收走 '+n+' 张');
   stage('<div class="who">'+nm(loser)+' 收走了 '+n+' 张</div>'+
         '<div class="plaque">'+nm(next)+' 接着出</div>');
-  if(q!==0) chat(q, truth?'lose':'win', .70);          // 抓的人再回一句
+  if(q!==0){ chat(q, truth?'lose':'win', .70);         // 抓的人再回一句
+    aiBanter(q, '你抓 '+(p===0?'真人玩家':NAMES[p])+'，翻开 —— '+
+      (truth?'抓错了，人家是真的，'+n+' 张牌全归你背':'抓对了，他在吹，他收走 '+n+' 张')); }
   render(); await sleep(1000);
 }
 async function burnRound(){
@@ -949,7 +963,12 @@ async function burnRound(){
 }
 function finish(p){
   over=true;
-  if(p===0) Sfx.win(); else { Sfx.lose(); chat(p,'over',.8); render(); }
+  MEM.games++; MEM.wins[p]++; MEM.lastWinner=p; saveMem();
+  if(p===0){ Sfx.win();
+    const j=1+(Math.random()*3|0);
+    aiBanter(j, '这一局真人玩家先出完牌，赢了。你们仨都输给他了，酸他一句或者服个软');
+  } else { Sfx.lose(); chat(p,'over',.8); render();
+    aiBanter(p, '这一局你先出完牌，你赢了，得意一句'); }
   $('winner').textContent = p===0?'你赢了':NAMES[p]+' 赢了';
   $('overText').textContent = p===0?'最后一手没人敢抓。':NAMES[p]+' 的牌先走完，没人抓住。';
   $('overSheet').classList.add('on');
@@ -973,9 +992,7 @@ async function loop(){
         ? '<div class="who">轮到</div><div class="plaque">'+NAMES[turn]+'</div><div class="note">他来定点数</div>'
         : claimHTML(lastPlay.player,lastPlay.cards.length,currentRank)+pileHTML()+
           '<div class="note">轮到 <b>'+NAMES[turn]+'</b> · 只有他能抓</div>'));
-      const viaAI=SET['ai'+turn]&&KEY;
       $('hint').innerHTML = '<span class="thinking">'+NAMES[turn]+' 在想…</span>';
-      if(viaAI) await sleep(260);          // 本地 AI 的停顿在 takeTurn 里，按牌情长短不一
       acted=await takeTurn(turn);
       $('hint').textContent='';
     }
@@ -1032,12 +1049,23 @@ document.querySelectorAll('.seg').forEach(seg=>{
 });
 $('rulesBtn').onclick=()=>{paintRules();$('rulesSheet').classList.add('on');};
 $('rulesClose').onclick=()=>$('rulesSheet').classList.remove('on');
-$('setBtn').onclick=()=>{paintSettings();$('keyInput').value=KEY;$('setSheet').classList.add('on');};
+function paintMem(){
+  $('memLine').textContent = MEM.games
+    ? '一共 '+MEM.games+' 局 · 你赢 '+MEM.wins[0]+'，老李 '+MEM.wins[1]+'，王姐 '+MEM.wins[2]+'，小赵 '+MEM.wins[3]+
+      ' · 你吹牛被逮 '+MEM.humanCaught+' 次，抓对 '+MEM.humanGoodCall+'、抓错 '+MEM.humanBadCall
+    : '还没打过，白纸一张。';
+}
+$('memReset').onclick=()=>{
+  MEM.games=0;MEM.wins=[0,0,0,0];MEM.lastWinner=null;
+  MEM.humanCaught=0;MEM.humanHonest=0;MEM.humanGoodCall=0;MEM.humanBadCall=0;
+  saveMem();paintMem();Sfx.tick();
+};
+$('setBtn').onclick=()=>{paintSettings();paintMem();$('keyInput').value=KEY;$('setSheet').classList.add('on');};
 $('keyInput').addEventListener('input',e=>{
   KEY=e.target.value.trim(); aiWarned=false;
   try{ localStorage.setItem('ds_key',KEY); }catch(err){}
   $('keyTip').textContent = KEY? '已填。只存在这台手机上，不写进文件。'
-                               : '不填就全部用本地 AI。只存在这台手机上，不写进文件。';
+                               : '不填就全用写好的词。只存在这台手机上，不写进文件。';
 });
 $('setClose').onclick=()=>{$('setSheet').classList.remove('on');newGame();};
 $('setBack').onclick=()=>{$('setSheet').classList.remove('on');render();updateControls();};
