@@ -242,12 +242,22 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
     <div class="seg" data-k="ai2" style="margin-top:7px"><button data-v="0">王姐 本地</button><button data-v="1">王姐 DeepSeek</button></div>
     <div class="seg" data-k="ai3" style="margin-top:7px"><button data-v="0">小赵 本地</button><button data-v="1">小赵 DeepSeek</button></div>
   </div>
+  <div class="opt"><div class="q">音效</div>
+    <div class="seg" data-k="sound">
+      <button data-v="1">开</button><button data-v="0">关</button></div></div>
+  <div class="opt"><div class="q">DeepSeek 想得深不深</div>
+    <div class="seg" data-k="think">
+      <button data-v="0">快答（默认）</button><button data-v="1">深思</button></div>
+    <div class="tip">深思模式牌打得更准，但每一手要等十几到几十秒；超过 45 秒或出错就自动退回本地 AI。只影响交给 DeepSeek 的那几家。</div></div>
   <div class="opt"><div class="q">DeepSeek API Key</div>
     <input id="keyInput" type="password" placeholder="sk-..." autocomplete="off">
     <div class="tip" id="keyTip">不填就全部用本地 AI。只存在这台手机上，不写进文件。</div>
   </div>
-  <p>改了下一局生效。</p>
-  <button class="act primary" id="setClose" style="width:100%">开新一局</button>
+  <p>牌桌规则（王、张数、作废）下一局生效；音效、深思、谁由 DeepSeek 打，马上生效。</p>
+  <div style="display:flex;gap:8px">
+    <button class="act" id="setBack" style="flex:1">继续这一局</button>
+    <button class="act primary" id="setClose" style="flex:1">开新一局</button>
+  </div>
 </div></div>
 
 <div class="sheet" id="rankSheet"><div class="panel">
@@ -276,7 +286,72 @@ const sortKey=c=>isJoker(c)?100+c:c;
 const nm=i=>i===0?'你':NAMES[i];
 
 /* ═══ 可调规则 ═══ */
-const SET={wild:1,max:4,burn:1,ai1:0,ai2:0,ai3:0};
+const SET={wild:1,max:4,burn:1,ai1:0,ai2:0,ai3:0,think:0,sound:1};
+try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
+     if(_s&&typeof _s==='object') for(const k in SET) if(typeof _s[k]==='number') SET[k]=_s[k];
+}catch(e){}
+function saveSet(){ try{ localStorage.setItem('sxh_set',JSON.stringify(SET)); }catch(e){} }
+
+/* ═══ 音效：全部现场合成，不加任何外部文件 ═══ */
+const Sfx=(function(){
+  let ctx=null,nb=null;
+  function C(){
+    if(!ctx){ const A=window.AudioContext||window.webkitAudioContext; if(!A) return null;
+              try{ ctx=new A(); }catch(e){ return null; } }
+    if(ctx.state==='suspended') ctx.resume();
+    return ctx;
+  }
+  function ok(){ return SET.sound? C() : null; }
+  function noiseBuf(c){
+    if(nb) return nb;
+    const len=(c.sampleRate*0.5)|0, b=c.createBuffer(1,len,c.sampleRate), d=b.getChannelData(0);
+    for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+    return nb=b;
+  }
+  // 牌的摩擦声
+  function swish(t,dur,vol,f0,f1){
+    const c=ok(); if(!c) return;
+    const src=c.createBufferSource(); src.buffer=noiseBuf(c);
+    const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=0.9;
+    const g=c.createGain(), t0=c.currentTime+t;
+    bp.frequency.setValueAtTime(f0,t0);
+    bp.frequency.exponentialRampToValueAtTime(f1,t0+dur);
+    g.gain.setValueAtTime(0.0001,t0);
+    g.gain.linearRampToValueAtTime(vol,t0+0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+    src.connect(bp); bp.connect(g); g.connect(c.destination);
+    src.start(t0); src.stop(t0+dur+0.03);
+  }
+  // 一个音
+  function tone(t,freq,dur,vol,type,glide){
+    const c=ok(); if(!c) return;
+    const o=c.createOscillator(), g=c.createGain(), t0=c.currentTime+t;
+    o.type=type||'sine';
+    o.frequency.setValueAtTime(freq,t0);
+    if(glide) o.frequency.exponentialRampToValueAtTime(glide,t0+dur);
+    g.gain.setValueAtTime(0.0001,t0);
+    g.gain.linearRampToValueAtTime(vol,t0+0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+    o.connect(g); g.connect(c.destination);
+    o.start(t0); o.stop(t0+dur+0.03);
+  }
+  return {
+    wake(){ C(); },
+    tick(){ swish(0,.05,.10,1800,900); },
+    play(k){ for(let i=0;i<Math.min(5,k);i++) swish(i*.075,.13,.18,2400,600); },
+    pass(){ tone(0,220,.16,.09,'sine',160); },
+    call(){ tone(0,660,.10,.15,'square',520); tone(.09,520,.22,.12,'square',300); },
+    flip(){ swish(0,.09,.20,3000,700); },
+    truth(){ tone(0,523,.14,.12,'triangle'); tone(.11,784,.30,.10,'triangle'); },
+    lie(){ tone(0,300,.18,.15,'sawtooth',150); tone(.14,190,.34,.12,'sawtooth',90); },
+    pickup(k){ for(let i=0;i<Math.min(8,k);i++) swish(i*.045,.10,.11,1200,400); },
+    deal(){ for(let i=0;i<8;i++) swish(i*.06,.09,.12,2600,800); },
+    burn(){ swish(0,.50,.14,900,180); },
+    win(){ [523,659,784,1047].forEach((f,i)=>tone(i*.11,f,.32,.12,'triangle')); },
+    lose(){ [440,392,330,262].forEach((f,i)=>tone(i*.13,f,.36,.11,'sine')); }
+  };
+})();
+document.addEventListener('pointerdown',()=>Sfx.wake(),{once:true});
 const fits=(c,rank)=>(SET.wild&&isJoker(c))||rk(c)===rank;
 
 /* ═══ 状态 ═══ */
@@ -296,8 +371,10 @@ function deal(){
   pile=[];currentRank=null;lastPlay=null;roundClaimed=0;passStreak=0;
   over=false;logs=[];selected=new Set();fresh=new Set();outQueue=[];
   turn=0;                          // 真人玩家开第一轮
+  tilt={};
+  Sfx.deal();
 }
-function say(t){logs.unshift(t);logs=logs.slice(0,3);}
+function say(t){logs.unshift(t);logs=logs.slice(0,4);}
 
 /* ═══ 渲染 ═══ */
 function cardInner(c){
@@ -399,7 +476,7 @@ $('hand').addEventListener('click',e=>{
   const el=e.target.closest('.card'); if(!el||!humanResolve) return;
   const c=+el.dataset.c;
   if(selected.has(c)) selected.delete(c);
-  else if(selected.size<SET.max) selected.add(c);
+  else if(selected.size<SET.max){ selected.add(c); Sfx.tick(); }
   render();updateControls();
 });
 function openRankPicker(){
@@ -486,15 +563,15 @@ function buildPrompt(p){
 
 async function askDeepSeek(p){
   const ctl=new AbortController();
-  const timer=setTimeout(()=>ctl.abort(),6000);
+  const timer=setTimeout(()=>ctl.abort(),SET.think?45000:6000);
   try{
     const r=await fetch(ENDPOINT,{method:'POST',signal:ctl.signal,
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+KEY},
       body:JSON.stringify({
         model:MODEL,
-        thinking:{type:'disabled'},
+        thinking:{type:SET.think?'enabled':'disabled'},
         response_format:{type:'json_object'},
-        max_tokens:200, temperature:1.1,
+        max_tokens:SET.think?1600:200, temperature:1.1,
         messages:[
           {role:'system',content:PERSONA[p]+' 你在玩扑克牌游戏「说瞎话」，目标是先把手牌出完。'+
             '出牌时点数可以骗人，张数不能骗。有人喊说瞎话就翻开验：说谎的收走整桌牌，冤枉人的自己收走整桌牌。'+
@@ -537,6 +614,28 @@ function applyLLM(p,d){
   return 'play';
 }
 
+/* ═══ 三个对手的性格（本地 AI 也吃这套，不填 key 也能看出区别）═══ */
+const PROFILE={
+ 1:{ /* 老李 —— 老实人，牌好就实说；被抓一次就上头，接着两手容易乱来 */
+   passReal:.22, passBluff:.72, bigPlay:.50, truthMax:.90, junkMix:.10,
+   callBase:.04, callPerCard:.04, sniper:0, speed:[900,1800], tiltable:1, chatty:.40,
+   talk:{play:['就这个','跟一手','来吧'], bluff:['……跟一个','就当有吧'],
+         pass:['我过','手里没有'], call:['我不信','你诈我呢？'],
+         tilt:['来来来','不管了','就不信了']} },
+ 2:{ /* 王姐 —— 爱诈唬，爱多报，嘴不饶人，出手快 */
+   passReal:.10, passBluff:.42, bigPlay:.60, truthMax:.70, junkMix:.32,
+   callBase:.07, callPerCard:.05, sniper:0, speed:[450,1100], tiltable:0, chatty:.55,
+   talk:{play:['给你个大的','看我的','接着'], bluff:['满上！','这把稳的','怕了吧'],
+         pass:['这轮不玩','我歇会儿'], call:['吹吧你！','翻开看看'], tilt:[]} },
+ 3:{ /* 小赵 —— 话少，算得准，专挑手牌快出完的人下手，想得久 */
+   passReal:.18, passBluff:.50, bigPlay:.55, truthMax:.85, junkMix:.18,
+   callBase:.02, callPerCard:.07, sniper:1, speed:[1100,2200], tiltable:0, chatty:.25,
+   talk:{play:['嗯','跟'], bluff:['嗯'], pass:['过'], call:['数不对','不可能'], tilt:[]} }
+};
+let tilt={};
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const pick=a=>(a&&a.length)? a[Math.random()*a.length|0] : '';
+
 async function takeTurn(p){
   if(SET['ai'+p]&&KEY){
     try{
@@ -550,22 +649,40 @@ async function takeTurn(p){
       }
     }
   }
-  return aiAct(p);
+  const plan=aiPlan(p);
+  await sleep(ponderMs(p,plan));          // 想多久，看牌情
+  const r=aiApply(p,plan);
+  if(tilt[p]) tilt[p]--;
+  return r;
 }
 
 /* ═══ 本地 AI ═══ */
-function aiAct(p){
-  const hand=hands[p],by={};
-  if(currentRank!==null&&lastPlay&&lastPlay.player!==p&&aiChallenge(p)) return 'call';
+// 好出的牌出得快；诈唬、要抓、快没牌了，就多磨蹭一会儿
+function ponderMs(p,plan){
+  const P=PROFILE[p];
+  let t=rnd(P.speed[0],P.speed[1]);
+  if(plan.act==='call') t*=1.35;
+  if(plan.lying)        t*=1.55;
+  if(hands[p].length<=3)t*=1.35;
+  if(pile.length>12)    t*=1.15;
+  if(tilt[p])           t*=.60;           // 上头了，出手急
+  return Math.min(3400,Math.round(t));
+}
+
+function aiPlan(p){
+  const P=PROFILE[p], hand=hands[p], by={};
+  const hot=!!tilt[p];
+  if(currentRank!==null&&lastPlay&&lastPlay.player!==p&&aiChallenge(p,P,hot)) return {act:'call'};
   hand.forEach(c=>{if(!isJoker(c))(by[rk(c)]=by[rk(c)]||[]).push(c);});
   const jokers=SET.wild?hand.filter(isJoker):[];
 
   if(currentRank!==null){                       // 要不要过
     const real=hand.filter(c=>fits(c,currentRank)).length;
-    let pp = real? .15 : .60;
+    let pp = real? P.passReal : P.passBluff;
+    if(hot) pp*=.5;
     if(pile.length>10) pp+=.18;
     if(hand.length<=4) pp*=.3;
-    if(Math.random()<pp) return 'pass';
+    if(Math.random()<pp) return {act:'pass'};
   }
   let rank=currentRank;
   if(rank===null){
@@ -577,13 +694,13 @@ function aiAct(p){
   if(jokers.length&&(hand.length<=5||truth.length)&&Math.random()<.5) truth=truth.concat(jokers);
 
   let cards;
-  if(hand.length<=SET.max&&Math.random()<.55){
+  if(hand.length<=SET.max&&Math.random()<P.bigPlay){
     cards=hand.slice(0,Math.min(SET.max,hand.length));
   }else if(truth.length){
-    const n = Math.random()<.85 ? Math.min(truth.length,SET.max)
-                                : Math.min(truth.length,SET.max,1+(Math.random()*3|0));
-    cards=truth.slice(0,n);
-    if(Math.random()<.22&&cards.length<SET.max){
+    const k = Math.random()<P.truthMax ? Math.min(truth.length,SET.max)
+                                       : Math.min(truth.length,SET.max,1+(Math.random()*3|0));
+    cards=truth.slice(0,k);
+    if(Math.random()<(hot?P.junkMix+.30:P.junkMix)&&cards.length<SET.max){
       const junk=hand.filter(c=>!cards.includes(c)&&!(SET.wild&&isJoker(c)))
                      .sort((a,b)=>by[rk(a)].length-by[rk(b)].length)[0];
       if(junk!==undefined) cards.push(junk);
@@ -594,20 +711,39 @@ function aiAct(p){
     cards=sorted.slice(0,Math.min(sorted.length,Math.random()<.7?1:2));
     if(!cards.length) cards=hand.slice(0,1);
   }
-  hands[p]=hand.filter(c=>!cards.includes(c));
-  finishPlay(p,rank,cards);
+  return {act:'play',rank:rank,cards:cards,lying:!cards.every(c=>fits(c,rank))};
+}
+
+function aiApply(p,plan){
+  const P=PROFILE[p];
+  if(plan.act==='call'){ chat(p,(tilt[p]&&P.talk.tilt.length)?'tilt':'call'); return 'call'; }
+  if(plan.act==='pass'){ chat(p,'pass'); return 'pass'; }
+  chat(p, plan.lying?'bluff':'play');
+  hands[p]=hands[p].filter(c=>!plan.cards.includes(c));
+  finishPlay(p,plan.rank,plan.cards);
   return 'play';
 }
-function aiChallenge(q){
+
+function chat(p,kind){
+  const P=PROFILE[p];
+  if(Math.random()>P.chatty) return;
+  const line=pick(P.talk[kind]); if(!line) return;
+  say(NAMES[p]+'：「'+line+'」');
+}
+
+function aiChallenge(q,P,hot){
   const cap = 4 + (SET.wild?2:0);                       // 一个点数最多能有几张
   const mine=hands[q].filter(c=>fits(c,lastPlay.rank)).length;
   if(mine+roundClaimed>cap) return true;                // 数目不可能，稳抓
-  let prob=.05 + mine*.05;                             // 自己攥着几张，越多越可疑
-  const n=lastPlay.cards.length;
-  if(n===3) prob+=.12;
-  if(n>=4) prob+=.22;
-  if(hands[lastPlay.player].length===0) prob=.70;
-  else if(hands[lastPlay.player].length<=2) prob+=.22;
+  let prob=P.callBase + mine*P.callPerCard;             // 自己攥着几张，越多越可疑
+  const k=lastPlay.cards.length;
+  if(k===3) prob+=.12;
+  if(k>=4)  prob+=.22;
+  const left=hands[lastPlay.player].length;
+  if(left===0) prob=.70+(P.sniper?.18:0);               // 人家要出完了
+  else if(left<=2) prob+=.22+(P.sniper?.14:0);
+  else if(P.sniper&&left<=4) prob+=.08;                 // 小赵专挑快出完的人
+  if(hot) prob+=.15;                                    // 上头了乱抓
   if(pile.length>16) prob*=.5;
   return Math.random()<prob;
 }
@@ -620,18 +756,7 @@ function finishPlay(p,rank,cards){
   lastPlay={player:p,rank:rank,cards:cards};
   if(hands[p].length===0&&!outQueue.includes(p)) outQueue.push(p);
   say(nm(p)+' 报 '+cards.length+' 个 '+RANKS[rank]+(hands[p].length===0?' —— 手牌出完了！':''));
-  stage(claimHTML(p,cards.length,rank)+pileHTML());
-  render();
-}
-
-/* ═══ 出牌 ═══ */
-function finishPlay(p,rank,cards){
-  if(currentRank===null){currentRank=rank;roundClaimed=0;}
-  roundClaimed+=cards.length;
-  pile.push(...cards);
-  lastPlay={player:p,rank:rank,cards:cards};
-  if(hands[p].length===0&&!outQueue.includes(p)) outQueue.push(p);
-  say(nm(p)+' 报 '+cards.length+' 个 '+RANKS[rank]+(hands[p].length===0?' —— 手牌出完了！':''));
+  Sfx.play(cards.length);
   stage(claimHTML(p,cards.length,rank)+pileHTML());
   render();
 }
@@ -641,9 +766,12 @@ async function resolveChallenge(q){
   const p=lastPlay.player, cards=lastPlay.cards;
   const truth=cards.every(c=>fits(c,lastPlay.rank));
   say(nm(q)+' 喊了说瞎话');
+  Sfx.call();
   stage('<div class="who">'+nm(q)+' 喊：说瞎话！</div>'+
         '<div class="reveal">'+cards.map(faceUp).join('')+'</div>');
+  Sfx.flip();
   render(); await sleep(1000);
+  if(truth) Sfx.truth(); else Sfx.lie();
   stage('<div class="who">'+nm(q)+' 喊：说瞎话！</div>'+
         '<div class="reveal">'+cards.map(faceUp).join('')+'</div>', truth?'真话':'瞎话');
   await sleep(1300);
@@ -653,6 +781,8 @@ async function resolveChallenge(q){
   const n=pile.length;
   pile.forEach(c=>fresh.add(c));
   hands[loser].push(...pile); hands[loser].sort((a,b)=>sortKey(a)-sortKey(b));
+  Sfx.pickup(n);
+  if(!truth&&PROFILE[p]&&PROFILE[p].tiltable) tilt[p]=2;   // 老李被抓了，接着两手上头
   outQueue=outQueue.filter(i=>hands[i].length===0);
   pile=[];currentRank=null;roundClaimed=0;passStreak=0;turn=next;
   say(truth ? nm(p)+' 说的是真话 — '+nm(loser)+' 收走 '+n+' 张'
@@ -663,6 +793,7 @@ async function resolveChallenge(q){
 }
 async function burnRound(){
   const p=lastPlay.player, n=pile.length;
+  Sfx.burn();
   if(SET.burn){
     pile=[];
     say('三家都过 — 桌上 '+n+' 张作废，'+nm(p)+' 开新一轮');
@@ -681,6 +812,7 @@ async function burnRound(){
 }
 function finish(p){
   over=true;
+  if(p===0) Sfx.win(); else Sfx.lose();
   $('winner').textContent = p===0?'你赢了':NAMES[p]+' 赢了';
   $('overText').textContent = p===0?'最后一手没人敢抓。':NAMES[p]+' 的牌先走完，没人抓住。';
   $('overSheet').classList.add('on');
@@ -705,8 +837,9 @@ async function loop(){
         : claimHTML(lastPlay.player,lastPlay.cards.length,currentRank)+pileHTML()+
           '<div class="note">轮到 <b>'+NAMES[turn]+'</b> · 只有他能抓</div>'));
       const viaAI=SET['ai'+turn]&&KEY;
-      $('hint').innerHTML = viaAI? '<span class="thinking">'+NAMES[turn]+' 在想…</span>' : '';
-      await sleep(viaAI?260:840);
+      $('hint').innerHTML = '<span class="thinking">'+NAMES[turn]+
+        (viaAI&&SET.think?' 在琢磨…（深思模式，可能要等十几秒）':' 在想…')+'</span>';
+      if(viaAI) await sleep(260);          // 本地 AI 的停顿在 takeTurn 里，按牌情长短不一
       acted=await takeTurn(turn);
       $('hint').textContent='';
     }
@@ -718,6 +851,7 @@ async function loop(){
     }
     if(acted==='pass'){
       passStreak++;
+      Sfx.pass();
       say(nm(turn)+' 过');
       stage(claimHTML(lastPlay.player,lastPlay.cards.length,currentRank)+pileHTML()+
             '<div class="note"><b>'+nm(turn)+'</b> 过了 · 轮到 '+nm((turn+1)%4)+' 抓</div>');
@@ -757,7 +891,7 @@ function paintSettings(){
 document.querySelectorAll('.seg').forEach(seg=>{
   seg.addEventListener('click',e=>{
     const b=e.target.closest('button'); if(!b) return;
-    SET[seg.dataset.k]=+b.dataset.v; paintSettings(); paintRules();
+    SET[seg.dataset.k]=+b.dataset.v; saveSet(); Sfx.tick(); paintSettings(); paintRules();
   });
 });
 $('rulesBtn').onclick=()=>{paintRules();$('rulesSheet').classList.add('on');};
@@ -770,6 +904,7 @@ $('keyInput').addEventListener('input',e=>{
                                : '不填就全部用本地 AI。只存在这台手机上，不写进文件。';
 });
 $('setClose').onclick=()=>{$('setSheet').classList.remove('on');newGame();};
+$('setBack').onclick=()=>{$('setSheet').classList.remove('on');render();updateControls();};
 $('againBtn').onclick=()=>newGame();
 
 function newGame(){
