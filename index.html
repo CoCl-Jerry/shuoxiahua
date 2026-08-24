@@ -48,6 +48,8 @@ h1{
   font-size:29px;letter-spacing:.34em;margin:0;font-weight:700;text-indent:.34em;
   color:var(--ivory);text-shadow:0 2px 10px rgba(0,0,0,.5);
 }
+.ver{font-family:system-ui,sans-serif;font-size:10.5px;letter-spacing:.06em;color:var(--brass-dim);
+  vertical-align:super;margin-left:8px;text-indent:0;font-weight:400}
 .tools{display:flex;gap:14px;padding-bottom:5px}
 .tools button{background:none;border:none;color:var(--dim);font-size:13px;font-family:inherit;
   cursor:pointer;padding:4px 0;border-bottom:1px solid transparent}
@@ -59,7 +61,7 @@ h1{
 
 /* ─── 座位 ─── */
 #seats{display:flex;gap:9px;margin:14px 0 6px}
-.seat{flex:1;text-align:center;padding:9px 4px 8px;border-radius:9px;
+.seat{flex:1;text-align:center;padding:9px 4px 8px;border-radius:9px;position:relative;
   border:1px solid rgba(199,154,78,.22);background:rgba(0,0,0,.22);
   transition:border-color .3s,background .3s,transform .3s}
 .seat.active{border-color:var(--brass);background:rgba(199,154,78,.12);transform:translateY(-2px)}
@@ -68,6 +70,15 @@ h1{
 .fan i{position:absolute;top:0;width:9px;height:14px;border-radius:2px;
   background:linear-gradient(150deg,#9C3129,#6E211B);border:.5px solid rgba(0,0,0,.45)}
 .seat .ct{font-size:11px;color:var(--dim);letter-spacing:.1em}
+/* 说话的小气泡，挂在座位底下 */
+.bub{position:absolute;top:calc(100% + 7px);left:50%;z-index:5;
+  max-width:132px;width:max-content;padding:5px 9px;border-radius:9px;
+  background:var(--paper);color:var(--ink);font-size:11.5px;line-height:1.45;
+  box-shadow:0 3px 11px rgba(0,0,0,.45);transform:translateX(-50%);
+  animation:bubin .2s ease-out backwards}
+.bub::after{content:"";position:absolute;bottom:100%;left:50%;margin-left:-5px;
+  border:5px solid transparent;border-bottom-color:var(--paper)}
+@keyframes bubin{from{transform:translateX(-50%) translateY(-5px) scale(.92);opacity:0}}
 .seat.low .ct{color:#E0806F}
 
 /* ─── 牌桌 ─── */
@@ -136,6 +147,7 @@ h1{
 #log{font-size:12.5px;line-height:1.75;color:var(--dim);margin:10px 2px 4px;min-height:68px}
 #log div{opacity:.6}
 #log div:first-child{opacity:1;color:var(--ivory)}
+#log .talk{color:var(--brass)}
 
 /* ─── 手牌 ─── */
 #handwrap{margin-top:auto;padding-top:6px}
@@ -199,7 +211,7 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
 <div id="app">
   <header>
     <div class="brand">
-      <h1>说瞎话</h1>
+      <h1>说瞎话<span class="ver" id="ver"></span></h1>
       <div class="tools">
         <button id="rulesBtn">规则</button>
         <button id="setBtn">设置</button>
@@ -246,19 +258,16 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
   <div class="opt"><div class="q">音效</div>
     <div class="seg" data-k="sound">
       <button data-v="1">开</button><button data-v="0">关</button></div></div>
-  <div class="opt"><div class="q">DeepSeek 想得深不深</div>
-    <div class="seg" data-k="think">
-      <button data-v="0">快答（默认）</button><button data-v="1">深思</button></div>
-    <div class="tip">深思模式牌打得更准，但每一手要等十几到几十秒；超过 45 秒或出错就自动退回本地 AI。只影响交给 DeepSeek 的那几家。</div></div>
   <div class="opt"><div class="q">DeepSeek API Key</div>
     <input id="keyInput" type="password" placeholder="sk-..." autocomplete="off">
     <div class="tip" id="keyTip">不填就全部用本地 AI。只存在这台手机上，不写进文件。</div>
   </div>
-  <p>牌桌规则（王、张数、作废）下一局生效；音效、深思、谁由 DeepSeek 打，马上生效。</p>
+  <p>牌桌规则（王、张数、作废）下一局生效；音效和谁由 DeepSeek 打，马上生效。</p>
   <div style="display:flex;gap:8px">
     <button class="act" id="setBack" style="flex:1">继续这一局</button>
     <button class="act primary" id="setClose" style="flex:1">开新一局</button>
   </div>
+  <div class="tip" style="text-align:center;margin-top:12px" id="verFull"></div>
 </div></div>
 
 <div class="sheet" id="rankSheet"><div class="panel">
@@ -287,7 +296,8 @@ const sortKey=c=>isJoker(c)?100+c:c;
 const nm=i=>i===0?'你':NAMES[i];
 
 /* ═══ 可调规则 ═══ */
-const SET={wild:1,max:4,burn:1,ai1:0,ai2:0,ai3:0,think:0,sound:1};
+const VERSION='1.1';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const SET={wild:1,max:4,burn:1,ai1:0,ai2:0,ai3:0,sound:1};
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
      if(_s&&typeof _s==='object') for(const k in SET) if(typeof _s[k]==='number') SET[k]=_s[k];
 }catch(e){}
@@ -372,10 +382,10 @@ function deal(){
   pile=[];currentRank=null;lastPlay=null;roundClaimed=0;passStreak=0;
   over=false;logs=[];selected=new Set();fresh=new Set();outQueue=[];
   turn=0;                          // 真人玩家开第一轮
-  tilt={};
+  tilt={}; bubble=null;
   Sfx.deal();
 }
-function say(t){logs.unshift(t);logs=logs.slice(0,4);}
+function say(t){logs.unshift(t);logs=logs.slice(0,5);}
 
 /* ═══ 渲染 ═══ */
 function cardInner(c){
@@ -392,9 +402,10 @@ function render(){
     let fan='<div class="fan">';
     for(let k=0;k<shown;k++)
       fan+='<i style="left:calc(50% - '+(shown*4)+'px + '+(k*8)+'px);transform:rotate('+((k-(shown-1)/2)*4)+'deg)"></i>';
+    const bub=(bubble&&bubble.p===i)? '<div class="bub">'+esc(bubble.text)+'</div>' : '';
     return '<div class="seat'+(turn===i?' active':'')+(n<=3?' low':'')+'">'+
       '<div class="nm">'+NAMES[i]+'</div>'+fan+'</div>'+
-      '<div class="ct">'+n+' 张</div></div>';
+      '<div class="ct">'+n+' 张</div>'+bub+'</div>';
   }).join('');
 
   const h=hands[0], n=h.length;
@@ -572,15 +583,15 @@ function buildPrompt(p){
 
 async function askDeepSeek(p){
   const ctl=new AbortController();
-  const timer=setTimeout(()=>ctl.abort(),SET.think?45000:6000);
+  const timer=setTimeout(()=>ctl.abort(),6000);
   try{
     const r=await fetch(ENDPOINT,{method:'POST',signal:ctl.signal,
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+KEY},
       body:JSON.stringify({
         model:MODEL,
-        thinking:{type:SET.think?'enabled':'disabled'},
+        thinking:{type:'disabled'},
         response_format:{type:'json_object'},
-        max_tokens:SET.think?1600:200, temperature:1.1,
+        max_tokens:200, temperature:1.1,
         messages:[
           {role:'system',content:PERSONA[p]+' 你在玩扑克牌游戏「说瞎话」，目标是先把手牌出完。'+
             '出牌时点数可以骗人，张数不能骗。有人喊说瞎话就翻开验：说谎的收走整桌牌，冤枉人的自己收走整桌牌。'+
@@ -600,7 +611,7 @@ function applyLLM(p,d){
   const hand=hands[p];
   const canCallNow = currentRank!==null && lastPlay && lastPlay.player!==p;
   const talk=typeof d.talk==='string'? d.talk.slice(0,24) : '';
-  const speak=()=>{ if(talk) say(NAMES[p]+'：「'+talk+'」'); };
+  const speak=()=>{ if(talk) speak2(p,talk); };
 
   if(d.action==='call'){ if(!canCallNow) return null; speak(); return 'call'; }
   if(d.action==='pass'){ if(currentRank===null) return null; speak(); return 'pass'; }
@@ -623,25 +634,59 @@ function applyLLM(p,d){
   return 'play';
 }
 
-/* ═══ 三个对手的性格（本地 AI 也吃这套，不填 key 也能看出区别）═══ */
+/* ═══ 三个对手的性格和嘴（本地 AI 也吃这套，不填 key 也有得听）═══ */
 const PROFILE={
  1:{ /* 老李 —— 老实人，牌好就实说；被抓一次就上头，接着两手容易乱来 */
    passReal:.22, passBluff:.72, bigPlay:.50, truthMax:.90, junkMix:.10,
    callBase:.04, callPerCard:.04, crowd:.05, sniper:0, speed:[900,1800], tiltable:1, chatty:.40,
-   talk:{play:['就这个','跟一手','来吧'], bluff:['……跟一个','就当有吧'],
-         pass:['我过','手里没有'], call:['我不信','你诈我呢？'],
-         tilt:['来来来','不管了','就不信了']} },
- 2:{ /* 王姐 —— 爱诈唬，爱多报，嘴不饶人，出手快 */
+   talk:{
+     play  :['就这个','跟一手','来吧','稳当的'],
+     bluff :['……跟一个','就当有吧','凑合一手'],
+     pass  :['我过','手里没有','这轮不掺和'],
+     call  :['我不信','你诈我呢？','翻开我看看'],
+     caught:['哎呀妈呀','让你逮着了','这把栽了','我说我咋手气这么背'],
+     clear :['我说的是真的吧','冤枉好人了不是','这回信我了？'],
+     win   :['我就说','果然吧','看着就不对'],
+     lose  :['我这眼神','白瞎了','唉，多背一手'],
+     tilt  :['来来来','不管了','就不信了','接着来'],
+     threat:['他快没牌了','拦着点他'],
+     last  :['我就剩俩了','快了快了'],
+     over  :['出完喽！']} },
+ 2:{ /* 王姐 —— 老手，爱诈唬爱多报，嘴不饶人，出手快 */
    passReal:.10, passBluff:.42, bigPlay:.60, truthMax:.70, junkMix:.32,
    callBase:.07, callPerCard:.05, crowd:.09, sniper:0, speed:[450,1100], tiltable:0, chatty:.55,
-   talk:{play:['给你个大的','看我的','接着'], bluff:['满上！','这把稳的','怕了吧'],
-         pass:['这轮不玩','我歇会儿'], call:['吹吧你！','翻开看看'], tilt:[]} },
+   talk:{
+     play  :['给你个大的','看我的','接着','别磨蹭'],
+     bluff :['满上！','这把稳的','怕了吧','信不信由你'],
+     pass  :['这轮不玩','我歇会儿','让你们打'],
+     call  :['吹吧你！','翻开看看','你这脸都不红'],
+     caught:['让你蒙对一回','行行行算你狠','我这是给你留面子'],
+     clear :['傻了吧','让你抓','这回学乖了？'],
+     win   :['我就说你在吹','逮着了吧','姐还看不出来？'],
+     lose  :['算你运气','这回真让你蒙对了','邪门'],
+     tilt  :[],
+     threat:['他要跑了！','别让他出完'],
+     last  :['我可就剩两张了','看好了啊'],
+     over  :['收工，回家']} },
  3:{ /* 小赵 —— 话少，算得准，专挑手牌快出完的人下手，想得久 */
    passReal:.18, passBluff:.50, bigPlay:.55, truthMax:.85, junkMix:.18,
    callBase:.02, callPerCard:.07, crowd:.07, sniper:1, speed:[1100,2200], tiltable:0, chatty:.25,
-   talk:{play:['嗯','跟'], bluff:['嗯'], pass:['过'], call:['数不对','不可能'], tilt:[]} }
+   talk:{
+     play  :['嗯','跟','走'],
+     bluff :['嗯'],
+     pass  :['过'],
+     call  :['数不对','不可能','你少算了一张'],
+     caught:['失误','算错了'],
+     clear :['说了是真的'],
+     win   :['嗯','算得没错'],
+     lose  :['记下了'],
+     tilt  :[],
+     threat:['他还剩两张','该拦了'],
+     last  :['两张'],
+     over  :['完了']} }
 };
-let tilt={};
+let tilt={}, bubble=null;
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const pick=a=>(a&&a.length)? a[Math.random()*a.length|0] : '';
 
@@ -725,19 +770,30 @@ function aiPlan(p){
 
 function aiApply(p,plan){
   const P=PROFILE[p];
-  if(plan.act==='call'){ chat(p,(tilt[p]&&P.talk.tilt.length)?'tilt':'call'); return 'call'; }
+  if(plan.act==='call'){ chat(p,(tilt[p]&&P.talk.tilt.length)?'tilt':'call',.75); return 'call'; }
   if(plan.act==='pass'){ chat(p,'pass'); return 'pass'; }
-  chat(p, plan.lying?'bluff':'play');
+
+  const after=hands[p].length-plan.cards.length;
+  const runner=[0,1,2,3].find(i=>i!==p&&hands[i].length<=2);   // 谁快出完了
+  if(after<=2 && after>0 && Math.random()<.45) chat(p,'last',1);
+  else if(runner!==undefined && Math.random()<.30) chat(p,'threat',1);
+  else chat(p, plan.lying?'bluff':'play');
+
   hands[p]=hands[p].filter(c=>!plan.cards.includes(c));
   finishPlay(p,plan.rank,plan.cards);
   return 'play';
 }
 
-function chat(p,kind){
+// rate 不给就按这个人的话痨程度来；翻牌那几下是重头戏，调用处会调高
+function chat(p,kind,rate){
   const P=PROFILE[p];
-  if(Math.random()>P.chatty) return;
+  if(Math.random() > (rate===undefined?P.chatty:rate)) return;
   const line=pick(P.talk[kind]); if(!line) return;
-  say(NAMES[p]+'：「'+line+'」');
+  speak2(p,line);
+}
+function speak2(p,line){
+  bubble={p:p,text:String(line).slice(0,24)};
+  say('<span class="talk">'+NAMES[p]+'：「'+esc(bubble.text)+'」</span>');
 }
 
 function aiChallenge(q,P,hot){
@@ -783,6 +839,7 @@ function finishPlay(p,rank,cards){
 async function resolveChallenge(q){
   const p=lastPlay.player, cards=lastPlay.cards;
   const truth=cards.every(c=>fits(c,lastPlay.rank));
+  bubble=null;
   say(nm(q)+' 喊了说瞎话');
   Sfx.call();
   stage('<div class="who">'+nm(q)+' 喊：说瞎话！</div>'+
@@ -790,6 +847,7 @@ async function resolveChallenge(q){
   Sfx.flip();
   render(); await sleep(1000);
   if(truth) Sfx.truth(); else Sfx.lie();
+  if(p!==0) chat(p, truth?'clear':'caught', .85);      // 被抓的人先反应
   stage('<div class="who">'+nm(q)+' 喊：说瞎话！</div>'+
         '<div class="reveal">'+cards.map(faceUp).join('')+'</div>', truth?'真话':'瞎话');
   await sleep(1300);
@@ -807,10 +865,12 @@ async function resolveChallenge(q){
             : nm(p)+' 真在骗人 — 收走 '+n+' 张');
   stage('<div class="who">'+nm(loser)+' 收走了 '+n+' 张</div>'+
         '<div class="plaque">'+nm(next)+' 接着出</div>');
+  if(q!==0) chat(q, truth?'lose':'win', .70);          // 抓的人再回一句
   render(); await sleep(1000);
 }
 async function burnRound(){
   const p=lastPlay.player, n=pile.length;
+  bubble=null;
   Sfx.burn();
   if(SET.burn){
     pile=[];
@@ -830,7 +890,7 @@ async function burnRound(){
 }
 function finish(p){
   over=true;
-  if(p===0) Sfx.win(); else Sfx.lose();
+  if(p===0) Sfx.win(); else { Sfx.lose(); chat(p,'over',.8); render(); }
   $('winner').textContent = p===0?'你赢了':NAMES[p]+' 赢了';
   $('overText').textContent = p===0?'最后一手没人敢抓。':NAMES[p]+' 的牌先走完，没人抓住。';
   $('overSheet').classList.add('on');
@@ -855,8 +915,7 @@ async function loop(){
         : claimHTML(lastPlay.player,lastPlay.cards.length,currentRank)+pileHTML()+
           '<div class="note">轮到 <b>'+NAMES[turn]+'</b> · 只有他能抓</div>'));
       const viaAI=SET['ai'+turn]&&KEY;
-      $('hint').innerHTML = '<span class="thinking">'+NAMES[turn]+
-        (viaAI&&SET.think?' 在琢磨…（深思模式，可能要等十几秒）':' 在想…')+'</span>';
+      $('hint').innerHTML = '<span class="thinking">'+NAMES[turn]+' 在想…</span>';
       if(viaAI) await sleep(260);          // 本地 AI 的停顿在 takeTurn 里，按牌情长短不一
       acted=await takeTurn(turn);
       $('hint').textContent='';
@@ -924,6 +983,9 @@ $('keyInput').addEventListener('input',e=>{
 $('setClose').onclick=()=>{$('setSheet').classList.remove('on');newGame();};
 $('setBack').onclick=()=>{$('setSheet').classList.remove('on');render();updateControls();};
 $('againBtn').onclick=()=>newGame();
+
+$('ver').textContent='v'+VERSION;
+$('verFull').textContent='说瞎话 v'+VERSION;
 
 function newGame(){
   $('overSheet').classList.remove('on');
