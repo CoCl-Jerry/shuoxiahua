@@ -92,7 +92,8 @@ h1{
 
 /* 牌堆 */
 .pile{position:relative;height:66px;width:120px}
-.pile .bk{position:absolute;left:50%;top:0;margin-left:-23px;animation:drop .32s ease-out backwards}
+.pile .bk{position:absolute;left:50%;top:0;margin-left:-23px}
+.pile .bk.drop{animation:drop .32s ease-out backwards}
 @keyframes drop{from{transform:translateY(-34px) scale(1.06);opacity:0}}
 .bk{width:46px;height:64px;border-radius:5px;border:1px solid #5E1B16;
   background:
@@ -410,13 +411,16 @@ function render(){
 function stage(html,stampText){
   $('stage').innerHTML=html+(stampText?'<div class="stamp">'+stampText+'</div>':'');
 }
-function pileHTML(){
+// drop=刚打出去几张。只有这几张播"落下"的动画，
+// 否则每次重画牌桌整堆牌都会重新落一遍，看着像在重新发牌。
+function pileHTML(drop){
   if(!pile.length) return '';
   const s=Math.min(7,pile.length);
+  const from = drop? Math.max(0,s-drop) : s;
   let h='<div class="pile">';
   for(let i=0;i<s;i++){
     const a=((i*37)%11-5), x=((i*53)%9-4), y=i*2;
-    h+='<div class="bk" style="transform:translate('+x+'px,'+y+'px) rotate('+a+'deg);z-index:'+i+'"></div>';
+    h+='<div class="bk'+(i>=from?' drop':'')+'" style="transform:translate('+x+'px,'+y+'px) rotate('+a+'deg);z-index:'+i+'"></div>';
   }
   return h+'</div><div class="pilect">桌上扣着 '+pile.length+' 张</div>';
 }
@@ -535,15 +539,20 @@ function buildPrompt(p){
   }else{
     const R=RANKS[currentRank], lastN=lastPlay.cards.length;
     const mine=hand.filter(c=>fits(c,currentRank)).length;
-    const before=roundClaimed-lastN;
-    const maxTrue=Math.max(0,cap-before-mine);
     L.push('【局面】本轮点数是 '+R+'。上一手是 '+sn(lastPlay.player)+' 报的 '+lastN+' 个 '+R+'。');
     L.push('【下面的数已经替你算好，别自己数】'+
       '全场 '+R+' 总共最多 '+cap+' 张（4 张 '+R+(SET.wild?' 加 2 张王，王算任意点数':'')+'）。'+
-      '这一轮在最后那一手之前，各家已经声称打出 '+before+' 张。'+
-      '你自己手上能当 '+R+' 用的有 '+mine+' 张。'+
-      '所以最后那一手 '+lastN+' 张里，最多只可能有 '+maxTrue+' 张是真的。'+
-      (lastN>maxTrue? ' 数目对不上，那一手里一定有假牌。' : ''));
+      '你自己手上能当 '+R+' 用的有 '+mine+' 张，所以别人手里最多还有 '+(cap-mine)+' 张。'+
+      (lastN>cap-mine
+        ? ' 他这一手报了 '+lastN+' 张，超过了 '+(cap-mine)+'，他一定在骗 —— 抓他。'
+        : ' 他这一手报 '+lastN+' 张，数目上是可能的。')+
+      '（本轮到目前为止各家一共声称打出 '+roundClaimed+' 张。'+
+      (roundClaimed>cap
+        ? '这个数已经超过 '+cap+' 了，说明这一轮里有人在吹 —— 但早先那些声称本身可能就是假的，'+
+          '假牌不消耗真牌，所以这不能证明最后这一手是假的。别拿这个当铁证。'
+        : '还没超。')+'）');
+    L.push('【抓错的代价】现在桌上扣着 '+pile.length+' 张。抓对了他收走，抓错了这 '+pile.length+
+           ' 张全归你，等于白白多背一手牌。没把握就别抓，出牌或者过都行。');
     L.push(canCallNow? '【你的权利】现在只有你能抓 '+sn(lastPlay.player)+'。你要是过了，抓的机会就传给下一家。'
                      : '【你的权利】上一手是你自己打的，不能抓自己。');
   }
@@ -618,18 +627,18 @@ function applyLLM(p,d){
 const PROFILE={
  1:{ /* 老李 —— 老实人，牌好就实说；被抓一次就上头，接着两手容易乱来 */
    passReal:.22, passBluff:.72, bigPlay:.50, truthMax:.90, junkMix:.10,
-   callBase:.04, callPerCard:.04, sniper:0, speed:[900,1800], tiltable:1, chatty:.40,
+   callBase:.04, callPerCard:.04, crowd:.05, sniper:0, speed:[900,1800], tiltable:1, chatty:.40,
    talk:{play:['就这个','跟一手','来吧'], bluff:['……跟一个','就当有吧'],
          pass:['我过','手里没有'], call:['我不信','你诈我呢？'],
          tilt:['来来来','不管了','就不信了']} },
  2:{ /* 王姐 —— 爱诈唬，爱多报，嘴不饶人，出手快 */
    passReal:.10, passBluff:.42, bigPlay:.60, truthMax:.70, junkMix:.32,
-   callBase:.07, callPerCard:.05, sniper:0, speed:[450,1100], tiltable:0, chatty:.55,
+   callBase:.07, callPerCard:.05, crowd:.09, sniper:0, speed:[450,1100], tiltable:0, chatty:.55,
    talk:{play:['给你个大的','看我的','接着'], bluff:['满上！','这把稳的','怕了吧'],
          pass:['这轮不玩','我歇会儿'], call:['吹吧你！','翻开看看'], tilt:[]} },
  3:{ /* 小赵 —— 话少，算得准，专挑手牌快出完的人下手，想得久 */
    passReal:.18, passBluff:.50, bigPlay:.55, truthMax:.85, junkMix:.18,
-   callBase:.02, callPerCard:.07, sniper:1, speed:[1100,2200], tiltable:0, chatty:.25,
+   callBase:.02, callPerCard:.07, crowd:.07, sniper:1, speed:[1100,2200], tiltable:0, chatty:.25,
    talk:{play:['嗯','跟'], bluff:['嗯'], pass:['过'], call:['数不对','不可能'], tilt:[]} }
 };
 let tilt={};
@@ -732,19 +741,28 @@ function chat(p,kind){
 }
 
 function aiChallenge(q,P,hot){
-  const cap = 4 + (SET.wild?2:0);                       // 一个点数最多能有几张
+  const cap = 4 + (SET.wild?2:0);                       // 这个点数全场最多几张
   const mine=hands[q].filter(c=>fits(c,lastPlay.rank)).length;
-  if(mine+roundClaimed>cap) return true;                // 数目不可能，稳抓
-  let prob=P.callBase + mine*P.callPerCard;             // 自己攥着几张，越多越可疑
   const k=lastPlay.cards.length;
-  if(k===3) prob+=.12;
-  if(k>=4)  prob+=.22;
+  const before=Math.max(0,roundClaimed-k);              // 这一手之前，本轮声称过的张数
+
+  // 唯一铁的推理：我自己攥着 mine 张，他最多只可能有 cap-mine 张真的
+  if(k+mine>cap) return true;
+
+  const room=Math.max(0,cap-mine-k);                    // 除了这一手，这个点数还剩几张空间
+  let prob=P.callBase + mine*P.callPerCard;             // 我攥着越多，他越可疑
+  // 本轮声称的总数已经超了 —— 说明这轮有人在吹，但不一定是最后出牌这个人，
+  // 所以只当作"气氛可疑"，加一点点，不再当成铁证。
+  if(before>room) prob += P.crowd*Math.min(4,before-room);
+  if(k>=3) prob += .06*(k-2);                           // 一次报一大把，稍微可疑
+
   const left=hands[lastPlay.player].length;
-  if(left===0) prob=.70+(P.sniper?.18:0);               // 人家要出完了
-  else if(left<=2) prob+=.22+(P.sniper?.14:0);
-  else if(P.sniper&&left<=4) prob+=.08;                 // 小赵专挑快出完的人
-  if(hot) prob+=.15;                                    // 上头了乱抓
-  if(pile.length>16) prob*=.5;
+  if(left===0) prob=Math.max(prob,.75);                 // 他这手出完就赢，不抓就输
+  else if(left<=2) prob+=.20+(P.sniper?.12:0);
+  else if(P.sniper&&left<=4) prob+=.06;                 // 小赵盯着快出完的人
+  if(hot) prob+=.12;                                    // 上头了乱抓
+  if(pile.length>16) prob*=.55;                         // 牌堆越大，抓错越亏
+  else if(pile.length<=3) prob*=1.15;
   return Math.random()<prob;
 }
 
@@ -757,7 +775,7 @@ function finishPlay(p,rank,cards){
   if(hands[p].length===0&&!outQueue.includes(p)) outQueue.push(p);
   say(nm(p)+' 报 '+cards.length+' 个 '+RANKS[rank]+(hands[p].length===0?' —— 手牌出完了！':''));
   Sfx.play(cards.length);
-  stage(claimHTML(p,cards.length,rank)+pileHTML());
+  stage(claimHTML(p,cards.length,rank)+pileHTML(cards.length));
   render();
 }
 
