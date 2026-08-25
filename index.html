@@ -60,7 +60,7 @@ h1{
   opacity:.55}
 
 /* ─── 座位 ─── */
-#seats{display:flex;gap:9px;margin:14px 0 6px;padding-bottom:56px}  /* 下面这条是留给说话气泡的，够三行 */
+#seats{display:flex;gap:9px;margin:14px 0 6px;padding-bottom:56px;position:relative;z-index:60}  /* 压在牌桌之上：气泡错层下垂时不能钻到牌堆底下 */  /* 下面这条是留给说话气泡的，够三行 */
 .seat{flex:1;text-align:center;padding:9px 4px 8px;border-radius:9px;position:relative;
   border:1px solid rgba(199,154,78,.22);background:rgba(0,0,0,.22);
   transition:border-color .3s,background .3s,transform .3s}
@@ -305,7 +305,7 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
 
 /* ─── 弹层 ─── */
 .sheet{position:fixed;inset:0;background:rgba(4,14,10,.82);display:none;
-  align-items:center;justify-content:center;padding:18px;z-index:10}
+  align-items:center;justify-content:center;padding:18px;z-index:100}  /* 弹窗永远在最上层 */
 .sheet.on{display:flex}
 .panel{background:linear-gradient(#17362B,#102822);border:1px solid rgba(199,154,78,.35);
   border-radius:12px;padding:22px 20px;max-width:410px;width:100%;
@@ -522,7 +522,7 @@ const nm=i=>i===mySeat?'你':NAMES[i];
 const isAI=i=>SEATK[i]==='ai';
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.49';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const VERSION='1.50';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
 const SET={wild:1,max:3,burn:1,ai:1,sound:1,salty:1,pace:3};
 const PACEF=()=>[1,.85,1.15,1.5][SET.pace]||1.5;   // 节奏：爽快/适中/悠着点，乘在 AI 思考和桌面停顿上
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
