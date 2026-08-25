@@ -500,7 +500,7 @@ const nm=i=>i===mySeat?'你':NAMES[i];
 const isAI=i=>SEATK[i]==='ai';
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.29';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const VERSION='1.30';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
 const SET={wild:1,max:4,burn:1,ai:1,sound:1,salty:1};
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
      if(_s&&typeof _s==='object') for(const k in SET) if(typeof _s[k]==='number') SET[k]=_s[k];
@@ -1446,15 +1446,20 @@ function netFail(msg){
 }
 
 /* ── 房主 ── */
-async function hostRoom(){
+async function hostRoom(tries){
+  tries=tries||0;
   await loadPeerLib();
   const code=FAMILY_ROOM;
   const peer=new Peer(ROOMPFX+code,peerOpts());
   NET={host:true,peer:peer,code:code,conns:[],started:false,waitRemote:null,waitSeat:-1};
-  netStatus('正在开房…');
+  netStatus(tries?'上一桌还没散干净，正在重开…（'+tries+'）':'正在开牌桌…');
   peer.on('open',()=>{ netStatus(''); paintLobby(); });
   peer.on('error',e=>{
-    if(e.type==='unavailable-id') netFail('家里的牌桌已经开着了 —— 是不是另一台手机还开着房？关掉它再试');
+    if(e.type==='unavailable-id'){
+      try{peer.destroy();}catch(_){}
+      if(tries<5&&NET&&NET.host){ NET._t=setTimeout(()=>{ if(NET&&NET.host) hostRoom(tries+1); },1800); }
+      else netFail('牌桌一直被占着 —— 家里另一台手机还开着房？把它关掉再试');
+    }
     else netFail(e.type==='network'?'连不上联机服务器':'联机出错：'+e.type);
   });
   peer.on('connection',conn=>{
@@ -1557,19 +1562,28 @@ function waitRemote(seat){
 }
 
 /* ── 客机 ── */
-async function joinRoom(code,name){
+async function joinRoom(code,name,tries){
+  tries=tries||0;
   await loadPeerLib();
   const peer=new Peer(peerOpts());
   NET={host:false,peer:peer,q:Promise.resolve(),pendCards:null,started:false};
-  netStatus('正在连接…');
-  peer.on('error',e=>netFail(e.type==='peer-unavailable'?'没找到这个房号，检查一下':
-    (e.type==='network'?'连不上联机服务器':'联机出错：'+e.type)));
+  netStatus(tries?'牌桌还没开，等房主…（自动重试 '+tries+'）':'正在找家里的牌桌…');
+  const retry=()=>{                          // 房主可能还没点开房——等他，别直接放弃
+    try{peer.destroy();}catch(_){}
+    if(!NET||NET.host) return;
+    if(tries<12){ NET._t=setTimeout(()=>{ if(NET&&!NET.host) joinRoom(code,name,tries+1); },2500); }
+    else netFail('等了半分钟也没等到牌桌开门 —— 确认房主那边点了「联机 · 开房」，然后重试');
+  };
+  peer.on('error',e=>{
+    if(e.type==='peer-unavailable') retry();
+    else netFail(e.type==='network'?'连不上联机服务器':'联机出错：'+e.type);
+  });
   peer.on('open',()=>{
     const conn=peer.connect(ROOMPFX+code.toUpperCase(),{reliable:true});
     NET.conn=conn;
-    conn.on('open',()=>{ conn.send({t:'join',name:name,v:VERSION,ava:myAvaKey}); netStatus('等房主开局…'); });
+    conn.on('open',()=>{ if(NET._t){clearTimeout(NET._t);NET._t=null;} conn.send({t:'join',name:name,v:VERSION,ava:myAvaKey}); netStatus('已进门，等房主开局…'); });
     conn.on('data',m=>{ NET.q=NET.q.then(()=>clientMsg(m)).catch(e=>{console.error(e); say('⚠ 出错：'+e.message); render(); clientAfter();}); });
-    conn.on('close',()=>{ if(NET&&!over) netFail('和房主断线了'); });
+    conn.on('close',()=>{ if(NET&&!over&&NET.started) netFail('和房主断线了'); });
   });
 }
 async function clientMsg(m){
@@ -1880,13 +1894,13 @@ $('hostGo').onclick=()=>{
   keepName(NET.myName);
   startNetGame();
 };
-$('hostCancel').onclick=()=>{ if(NET){try{NET.peer.destroy();}catch(e){}} NET=null; $('netSheet').classList.remove('on'); };
+$('hostCancel').onclick=()=>{ if(NET){ if(NET._t)clearTimeout(NET._t); try{NET.peer.destroy();}catch(e){} } NET=null; $('netSheet').classList.remove('on'); };
 $('joinGo').onclick=async ()=>{
   const nm=($('joinName').value.trim()||'玩家').slice(0,8);
   keepName(nm);
   try{ await joinRoom(FAMILY_ROOM,nm); }catch(e){ $('netStatus').textContent=e.message; }
 };
-$('joinCancel').onclick=()=>{ if(NET){try{NET.peer.destroy();}catch(e){}} NET=null; $('netSheet').classList.remove('on'); };
+$('joinCancel').onclick=()=>{ if(NET){ if(NET._t)clearTimeout(NET._t); try{NET.peer.destroy();}catch(e){} } NET=null; $('netSheet').classList.remove('on'); };
 $('startBtn').onclick=()=>{
   Sfx.wake();                                           // 这一下点击顺便把 iOS 的声音解锁了
   $('startSheet').classList.add('gone');
