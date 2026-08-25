@@ -516,7 +516,7 @@ const nm=i=>i===mySeat?'你':NAMES[i];
 const isAI=i=>SEATK[i]==='ai';
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.44';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const VERSION='1.45';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
 const SET={wild:1,max:4,burn:1,ai:1,sound:1,salty:1,pace:3};
 const PACEF=()=>[1,.85,1.15,1.5][SET.pace]||1.5;   // 节奏：爽快/适中/悠着点，乘在 AI 思考和桌面停顿上
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
@@ -593,17 +593,18 @@ const fits=(c,rank)=>(ECFG.wild&&isJoker(c))||rk(c)===rank;
    只动规则状态（hands/pile/turn/currentRank/roundClaimed/passStreak/
    roundLeaderId/lastPlay/outQueue/over/winner），不碰界面、声音、AI。
    联机时：客机把动作发给主机，主机跑同一个 engineApply，把事件广播回来。*/
-const PROTO=1;                       // 存档 / 联机协议版本
+const PROTO=2;                       // 存档 / 联机协议版本（2：全桌可抓 + windone）
 function engineLegal(seat){
-  if(over||turn!==seat) return {play:false,pass:false,call:false};
-  return { play:true, pass:currentRank!==null,
-           call:currentRank!==null&&!!lastPlay&&lastPlay.player!==seat };
+  if(over) return {play:false,pass:false,call:false};
+  return { play:seat===turn, pass:seat===turn&&currentRank!==null,
+           call:canCall&&!!lastPlay&&lastPlay.player!==seat };   // 抓不占回合：出牌后的窗口期全桌都能抓
 }
 function engineApply(act){
   if(over) throw new Error('牌局已结束');
-  if(act.seat!==turn) throw new Error('还没轮到 '+act.seat);
+  if(act.t!=='call'&&act.t!=='windone'&&act.seat!==turn) throw new Error('还没轮到 '+act.seat);
   const ev=[];
   if(act.t==='play'){
+    if(canCall) throw new Error('抓牌窗还开着');
     const cards=act.cards.slice();
     if(cards.length<1||cards.length>ECFG.max) throw new Error('张数不对');
     if(new Set(cards).size!==cards.length) throw new Error('有重复牌');
@@ -621,10 +622,12 @@ function engineApply(act){
     lastPlay={player:act.seat,rank:rank,cards:cards};
     passStreak=0;
     if(hands[act.seat].length===0&&!outQueue.includes(act.seat)) outQueue.push(act.seat);
+    canCall=true;                              // 出牌落地，抓牌窗随之打开（窗口时长由主循环管）
     ev.push({e:'played',seat:act.seat,rank:rank,n:cards.length,out:hands[act.seat].length===0});
     turn=(turn+1)%4;
   }else if(act.t==='pass'){
     if(currentRank===null) throw new Error('开新一轮必须出牌');
+    if(canCall) throw new Error('抓牌窗还开着');
     passStreak++;
     ev.push({e:'passed',seat:act.seat,claimSeat:lastPlay.player,claimN:lastPlay.cards.length,rank:currentRank});
     if(passStreak>=3){
@@ -637,7 +640,8 @@ function engineApply(act){
       currentRank=null;roundClaimed=0;passStreak=0;roundLeaderId=null;lastPlay=null;turn=leader;
     } else turn=(turn+1)%4;
   }else if(act.t==='call'){
-    if(currentRank===null||!lastPlay||lastPlay.player===act.seat) throw new Error('现在不能抓');
+    if(!canCall||currentRank===null||!lastPlay||lastPlay.player===act.seat) throw new Error('现在不能抓');
+    canCall=false;
     const tp=lastPlay.player, cards=lastPlay.cards;
     const truth=cards.every(c=>fits(c,lastPlay.rank));
     const loser=truth?act.seat:tp, next=truth?tp:act.seat, pn=pile.length, gained=pile.slice();
@@ -647,15 +651,18 @@ function engineApply(act){
     ev.push({e:'reveal',by:act.seat,target:tp,cards:cards,rank:lastPlay.rank,
              truth:truth,loser:loser,next:next,picked:pn,gained:gained});
     currentRank=null;roundClaimed=0;passStreak=0;roundLeaderId=null;lastPlay=null;turn=next;
+  }else if(act.t==='windone'){
+    if(!canCall) throw new Error('没有开着的抓牌窗');   // 抓牌窗到点没人抓：关窗。若刚才那手是收官，这就赢了
+    canCall=false;
   }else throw new Error('未知动作 '+act.t);
-  // 赢家判定：手牌空、且那一手已经没人能翻
-  const w=outQueue.find(i=>hands[i].length===0&&!(lastPlay&&lastPlay.player===i&&currentRank!==null));
+  // 赢家判定：手牌空、且那一手的抓牌窗已经关了没人抓
+  const w=outQueue.find(i=>hands[i].length===0&&!(lastPlay&&lastPlay.player===i&&canCall));
   if(w!==undefined){ over=true; winner=w; ev.push({e:'win',seat:w}); }
   return ev;
 }
 function serializeGame(){
   return JSON.stringify({proto:PROTO,cfg:ECFG,hands:hands,pile:pile,turn:turn,
-    currentRank:currentRank,roundClaimed:roundClaimed,passStreak:passStreak,
+    currentRank:currentRank,roundClaimed:roundClaimed,passStreak:passStreak,canCall:canCall,
     roundLeaderId:roundLeaderId,lastPlay:lastPlay,outQueue:outQueue,over:over,winner:winner,
     cast:NAMES.slice(1)});
 }
@@ -664,12 +671,12 @@ function loadGame(j){
   if(g.proto!==PROTO) throw new Error('存档版本不合：'+g.proto);
   ECFG=g.cfg;hands=g.hands;pile=g.pile;turn=g.turn;currentRank=g.currentRank;
   roundClaimed=g.roundClaimed;passStreak=g.passStreak;roundLeaderId=g.roundLeaderId;
-  lastPlay=g.lastPlay;outQueue=g.outQueue;over=g.over;winner=g.winner;
+  lastPlay=g.lastPlay;outQueue=g.outQueue;over=g.over;winner=g.winner;canCall=!!g.canCall;
 }
 
 /* ═══ 状态 ═══ */
 let hands,pile,turn,currentRank,lastPlay,roundClaimed,passStreak,over,winner,logs,selected,fresh,outQueue,
-    humanResolve;
+    humanResolve,canCall=false,CWIN=null;
 const $=id=>document.getElementById(id);
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
@@ -683,7 +690,7 @@ function deal(){
   const off=Math.random()*4|0;
   d.slice(0,52).forEach((c,i)=>hands[(i+off)%4].push(c));  // 每人 13 张
   hands.forEach(h=>h.sort((a,b)=>sortKey(a)-sortKey(b)));
-  pile=[];currentRank=null;lastPlay=null;roundClaimed=0;passStreak=0;
+  pile=[];currentRank=null;lastPlay=null;roundClaimed=0;passStreak=0;canCall=false;
   over=false;winner=null;logs=[];selected=new Set();fresh=new Set();outQueue=[];
   ECFG={wild:SET.wild,max:SET.max,burn:SET.burn};
   turn=Math.random()*4|0;          // 谁先出，抽签
@@ -776,34 +783,33 @@ const claimHTML=(p,cnt,rank)=>
   '<div class="who">'+nm(p)+' 报</div><div class="plaque">'+CN[cnt]+' 个 <em>'+RANKS[rank]+'</em></div>';
 
 /* ═══ 人类回合 ═══ */
-function canCall(){ return currentRank!==null && lastPlay && lastPlay.player!==mySeat; }
+function radarText(){                       // 数牌雷达：抓牌窗里给真人的情报
+  if(!lastPlay) return '';
+  const cap=4+(ECFG.wild?2:0), k=lastPlay.cards.length;
+  const mine=hands[mySeat].filter(c=>fits(c,lastPlay.rank)).length;
+  let ev='';
+  if(k+mine>cap)
+    ev='你攥着 '+mine+' 张能当 '+RANKS[lastPlay.rank]+' 的 —— 他报 '+k+' 张，数不可能，<b>他一定在吹</b>！';
+  else if(mine>0)
+    ev='你攥着 '+mine+' 张，他手里的 '+RANKS[lastPlay.rank]+' 最多还剩 '+(cap-mine-k)+' 张。';
+  if(hands[lastPlay.player].length===0)
+    ev+=(ev?' ':'')+'<b>他这一手出完就赢了</b> —— 是真的你抓不抓都输，是吹的只有抓才有救。';
+  return ev;
+}
 function humanTurn(){
   return new Promise(res=>{
     humanResolve=res;
     if(currentRank===null){
       stage('<div class="who">该你出牌</div><div class="plaque">你来定点数</div>');
-      $('hint').textContent='';
     }else{
       stage(claimHTML(lastPlay.player,lastPlay.cards.length,currentRank)+pileHTML());
-      let ev='';
-      if(canCall()){                              // 只留情报，不留教学
-        const cap=4+(ECFG.wild?2:0), k=lastPlay.cards.length;
-        const mine=hands[mySeat].filter(c=>fits(c,currentRank)).length;
-        if(k+mine>cap)
-          ev='你攥着 '+mine+' 张能当 '+RANKS[currentRank]+' 的 —— 他报 '+k+' 张，数不可能，<b>他一定在吹</b>！';
-        else if(mine>0)
-          ev='你攥着 '+mine+' 张，他手里的 '+RANKS[currentRank]+' 最多还剩 '+(cap-mine-k)+' 张。';
-        if(hands[lastPlay.player].length===0)
-          ev+=(ev?' ':'')+'<b>他这一手出完就赢了</b> —— 是真的你抓不抓都输，是吹的只有抓才有救。';
-      }
-      $('hint').innerHTML=ev;
     }
+    $('hint').textContent='';
     updateControls();
   });
 }
 function playControls(){
   $('controls').innerHTML=
-    '<button class="act danger wide" id="callBtn">说瞎话！</button>'+
     '<div class="row">'+
       '<button class="act" id="clearBtn">取消</button>'+
       '<button class="act" id="passBtn">过</button>'+
@@ -811,7 +817,6 @@ function playControls(){
     '</div>';
   $('clearBtn').onclick=()=>{selected.clear();render();updateControls();};
   $('passBtn').onclick=()=>{if(!$('passBtn').disabled) commitAct('pass');};
-  $('callBtn').onclick=()=>{if(!$('callBtn').disabled) commitAct('call');};
   $('playBtn').onclick=()=>{
     if($('playBtn').disabled) return;
     if(currentRank===null) openRankPicker(); else commitPlay(currentRank);
@@ -825,10 +830,6 @@ function updateControls(){
   pb.textContent=n?'出 '+n+' 张':'出牌';
   $('clearBtn').disabled=!n;
   $('passBtn').disabled=!(my&&currentRank!==null);
-  const cb=$('callBtn'), ok=my&&canCall();
-  cb.disabled=!ok;
-  cb.style.display=ok?'block':'none';
-  cb.textContent = ok? '说瞎话！抓 '+nm(lastPlay.player) : '说瞎话！';
 }
 $('hand').addEventListener('click',e=>{
   const el=e.target.closest('.card'); if(!el||!humanResolve) return;
@@ -1195,7 +1196,6 @@ async function takeTurn(p){
   const plan=aiPlan(p);
   await sleep(ponderMs(p,plan));          // 想多久，看牌情
   const P=PROFILE[p], hot=!!tilt[p];
-  if(plan.act==='call'){ chat(p, hot?'tilt':'call', .8); return {t:'call',seat:p}; }
   if(plan.act==='pass'){ chat(p, hot&&Math.random()<.5?'tilt':'pass', hot?.8:undefined); return {t:'pass',seat:p}; }
   const after=hands[p].length-plan.cards.length;
   const runner=[0,1,2,3].find(i=>i!==p&&hands[i].length<=2);   // 谁快出完了
@@ -1223,13 +1223,7 @@ function ponderMs(p,plan){
 function aiPlan(p){
   const P=PROFILE[p], hand=hands[p], by={};
   const hot=!!tilt[p];
-  const canCall=currentRank!==null&&lastPlay&&lastPlay.player!==p;
-
-  // 有人刚打出最后一手：这时只有抓和过两条路 ——
-  // 跟着出一手，等于替他把这局锁死（他的牌再也没人能翻），亲手送他赢
-  if(canCall&&hands[lastPlay.player].length===0)
-    return aiChallenge(p,P,hot)? {act:'call'} : {act:'pass'};
-  if(canCall&&aiChallenge(p,P,hot)) return {act:'call'};
+  // 抓牌已经不占回合了（出牌后的 5 秒窗口里全桌掷骰），这里只管出和过
 
   hand.forEach(c=>{if(!isJoker(c))(by[rk(c)]=by[rk(c)]||[]).push(c);});
   const jokers=ECFG.wild?hand.filter(isJoker):[];
@@ -1328,6 +1322,8 @@ function speak2(p,line){
 }
 
 function aiChallenge(p,P,hot){
+  // 全桌都能抓：三个人同时掷骰，概率按人头摊薄，不然满桌都在翻牌
+  const DAMP=.6, DAMPG=.8;
   const cap=4+(ECFG.wild?2:0), R=lastPlay.rank, k=lastPlay.cards.length, q=lastPlay.player;
   const mine=hands[p].filter(c=>fits(c,R)).length;
   if(k+mine>cap) return true;                   // 铁证：加上我攥着的，数就放不下了
@@ -1341,14 +1337,13 @@ function aiChallenge(p,P,hot){
   if(left===0){
     // 他这一手出完就赢。这里的账很简单：他要是真的，抓不抓我都输；
     // 他要是吹的，只有抓才有救。所以宁可错抓，不可放过。
-    const behind=(q-p-1+4)%4;                   // 我后面还剩几道闸
-    let prob = behind===0? P.guard : P.guard*(behind===1?.72:.55);
+    let prob=P.guard;                           // 全桌一起盯收官，不再分闸门远近
     if(q===roundLeaderId) prob*=.65;            // 点数他自己定的，多半早备好了真牌
     else prob=Math.min(.99,prob*1.3);           // 被点数逼出来的收官，可疑得很
     if(P.counts&&(known[q][R]||0)>=k) prob*=.4; // 小赵记得他手里真有这个数
     prob+=.06*mine;
     if(hot) prob=Math.min(.99,prob+.1);
-    return Math.random()<prob;
+    return Math.random()<prob*DAMPG;
   }
 
   let prob=P.callBase + mine*P.callPerCard;     // 我攥着越多，他越可疑
@@ -1376,8 +1371,7 @@ function aiChallenge(p,P,hot){
   prob*=Math.max(.55,1.15-.028*pile.length);    // 堆越大，抓错越亏（但也别怂到不敢抓）
   if(hands[p].length<=4) prob*=.7;              // 自己快赢了，背不起一堆牌
   else if(pile.length<=3) prob*=1.1;
-  if(passStreak===2&&left<=4) prob+=.15;        // 再过就烧堆白送他先手
-  return Math.random()<prob;
+  return Math.random()<prob*DAMP;
 }
 
 /* ═══ 展示层：把引擎吐出的事件演出来（声音/台词/表情/记牌都在这层）═══ */
@@ -1582,9 +1576,12 @@ function hostMsg(conn,m){
       speak2(conn.seat,t);                  // 文字兜底走原气泡
     }
   }else if(m.t==='act'&&NET.started){
+    if(m.act&&m.act.t==='call'&&NET.win){ NET.win.tryCall(conn.seat); return; }   // 抓牌窗里抢答，先到先得
     if(NET.waitRemote&&conn.seat===NET.waitSeat&&m.act&&m.act.seat===conn.seat){
       const r=NET.waitRemote; NET.waitRemote=null; r(m.act);
     }
+  }else if(m.t==='nocall'&&NET.started){
+    if(NET.win) NET.win.decline(conn.seat);
   }
 }
 function hostDrop(conn){
@@ -1697,7 +1694,12 @@ async function clientMsg(m){
   else if(m.t==='talkless'){ say('⚠ '+m.name+' 掉线了，AI 代打'); render(); }
   else if(m.t==='nak'){ say('⚠ '+m.msg); render(); clientTurn(); }
   else if(m.t==='start'){ await clientStart(m); }
-  else if(m.t==='ev'&&NET.started){ clientApply(m.env,m.evs); await presentEvents(m.evs); clientAfter(); }
+  else if(m.t==='ev'&&NET.started){
+    clientWinEnd();                                     // 有新事件，上一个抓牌窗必然已关
+    clientApply(m.env,m.evs); await presentEvents(m.evs);
+    const pl=m.evs.find(e=>e.e==='played');
+    if(!over&&pl) clientWin(pl.seat); else clientAfter();
+  }
 }
 async function clientStart(m){
   NET.started=true;
@@ -1725,7 +1727,7 @@ async function clientStart(m){
   // 看门狗：网络时序偶尔会把"该我出牌"的提示弄丢，5 秒一查，发现悬空就重新拉起
   if(!NET.guard) NET.guard=setInterval(()=>{
     if(!NET||!NET.started){ return; }
-    if(!over&&turn===mySeat&&!humanResolve&&!$('rankSheet').classList.contains('on')) clientAfter();
+    if(!over&&turn===mySeat&&!humanResolve&&!CWIN&&!$('rankSheet').classList.contains('on')) clientAfter();
   },5000);
   playControls(); paintRules(); render();
   $('hand').innerHTML=''; $('handct').textContent='';
@@ -1757,6 +1759,16 @@ function clientApply(env,evs){
   env.cnt.forEach((c,i)=>{ if(i!==mySeat&&hands[i].length!==c) hands[i]=Array(c).fill(-1); });
   pile=Array(env.pileN).fill(-1);
 }
+function clientWin(claimant){
+  const token=CWIN={claimant:claimant};
+  showWinBar(claimant,null);
+  (async()=>{
+    for(let i=50;i>0&&CWIN===token;i--){ paintCd(Math.ceil(i/10)); await sleep(100); }
+    if(CWIN===token){ const a=$('winCallBtn'),b=$('noCallBtn');   // 本地倒计时到点：等房主宣判
+      if(a) a.disabled=true; if(b) b.disabled=true; }
+  })();
+}
+function clientWinEnd(){ if(CWIN){ CWIN=null; hideWinBar(); } }
 function clientAfter(){
   if(over) return;
   render();
@@ -1798,6 +1810,52 @@ async function presentEvents(evs){
     else if(ev.e==='win'){ finish(ev.seat); }
   }
 }
+/* ═══ 抓牌窗：出牌后 5 秒，全桌（除了出牌人）都能抓，谁先喊谁抓；
+   都点了不抓（或到点）就关窗轮下家。倒计时用 sleep 切片，测试版能快进 ═══ */
+function paintCd(sec){ const el=$('cd'); if(el) el.textContent=sec; }
+function showWinBar(claimant,W){
+  const meElig=mySeat!==claimant&&SEATK[mySeat]==='human'&&!over;
+  if(meElig){
+    $('controls').innerHTML='<div class="row">'+
+      '<button class="act" id="noCallBtn">不抓</button>'+
+      '<button class="act danger" id="winCallBtn">说瞎话！抓 '+nm(claimant)+'（<span id="cd">5</span>）</button></div>';
+    $('hint').innerHTML=radarText();
+    $('winCallBtn').onclick=()=>{ if(W) W.tryCall(mySeat); else if(NET&&NET.conn){ try{NET.conn.send({t:'act',act:{t:'call',seat:mySeat}});}catch(_){}} hideWinBar(); $('hint').innerHTML='<span class="thinking">喊出去了，等翻牌…</span>'; };
+    $('noCallBtn').onclick=()=>{ if(W) W.decline(mySeat); else if(NET&&NET.conn){ try{NET.conn.send({t:'nocall'});}catch(_){}}
+      $('noCallBtn').disabled=true; $('winCallBtn').disabled=true; $('hint').innerHTML='<span class="thinking">看别人抓不抓…</span>'; };
+  }else{
+    $('controls').innerHTML='<div class="row"><button class="act" disabled>看看有没有人抓…（<span id="cd">5</span>）</button></div>';
+    $('hint').textContent='';
+  }
+}
+function hideWinBar(){ playControls(); $('hint').textContent=''; }
+async function callWindow(){
+  const claimant=lastPlay.player;
+  const elig=[0,1,2,3].filter(i=>i!==claimant);
+  const W={open:true,declined:new Set(),caller:null};
+  W.tryCall=s=>{ if(!W.open||s===claimant) return; W.open=false; W.caller=s; };
+  W.decline=s=>{ if(!W.open) return; W.declined.add(s);
+    if(elig.every(i=>W.declined.has(i))) W.open=false; };   // 全都表了态：不用等倒计时
+  if(NET&&NET.host) NET.win=W;
+  showWinBar(claimant,W);
+  elig.filter(isAI).forEach(sAI=>{ (async()=>{             // AI 各自想一会儿再拍板
+    const P=PROFILE[sAI]; if(!P){ W.decline(sAI); return; }
+    const mine=hands[sAI].filter(c=>fits(c,lastPlay.rank)).length;
+    const iron=lastPlay.cards.length+mine>4+(ECFG.wild?2:0);
+    await sleep(iron?rnd(400,900):rnd(700,4200));
+    if(!W.open||over) return;
+    if(aiChallenge(sAI,P,!!tilt[sAI])) W.tryCall(sAI); else W.decline(sAI);
+  })(); });
+  for(let i=50;i>0&&W.open;i--){ paintCd(Math.ceil(i/10)); await sleep(100); }
+  W.open=false;
+  if(NET&&NET.host) NET.win=null;
+  hideWinBar();
+  let evs;
+  if(W.caller!=null){ if(isAI(W.caller)) chat(W.caller, tilt[W.caller]?'tilt':'call', .8); evs=engineApply({t:'call',seat:W.caller}); }
+  else evs=engineApply({t:'windone'});
+  netBroadcastEvs(evs);
+  await presentEvents(evs);
+}
 async function loop(){
   while(!over){
     render();
@@ -1829,6 +1887,7 @@ async function loop(){
     }
     netBroadcastEvs(evs);
     await presentEvents(evs);
+    if(!over&&evs.some(e=>e.e==='played')) await callWindow();   // 出牌落地 → 开抓牌窗
   }
 }
 
@@ -1841,7 +1900,7 @@ function paintRules(){
     '轮到你可以出 1–'+SET.max+' 张扣着的牌，<b>也可以过</b>——手里有真牌照样能过。开新一轮的人必须出。',
     '张数不能骗，点数可以骗。'+(SET.wild?'<b>大小王算任意点数</b>，翻开也不算骗。':''),
     '三家连着都过，'+(SET.burn?'桌上这堆牌作废':'最后出牌的人收走这堆')+'，然后由最后出牌那人开新一轮。',
-    '<b>只有下家能抓</b>——轮到你的时候，你可以出牌、过、或者喊“说瞎话”抓上家。你要是过了，抓的机会就传给下一个人。',
+    '<b>每一手出完，其他三家都有 5 秒可以抓</b>——屏幕上有倒计时，谁先喊「说瞎话」谁抓；都点了不抓（或者到点没人抓）就轮到下家出牌。',
     '抓对了：出牌的人收走整桌，<b>抓的人接着出</b>。抓错了：抓的人收走整桌，<b>被抓的人接着出</b>。',
     '先把手牌走完、且最后一手没被抓，就赢了。'
   ];
