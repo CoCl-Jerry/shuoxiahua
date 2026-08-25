@@ -516,7 +516,7 @@ const nm=i=>i===mySeat?'你':NAMES[i];
 const isAI=i=>SEATK[i]==='ai';
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.45';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const VERSION='1.46';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
 const SET={wild:1,max:4,burn:1,ai:1,sound:1,salty:1,pace:3};
 const PACEF=()=>[1,.85,1.15,1.5][SET.pace]||1.5;   // 节奏：爽快/适中/悠着点，乘在 AI 思考和桌面停顿上
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
@@ -1814,7 +1814,7 @@ async function presentEvents(evs){
    都点了不抓（或到点）就关窗轮下家。倒计时用 sleep 切片，测试版能快进 ═══ */
 function paintCd(sec){ const el=$('cd'); if(el) el.textContent=sec; }
 function showWinBar(claimant,W){
-  const meElig=mySeat!==claimant&&SEATK[mySeat]==='human'&&!over;
+  const meElig=mySeat!==claimant&&!isAI(mySeat)&&!over;   // 本机玩家（客机上自己标的是 remote，别用 human 判）
   if(meElig){
     $('controls').innerHTML='<div class="row">'+
       '<button class="act" id="noCallBtn">不抓</button>'+
