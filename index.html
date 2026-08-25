@@ -250,9 +250,13 @@ h1{
 
 /* ─── 手牌 ─── */
 #handwrap{margin-top:auto;padding-top:6px}
-.label{font-size:11px;color:var(--brass);letter-spacing:.2em;margin-bottom:9px;
-  display:flex;justify-content:space-between;align-items:baseline}
-.label span{color:var(--dim);letter-spacing:.08em}
+.label{font-size:11px;margin-bottom:9px;
+  display:flex;justify-content:space-between;align-items:center;min-height:26px}
+.label .lt{color:var(--brass);letter-spacing:.2em}
+.label .lt span{color:var(--dim);letter-spacing:.08em}
+#emoteBtn{background:rgba(199,154,78,.13);border:1px solid rgba(199,154,78,.5);color:var(--ivory);
+  border-radius:8px;padding:4px 15px;font-size:12.5px;font-family:inherit;letter-spacing:.1em;cursor:pointer}
+#emoteBtn:active{transform:translateY(1px)}
 #handscroll{overflow-x:auto;overflow-y:visible;padding:12px 0 4px;-webkit-overflow-scrolling:touch}
 #hand{position:relative;height:76px;margin:0 auto}
 #hand .card{position:absolute;top:12px;cursor:pointer;
@@ -370,7 +374,6 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
     <div class="brand">
       <h1>苗伯说瞎话<span class="ver" id="ver"></span></h1>
       <div class="tools">
-        <button id="emoteBtn" style="display:none">喊话</button>
         <button id="rulesBtn">规则</button>
         <button id="setBtn">设置</button>
       </div>
@@ -385,7 +388,7 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
   <div id="etoast"></div>
 <div id="handwrap">
     <div id="ebar"></div>
-    <div class="label">你的手牌 <span id="handct"></span></div>
+    <div class="label"><span class="lt">你的手牌 <span id="handct"></span></span><button id="emoteBtn" style="display:none">喊话</button></div>
     <div id="handscroll"><div id="hand"></div></div>
     <div id="controls"></div>
     <div id="hint"></div>
@@ -510,7 +513,7 @@ const nm=i=>i===mySeat?'你':NAMES[i];
 const isAI=i=>SEATK[i]==='ai';
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.38';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const VERSION='1.39';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
 const SET={wild:1,max:4,burn:1,ai:1,sound:1,salty:1};
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
      if(_s&&typeof _s==='object') for(const k in SET) if(typeof _s[k]==='number') SET[k]=_s[k];
