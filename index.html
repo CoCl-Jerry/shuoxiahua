@@ -265,6 +265,12 @@ h1{
 #hand .card.fresh{animation:slidein .3s ease-out backwards}
 @keyframes slidein{from{transform:translateY(26px);opacity:0}}
 
+/* 抓牌窗倒计时条：5 秒匀速走完 */
+.cdbar{height:4px;border-radius:2px;background:rgba(199,154,78,.18);overflow:hidden;margin:0 2px 8px}
+.cdbar i{display:block;height:100%;background:var(--brass);border-radius:2px;width:100%;
+  animation:cdrun 5s linear forwards}
+@keyframes cdrun{to{width:0}}
+
 /* ─── 按钮 ─── */
 #controls{margin-top:10px}
 #controls .row{display:flex;gap:8px}
@@ -516,7 +522,7 @@ const nm=i=>i===mySeat?'你':NAMES[i];
 const isAI=i=>SEATK[i]==='ai';
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.46';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const VERSION='1.47';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
 const SET={wild:1,max:4,burn:1,ai:1,sound:1,salty:1,pace:3};
 const PACEF=()=>[1,.85,1.15,1.5][SET.pace]||1.5;   // 节奏：爽快/适中/悠着点，乘在 AI 思考和桌面停顿上
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
@@ -1816,15 +1822,15 @@ function paintCd(sec){ const el=$('cd'); if(el) el.textContent=sec; }
 function showWinBar(claimant,W){
   const meElig=mySeat!==claimant&&!isAI(mySeat)&&!over;   // 本机玩家（客机上自己标的是 remote，别用 human 判）
   if(meElig){
-    $('controls').innerHTML='<div class="row">'+
+    $('controls').innerHTML='<div class="cdbar"><i></i></div><div class="row">'+
       '<button class="act" id="noCallBtn">不抓</button>'+
-      '<button class="act danger" id="winCallBtn">说瞎话！抓 '+nm(claimant)+'（<span id="cd">5</span>）</button></div>';
+      '<button class="act danger" id="winCallBtn">说瞎话！抓 '+nm(claimant)+'</button></div>';
     $('hint').innerHTML=radarText();
     $('winCallBtn').onclick=()=>{ if(W) W.tryCall(mySeat); else if(NET&&NET.conn){ try{NET.conn.send({t:'act',act:{t:'call',seat:mySeat}});}catch(_){}} hideWinBar(); $('hint').innerHTML='<span class="thinking">喊出去了，等翻牌…</span>'; };
     $('noCallBtn').onclick=()=>{ if(W) W.decline(mySeat); else if(NET&&NET.conn){ try{NET.conn.send({t:'nocall'});}catch(_){}}
       $('noCallBtn').disabled=true; $('winCallBtn').disabled=true; $('hint').innerHTML='<span class="thinking">看别人抓不抓…</span>'; };
   }else{
-    $('controls').innerHTML='<div class="row"><button class="act" disabled>看看有没有人抓…（<span id="cd">5</span>）</button></div>';
+    $('controls').innerHTML='<div class="cdbar"><i></i></div><div class="row"><button class="act" disabled>看看有没有人抓…</button></div>';
     $('hint').textContent='';
   }
 }
