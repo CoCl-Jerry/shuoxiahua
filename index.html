@@ -437,6 +437,9 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
   <div class="opt"><div class="q">他仨嘴里干不干净</div>
     <div class="seg" data-k="salty">
       <button data-v="1">带脏字，过瘾</button><button data-v="0">文明点</button></div></div>
+  <div class="opt"><div class="q">节奏（AI 出手快慢、翻牌停顿）</div>
+    <div class="seg" data-k="pace">
+      <button data-v="1">爽快</button><button data-v="2">适中</button><button data-v="3">悠着点</button></div></div>
   <div class="opt"><div class="q">音效</div>
     <div class="seg" data-k="sound">
       <button data-v="1">开</button><button data-v="0">关</button></div></div>
@@ -513,8 +516,9 @@ const nm=i=>i===mySeat?'你':NAMES[i];
 const isAI=i=>SEATK[i]==='ai';
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.40';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
-const SET={wild:1,max:4,burn:1,ai:1,sound:1,salty:1};
+const VERSION='1.41';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const SET={wild:1,max:4,burn:1,ai:1,sound:1,salty:1,pace:3};
+const PACEF=()=>[1,.85,1.15,1.5][SET.pace]||1.5;   // 节奏：爽快/适中/悠着点，乘在 AI 思考和桌面停顿上
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
      if(_s&&typeof _s==='object') for(const k in SET) if(typeof _s[k]==='number') SET[k]=_s[k];
 }catch(e){}
@@ -1192,7 +1196,8 @@ function ponderMs(p,plan){
   if(hands[p].length<=3)t*=1.35;
   if(pile.length>12)    t*=1.15;
   if(tilt[p])           t*=.60;           // 上头了，出手急
-  return Math.min(3400,Math.round(t));
+  t*=PACEF();
+  return Math.min(Math.round(3400*PACEF()),Math.round(t));
 }
 
 function aiPlan(p){
@@ -1374,7 +1379,7 @@ async function presentReveal(ev){
   stage('<div class="who">'+nm(q)+' 喊：说瞎话！</div>'+
         '<div class="reveal">'+cards.map(faceUp).join('')+'</div>');
   Sfx.flip();
-  render(); await sleep(1000);
+  render(); await sleep(1000*PACEF());
   if(truth) Sfx.truth(); else Sfx.lie();
   if(p===mySeat){ if(truth){MEM.humanHonest=(MEM.humanHonest||0)+1;humHonestS++;} else {MEM.humanCaught++;humCaughtS++;} }
   if(q===mySeat){ if(truth) MEM.humanBadCall++; else MEM.humanGoodCall++; }
@@ -1385,7 +1390,7 @@ async function presentReveal(ev){
       (truth?'你说的是真话，他冤枉你，这堆牌归他背':'你真在吹，让他逮个正着，你把整桌牌收走')); }
   stage('<div class="who">'+nm(q)+' 喊：说瞎话！</div>'+
         '<div class="reveal">'+cards.map(faceUp).join('')+'</div>', truth?'真话':'瞎话');
-  await sleep(1300);
+  await sleep(1300*PACEF());
 
   const loser=ev.loser, next=ev.next, pn=ev.picked;
   if(AVA[loser]&&AVA[loser].f) mood[loser]='oops';
@@ -1402,7 +1407,7 @@ async function presentReveal(ev){
   if(isAI(q)){ chat(q, truth?'lose':'win', .70);       // 抓的人再回一句
     aiBanter(q, '你抓 '+(isAI(p)?NAMES[p]:'真人玩家'+(p===mySeat?'':NAMES[p]))+'，翻开 —— '+
       (truth?'抓错了，人家是真的，'+pn+' 张牌全归你背':'抓对了，他在吹，他收走 '+pn+' 张')); }
-  render(); await sleep(1000);
+  render(); await sleep(1000*PACEF());
 }
 async function presentBurn(ev){
   Sfx.burn();
@@ -1415,7 +1420,7 @@ async function presentBurn(ev){
     say('三家都过 — '+nm(ev.leader)+' 收走 '+ev.n+' 张，开新一轮');
     stage('<div class="who">三家都过</div><div class="plaque">'+nm(ev.leader)+' 收走 '+ev.n+' 张</div>');
   }
-  render(); await sleep(1200);
+  render(); await sleep(1200*PACEF());
 }
 
 /* ═══ 联机：主机权威制。引擎只在房主手机上跑，客机收事件、发动作。
@@ -1742,13 +1747,13 @@ function finish(p){
 /* ═══ 主循环：拿动作 → 进引擎 → 演事件。联机时动作换成从网上来，其余不变 ═══ */
 async function presentEvents(evs){
   for(const ev of evs){
-    if(ev.e==='played'){ presentPlayed(ev); if(!over) await sleep(560); }
+    if(ev.e==='played'){ presentPlayed(ev); if(!over) await sleep(560*PACEF()); }
     else if(ev.e==='passed'){
       if(tilt[ev.seat]) tilt[ev.seat]--;
       Sfx.pass();
       say(nm(ev.seat)+' 过');
       stage(claimHTML(ev.claimSeat,ev.claimN,ev.rank)+pileHTML());
-      render(); await sleep(720);
+      render(); await sleep(720*PACEF());
     }
     else if(ev.e==='burn'){ await presentBurn(ev); }
     else if(ev.e==='reveal'){ await presentReveal(ev); }
