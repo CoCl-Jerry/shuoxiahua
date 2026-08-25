@@ -509,7 +509,7 @@ const nm=i=>i===mySeat?'你':NAMES[i];
 const isAI=i=>SEATK[i]==='ai';
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.34';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const VERSION='1.33';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
 const SET={wild:1,max:4,burn:1,ai:1,sound:1,salty:1};
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
      if(_s&&typeof _s==='object') for(const k in SET) if(typeof _s[k]==='number') SET[k]=_s[k];
@@ -1426,13 +1426,7 @@ function loadPeerLib(){
 const peerOpts=()=>window.__peerOpts||{};        // 测试时指到本地信令服务器
 const ROOMPFX='shuoxiahua-v1-';
 const newRoomCode=()=>{const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789';let c='';for(let i=0;i<4;i++)c+=A[Math.random()*A.length|0];return c;};
-// iOS 切后台会断信令；回前台用原号重连，房间不丢
-addEventListener('pageshow',()=>{ if(NET&&NET.peer&&NET.peer.disconnected&&!NET.peer.destroyed){ try{NET.peer.reconnect();}catch(_){}} });
-document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'&&NET&&NET.peer&&NET.peer.disconnected&&!NET.peer.destroyed){
-    try{NET.peer.reconnect();}catch(_){}
-  }
-});
+addEventListener('pagehide',()=>{ if(NET&&NET.peer){ try{NET.peer.destroy();}catch(_){}} });
 const PROXY_PROF=(()=>null)();   // 掉线代打用的牌风，开局后填
 
 // 表情贴纸：用你自己头像的脸。没挑人物脸的用文字兜底
@@ -1499,7 +1493,6 @@ async function hostRoom(){
     if(e.type==='unavailable-id'){ try{peer.destroy();}catch(_){} if(NET&&NET.host) hostRoom(); }
     else netFail(e.type==='network'?'连不上联机服务器':'联机出错：'+e.type);
   });
-  peer.on('disconnected',()=>{ if(NET&&NET.peer===peer&&!peer.destroyed){ try{peer.reconnect();}catch(_){}} });
   peer.on('connection',conn=>{
     conn.on('data',m=>hostMsg(conn,m));
     conn.on('close',()=>hostDrop(conn));
@@ -1626,18 +1619,14 @@ async function joinRoom(code,name,round){
     if(e.type==='peer-unavailable') retry();
     else netFail(e.type==='network'?'连不上联机服务器':'联机出错：'+e.type);
   });
-  peer.on('disconnected',()=>{ if(NET&&NET.peer===peer&&!peer.destroyed&&!NET.adopted){ try{peer.reconnect();}catch(_){}} });
   peer.on('open',()=>{
-    netStatus('信令已通，正在连接房主…');
     const conn=peer.connect(ROOMPFX+code,{reliable:true});
     NET.conn=conn;
-    // 跨网络打洞可能要十几秒，别急着掐；25 秒真没应答再重来
-    const slow=setTimeout(()=>{ if(NET&&!NET.adopted) netStatus('正在打通线路…（跨网络可能要十几秒，别关页面）'); },5000);
-    const t=setTimeout(()=>{ clearTimeout(slow); if(NET&&!NET.adopted) retry(); },25000);
-    conn.on('open',()=>{ netStatus('已连上房主，正在入座…'); try{conn.send({t:'join',name:name,v:VERSION,ava:myAvaKey});}catch(_){}});
+    const t=setTimeout(()=>{ if(NET&&!NET.adopted) retry(); },6000);   // 连上僵尸不应答也算失败
+    conn.on('open',()=>{ try{conn.send({t:'join',name:name,v:VERSION,ava:myAvaKey});}catch(_){}});
     conn.on('data',m=>{
       if(!NET||NET.host) return;
-      if(!NET.adopted){ NET.adopted=true; clearTimeout(t); clearTimeout(slow);
+      if(!NET.adopted){ NET.adopted=true; clearTimeout(t);
         try{localStorage.setItem('sxh_room',code);}catch(_){}
         conn.on('close',()=>{ if(NET&&!over&&NET.started) netFail('和房主断线了'); });
         netStatus('已进门，等房主开局…');
