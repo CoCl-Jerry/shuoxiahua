@@ -516,7 +516,7 @@ const nm=i=>i===mySeat?'你':NAMES[i];
 const isAI=i=>SEATK[i]==='ai';
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.43';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const VERSION='1.44';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
 const SET={wild:1,max:4,burn:1,ai:1,sound:1,salty:1,pace:3};
 const PACEF=()=>[1,.85,1.15,1.5][SET.pace]||1.5;   // 节奏：爽快/适中/悠着点，乘在 AI 思考和桌面停顿上
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
@@ -1525,14 +1525,22 @@ function netFail(msg){
 }
 
 /* ── 房主 ── */
-async function hostRoom(){
+async function hostRoom(wait){
   await loadPeerLib();
   const peer=new Peer(ROOMPFX+FIXROOM,peerOpts());
-  NET={host:true,peer:peer,conns:[],started:false,waitRemote:null,waitSeat:-1};
-  netStatus('正在开房…');
+  NET={host:true,peer:peer,conns:[],started:false,waitRemote:null,waitSeat:-1,wait:wait||0};
+  netStatus(wait?'房间还被上一局占着，排队等它腾出来…（已等 '+wait*4+' 秒）':'正在开房…');
   peer.on('open',()=>{ netStatus(''); paintLobby(); });
   peer.on('error',e=>{
-    if(e.type==='unavailable-id') netFail('房间被占着——谁的旧页面还开着房？关掉那个页面，过半分钟再开');
+    if(!NET||NET.peer!==peer) return;
+    if(e.type==='unavailable-id'){
+      // 旧页面攥着房间没放：信令服务器最长约一分钟自动收回。排队重试，不用人管
+      try{peer.destroy();}catch(_){}
+      const w=NET.wait+1, myNET=NET;
+      if(w>22){ netFail('房间一直被占着——把开过房的旧页面全关掉，再回来点开房'); return; }
+      myNET._t=setTimeout(()=>{ if(NET===myNET&&NET.host) hostRoom(w); },4000);
+      netStatus('房间还被上一局占着，排队等它腾出来…（已等 '+w*4+' 秒）');
+    }
     else netFail(e.type==='network'?'连不上联机服务器':'联机出错：'+e.type);
   });
   peer.on('connection',conn=>{
@@ -1540,6 +1548,14 @@ async function hostRoom(){
     conn.on('close',()=>hostDrop(conn));
   });
 }
+// 占房的主要来源就是自己：开着房的页面被刷新/关掉/切后台，房间名还挂在服务器上。
+// 没开局的房，页面一退就主动交还；切后台回来自动重新开一间，无感
+addEventListener('pagehide',()=>{
+  if(NET&&NET.host&&!NET.started){ try{NET.peer.destroy();}catch(_){} NET._freed=true; }
+});
+addEventListener('pageshow',()=>{
+  if(NET&&NET.host&&!NET.started&&NET._freed){ NET=null; hostRoom(); }
+});
 function hostMsg(conn,m){
   if(!NET||!NET.host) return;
   if(m.t==='join'){
@@ -1661,7 +1677,9 @@ async function joinRoom(name){
     if(!NET||NET.peer!==peer) return;
     const conn=peer.connect(ROOMPFX+FIXROOM,{reliable:true});
     NET.conn=conn;
+    const hint=setTimeout(()=>{ if(NET&&NET.peer===peer&&!NET.joined) netStatus('半天没动静——房主那边可能是残留的旧页面，让房主重开一次房'); },12000);
     conn.on('open',()=>{
+      clearTimeout(hint);
       netStatus('已连上，等房主开局…');
       try{conn.send({t:'join',name:name,v:VERSION,ava:myAvaKey});}catch(_){}
     });
