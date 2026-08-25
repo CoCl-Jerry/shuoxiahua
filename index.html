@@ -513,7 +513,7 @@ const nm=i=>i===mySeat?'你':NAMES[i];
 const isAI=i=>SEATK[i]==='ai';
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.39';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const VERSION='1.40';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
 const SET={wild:1,max:4,burn:1,ai:1,sound:1,salty:1};
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
      if(_s&&typeof _s==='object') for(const k in SET) if(typeof _s[k]==='number') SET[k]=_s[k];
@@ -1620,16 +1620,20 @@ function waitRemote(seat){
 
 /* ── 客机 ── */
 async function joinRoom(name){
+  if(NET&&!NET.host&&NET.joined){ netStatus('已经在房里了，等房主开局…'); return; }   // 手快连点，不重复进
+  if(NET){ try{NET.peer.destroy();}catch(_){} NET=null; }   // 重进前先掐掉旧连接，房主那边旧座自动清
   await loadPeerLib();
   const peer=new Peer(peerOpts());
-  NET={host:false,peer:peer,q:Promise.resolve(),pendCards:null,started:false};
+  NET={host:false,peer:peer,q:Promise.resolve(),pendCards:null,started:false,joined:false};
   netStatus('正在连接…');
   const onMsg=m=>{ NET.q=NET.q.then(()=>clientMsg(m)).catch(e=>{console.error(e); say('⚠ 出错：'+e.message); render(); clientAfter();}); };
   peer.on('error',e=>{
+    if(!NET||NET.peer!==peer) return;   // 旧连接的余响，不理
     if(e.type==='peer-unavailable') netFail('房主还没开房——让房主先点「联机 · 开房」，再点一次加入');
     else netFail(e.type==='network'?'连不上联机服务器':'联机出错：'+e.type);
   });
   peer.on('open',()=>{
+    if(!NET||NET.peer!==peer) return;
     const conn=peer.connect(ROOMPFX+FIXROOM,{reliable:true});
     NET.conn=conn;
     conn.on('open',()=>{
@@ -1637,12 +1641,12 @@ async function joinRoom(name){
       try{conn.send({t:'join',name:name,v:VERSION,ava:myAvaKey});}catch(_){}
     });
     conn.on('data',onMsg);
-    conn.on('close',()=>{ if(NET&&!over&&NET.started) netFail('和房主断线了'); });
+    conn.on('close',()=>{ if(NET&&NET.peer===peer&&!over&&NET.started) netFail('和房主断线了'); });
   });
 }
 async function clientMsg(m){
   if(!NET) return;
-  if(m.t==='lobby'){ netStatus('已入座（'+m.names.join('、')+'）等房主开局…'); }
+  if(m.t==='lobby'){ NET.joined=true; netStatus('已入座（'+m.names.join('、')+'）等房主开局…'); }
   else if(m.t==='badver'){ netFail('版本不一致：房主 v'+m.v+'，你 v'+VERSION+'，都刷新到最新再来'); }
   else if(m.t==='full'){ netFail('房间满了或已经开打'); }
   else if(m.t==='talk'){ speak2(m.seat,m.text); }
