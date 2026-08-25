@@ -79,17 +79,21 @@ h1{
 .fan i{position:absolute;top:0;width:9px;height:14px;border-radius:2px;
   background:linear-gradient(150deg,#9C3129,#6E211B);border:.5px solid rgba(0,0,0,.45)}
 .seat .ct{font-size:11px;color:var(--dim);letter-spacing:.1em}
-/* 说话的小气泡，挂在座位底下 */
-.bub{position:absolute;top:calc(100% + 6px);left:50%;z-index:5;
+/* 说话的小气泡，挂在座位底下。长台词往下长（盖住点牌桌没关系），左右两个座位的气泡贴边不出屏 */
+.bub{position:absolute;top:calc(100% + 6px);left:50%;z-index:5;translate:-50% 0;
   max-width:210px;width:max-content;padding:5px 10px;border-radius:9px;
   background:var(--paper);color:var(--ink);font-size:11.5px;line-height:1.45;
-  box-shadow:0 3px 11px rgba(0,0,0,.45);transform:translateX(-50%)}
+  box-shadow:0 3px 11px rgba(0,0,0,.45)}
 .bub.pop{animation:bubin .2s ease-out backwards}
 .bub.ebub{padding:3px;width:52px;height:52px;max-width:none;border-radius:50%;overflow:hidden}
 .bub.ebub svg{width:100%;height:100%;display:block}
 .bub::after{content:"";position:absolute;bottom:100%;left:50%;margin-left:-5px;
   border:5px solid transparent;border-bottom-color:var(--paper)}
-@keyframes bubin{from{transform:translateX(-50%) translateY(-5px) scale(.92);opacity:0}}
+#seats .seat:first-child .bub:not(.ebub){left:0;translate:0 0}
+#seats .seat:first-child .bub::after{left:22px;margin-left:0}
+#seats .seat:last-child .bub:not(.ebub){left:auto;right:0;translate:0 0}
+#seats .seat:last-child .bub::after{left:auto;right:22px;margin-left:0}
+@keyframes bubin{from{transform:translateY(-5px) scale(.92);opacity:0}}
 .seat.low .ct{color:#E0806F}
 
 /* ─── 牌桌 ─── */
@@ -341,7 +345,7 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
   h1{font-size:22px}
   header{padding:8px 0 6px}
   #seats{padding-bottom:40px;margin:7px 0 3px}
-  .bub{font-size:11px;line-height:1.35;padding:3px 8px;max-width:185px;max-height:2.9em;overflow:hidden}
+  .bub{font-size:11px;line-height:1.35;padding:3px 8px;max-width:185px}
   #stage{min-height:104px;padding:8px 10px;gap:6px}
   .plaque{font-size:18px;padding:6px 14px}
   .pile{height:62px;width:100px}
@@ -509,7 +513,7 @@ const nm=i=>i===mySeat?'你':NAMES[i];
 const isAI=i=>SEATK[i]==='ai';
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.36';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const VERSION='1.37';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
 const SET={wild:1,max:4,burn:1,ai:1,sound:1,salty:1};
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
      if(_s&&typeof _s==='object') for(const k in SET) if(typeof _s[k]==='number') SET[k]=_s[k];
@@ -679,7 +683,7 @@ function deal(){
   over=false;winner=null;logs=[];selected=new Set();fresh=new Set();outQueue=[];
   ECFG={wild:SET.wild,max:SET.max,burn:SET.burn};
   turn=Math.random()*4|0;          // 谁先出，抽签
-  tilt={}; bubble=null; rage=[0,0,0,0]; banterEpoch++; rollPileJit(); rollBack();
+  tilt={}; bubClear(); rage=[0,0,0,0]; banterEpoch++; rollPileJit(); rollBack();
   known=[{},{},{},{}]; roundLeaderId=null; mood=['','idle','idle','idle'];
   Sfx.deal();
 }
@@ -697,9 +701,9 @@ const faceUp=c=>'<div class="'+cls(c)+'">'+cardInner(c)+'</div>';
 function render(){
   $('seats').innerHTML=[1,2,3].map(k=>(mySeat+k)%4).map(i=>{
     const n=hands[i].length;
-    const bub=(bubble&&bubble.p===i)?
-      (bubble.emo? '<div class="bub ebub'+(bubble.pop?' pop':'')+'">'+emoFace(bubble.emoKey,bubble.emo)+'</div>'
-                 : '<div class="bub'+(bubble.pop?' pop':'')+'">'+esc(bubble.text)+'</div>') : '';
+    const B=BUBS[i];
+    const bub=B? (B.emo? '<div class="bub ebub'+(B.pop?' pop':'')+'">'+emoFace(B.emoKey,B.emo)+'</div>'
+                       : '<div class="bub'+(B.pop?' pop':'')+'">'+esc(B.text)+'</div>') : '';
     const mt = tilt[i]? '<div class="mtag mad">上头</div>'
              : mood[i]==='glee'? '<div class="mtag glee">得意</div>'
              : mood[i]==='oops'? '<div class="mtag oops">栽了</div>' : '';
@@ -718,7 +722,7 @@ function render(){
   $('handct').textContent=n+' 张';
   $('log').innerHTML=logs.map(t=>'<div>'+t+'</div>').join('');
   fresh.clear();
-  if(bubble) bubble.pop=false;      // 弹出动画只播一次
+  for(const k in BUBS) BUBS[k].pop=false;   // 弹出动画只播一次
 }
 
 function stage(html,stampText){
@@ -1106,7 +1110,16 @@ function humanAva(name){
     '<text x="24" y="31" text-anchor="middle" font-family="Songti SC,STSong,serif" font-size="18" fill="#F4EBD6">'+ch+'</text></svg>',
     post:'', f:null};
 }
-let tilt={}, bubble=null, rage=[0,0,0,0];
+let tilt={}, rage=[0,0,0,0];
+// 每个座位一个气泡，各自计时：字越多挂得越久，别人说话不顶掉你的
+let BUBS={};
+function bubSet(p,b,ms){
+  if(BUBS[p]&&BUBS[p].timer) clearTimeout(BUBS[p].timer);
+  BUBS[p]=b;
+  b.timer=setTimeout(()=>{ if(BUBS[p]===b){ delete BUBS[p]; render(); } },ms);
+  render();
+}
+function bubClear(){ for(const k in BUBS){ if(BUBS[k].timer) clearTimeout(BUBS[k].timer); } BUBS={}; }
 let known=[{},{},{},{}], roundLeaderId=null, humCaughtS=0, humHonestS=0;
 let mood=['','idle','idle','idle'];
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -1284,9 +1297,9 @@ function chat(p,kind,rate){
   speak2(p,line);
 }
 function speak2(p,line){
-  bubble={p:p,text:String(line).slice(0,32),pop:true};  // 只弹气泡，不占日志；32 字封顶
-  render();
-  if(NET&&NET.host&&NET.started) netAll({t:'talk',seat:p,text:bubble.text});
+  const text=String(line).slice(0,60);   // 只弹气泡，不占日志；60 字封顶，长了竖着排
+  bubSet(p,{text:text,pop:true}, Math.min(7500, 2400+text.length*110));  // 字多多挂会儿，看得完
+  if(NET&&NET.host&&NET.started) netAll({t:'talk',seat:p,text:text});
 }
 
 function aiChallenge(p,P,hot){
@@ -1356,7 +1369,6 @@ function presentPlayed(ev){
 async function presentReveal(ev){
   const p=ev.target, q=ev.by, cards=ev.cards, truth=ev.truth;
   if(tilt[q]) tilt[q]--;
-  bubble=null;
   say(nm(q)+' 喊了说瞎话');
   Sfx.call();
   stage('<div class="who">'+nm(q)+' 喊：说瞎话！</div>'+
@@ -1393,7 +1405,6 @@ async function presentReveal(ev){
   render(); await sleep(1000);
 }
 async function presentBurn(ev){
-  bubble=null;
   Sfx.burn();
   if(!ev.eaten){
     say('三家都过 — 桌上 '+ev.n+' 张作废，'+nm(ev.leader)+' 开新一轮');
@@ -1460,10 +1471,7 @@ function selfToast(t,avaKey,emo){
   clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('on'),1600);
 }
 function showEmo(seat,key,emo){           // 全桌展示某人的表情贴纸
-  bubble={p:seat,emoKey:key,emo:emo,pop:true};
-  render();
-  const mine=bubble;
-  setTimeout(()=>{ if(bubble===mine){ bubble=null; render(); } },2600);
+  bubSet(seat,{emoKey:key,emo:emo,pop:true},2600);
 }
 function sendEmote(k){
   const now=Date.now();
@@ -1585,7 +1593,7 @@ function netSendStart(){
   NET.conns.forEach(c=>{
     const avaKeys=[0,1,2,3].map(i=>SEATK[i]==='ai'?CASTKEY[i]:(HUMAN_AVAKEYS[i]||''));
     try{c.send({t:'start',v:VERSION,seat:c.seat,names:NAMES.slice(),seatk:SEATK.slice(),
-      castKeys:CASTKEY,avaKeys:avaKeys,ecfg:ECFG,hand:hands[c.seat],env:env});}catch(e){}
+      castKeys:CASTKEY,avaKeys:avaKeys,ecfg:ECFG,hand:hands[c.seat],env:env,back:BACKS.indexOf(BACK)});}catch(e){}  // 牌背全桌统一，按房主抽的来
   });
 }
 function startNetGame(){
@@ -1649,6 +1657,7 @@ async function clientMsg(m){
 async function clientStart(m){
   NET.started=true;
   mySeat=m.seat; SEATK=m.seatk; NAMES=m.names; ECFG=m.ecfg; CASTKEY=m.castKeys;
+  BACK=BACKS[m.back]||'';   // 跟房主用同一款牌背
   AVA=[null,null,null,null];
   for(let i=0;i<4;i++){
     const ak=(m.avaKeys&&m.avaKeys[i])||'';
@@ -1663,7 +1672,7 @@ async function clientStart(m){
   pile=Array(m.env.pileN).fill(-1);
   clientEnv(m.env);
   winner=null;logs=[];selected=new Set();fresh=new Set();outQueue=[];
-  tilt={};bubble=null;rage=[0,0,0,0];mood=['idle','idle','idle','idle'];known=[{},{},{},{}];banterEpoch++;rollPileJit();rollBack();
+  tilt={};bubClear();rage=[0,0,0,0];mood=['idle','idle','idle','idle'];known=[{},{},{},{}];banterEpoch++;rollPileJit();
   $('netSheet').classList.remove('on');
   $('overSheet').classList.remove('on');
   $('emoteBtn').style.display='inline';
