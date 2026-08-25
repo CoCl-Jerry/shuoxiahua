@@ -469,7 +469,7 @@ const nm=i=>i===mySeat?'你':NAMES[i];
 const isAI=i=>SEATK[i]==='ai';
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.23';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const VERSION='1.24';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
 const SET={wild:1,max:4,burn:1,ai:1,sound:1,salty:1};
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
      if(_s&&typeof _s==='object') for(const k in SET) if(typeof _s[k]==='number') SET[k]=_s[k];
@@ -626,6 +626,7 @@ const $=id=>document.getElementById(id);
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
 function deal(){
+  assignSeats();
   pickCast();
   const total=(SET.wild?54:52);
   const d=[...Array(total).keys()];
@@ -948,6 +949,25 @@ const PROFILE={}, PERSONA={};
 let PREF_CAST=(()=>{ try{ const v=JSON.parse(localStorage.getItem('sxh_cast')||'[]');
   return Array.isArray(v)?v.filter(k=>typeof k==='string'):[]; }catch(e){ return []; } })();
 function savePrefCast(){ try{localStorage.setItem('sxh_cast',JSON.stringify(PREF_CAST));}catch(e){} }
+function assignSeats(){
+  // 每局重新洗座次——谁坐谁下家是有讲究的（只有下家能抓你），别让它固定
+  const humans=[{kind:'human',me:true,
+    name:(NET&&NET.host&&NET.started)?NET.myName:'你', ava:myAvaKey}];
+  if(NET&&NET.host&&NET.started)
+    NET.conns.forEach(c=>humans.push({kind:'remote',conn:c,name:c.pname,ava:c.avaKey}));
+  const order=[0,1,2,3];
+  for(let i=3;i>0;i--){const j=Math.random()*(i+1)|0;[order[i],order[j]]=[order[j],order[i]];}
+  SEATK=['ai','ai','ai','ai']; NAMES=['','','',''];
+  AVA=[null,null,null,null]; HUMAN_AVAKEYS={};
+  humans.forEach((h,idx)=>{
+    const st=order[idx];
+    SEATK[st]=h.me?'human':'remote';
+    NAMES[st]=h.name;
+    HUMAN_AVAKEYS[st]=h.ava||'';
+    AVA[st]= h.ava? AVATARS[h.ava] : (h.me? null : humanAva(h.name));
+    if(h.me) mySeat=st; else h.conn.seat=st;
+  });
+}
 function pickCast(){
   const used=Object.values(HUMAN_AVAKEYS).filter(Boolean);
   const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
@@ -1379,14 +1399,6 @@ function netSendStart(){
 function startNetGame(){
   if(!NET||!NET.host||NET.started) return;
   NET.started=true;
-  for(let i=1;i<4;i++) SEATK[i]=NET.conns.find(c=>c.seat===i)?'remote':'ai';
-  SEATK[0]='human'; mySeat=0;
-  NAMES[0]=NET.myName;
-  HUMAN_AVAKEYS={0:myAvaKey};
-  AVA[0]= myAvaKey? AVATARS[myAvaKey] : null;
-  NET.conns.forEach(c=>{ NAMES[c.seat]=c.pname;
-    HUMAN_AVAKEYS[c.seat]=c.avaKey||'';
-    AVA[c.seat]= c.avaKey? AVATARS[c.avaKey] : humanAva(c.pname); });
   $('netSheet').classList.remove('on');
   $('startSheet')&&$('startSheet').remove();
   newGame();
