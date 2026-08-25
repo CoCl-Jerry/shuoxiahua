@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>苗伯说瞎话</title>
+<title>说瞎话</title>
 <meta name="theme-color" content="#0B211B">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="苗伯说瞎话">
-<meta name="description" content="苗伯说瞎话 —— 扑克牌吹牛游戏，单机对 AI，也能开房联机">
+<meta name="apple-mobile-web-app-title" content="说瞎话">
+<meta name="description" content="扑克牌游戏说瞎话，一个人对三个电脑对手">
 <style>
 :root{
   --felt-hi:#27543F;
@@ -45,7 +45,7 @@ header{padding:16px 0 12px;position:relative}
 .brand{display:flex;align-items:flex-end;justify-content:space-between}
 h1{
   font-family:"Songti SC","STSong","SimSun",serif;
-  font-size:26px;letter-spacing:.18em;margin:0;font-weight:700;text-indent:.18em;
+  font-size:29px;letter-spacing:.34em;margin:0;font-weight:700;text-indent:.34em;
   color:var(--ivory);text-shadow:0 2px 10px rgba(0,0,0,.5);
 }
 .ver{font-family:system-ui,sans-serif;font-size:10.5px;letter-spacing:.06em;color:var(--brass-dim);
@@ -60,7 +60,7 @@ h1{
   opacity:.55}
 
 /* ─── 座位 ─── */
-#seats{display:flex;gap:9px;margin:14px 0 6px;padding-bottom:56px}  /* 下面这条是留给说话气泡的，够三行 */
+#seats{display:flex;gap:9px;margin:14px 0 6px;padding-bottom:46px}  /* 下面这条是留给说话气泡的，够两行 */
 .seat{flex:1;text-align:center;padding:9px 4px 8px;border-radius:9px;position:relative;
   border:1px solid rgba(199,154,78,.22);background:rgba(0,0,0,.22);
   transition:border-color .3s,background .3s,transform .3s}
@@ -81,7 +81,7 @@ h1{
 .seat .ct{font-size:11px;color:var(--dim);letter-spacing:.1em}
 /* 说话的小气泡，挂在座位底下 */
 .bub{position:absolute;top:calc(100% + 6px);left:50%;z-index:5;
-  max-width:210px;width:max-content;padding:5px 10px;border-radius:9px;
+  max-width:150px;width:max-content;padding:5px 9px;border-radius:9px;
   background:var(--paper);color:var(--ink);font-size:11.5px;line-height:1.45;
   box-shadow:0 3px 11px rgba(0,0,0,.45);transform:translateX(-50%)}
 .bub.pop{animation:bubin .2s ease-out backwards}
@@ -121,8 +121,8 @@ h1{
 .sdeco .bk:nth-child(1){transform:rotate(-16deg)}
 .sdeco .bk:nth-child(2){transform:rotate(0deg) translateY(-4px)}
 .sdeco .bk:nth-child(3){transform:rotate(16deg)}
-.stitle{font-family:"Songti SC","STSong","SimSun",serif;font-size:42px;font-weight:700;
-  letter-spacing:.18em;text-indent:.18em;color:var(--ivory);text-shadow:0 3px 16px rgba(0,0,0,.55);white-space:nowrap}
+.stitle{font-family:"Songti SC","STSong","SimSun",serif;font-size:52px;font-weight:700;
+  letter-spacing:.3em;text-indent:.3em;color:var(--ivory);text-shadow:0 3px 16px rgba(0,0,0,.55)}
 .srule{width:150px;height:3px;margin:16px 0 14px;opacity:.6;
   background:linear-gradient(var(--brass-dim),var(--brass-dim)) top/100% 1px no-repeat,
              linear-gradient(var(--brass-dim),var(--brass-dim)) bottom/100% 1px no-repeat}
@@ -153,14 +153,14 @@ h1{
 .avapick .ap.txt{display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:12px}
 .roomcode{font-family:Georgia,serif;font-size:38px;letter-spacing:.35em;text-indent:.35em;
   text-align:center;color:var(--brass);margin:6px 0 14px;text-shadow:0 2px 8px rgba(0,0,0,.4)}
-#hostName,#joinName{width:100%;padding:11px;border-radius:8px;border:1px solid rgba(199,154,78,.4);
+#hostName,#joinCode,#joinName{width:100%;padding:11px;border-radius:8px;border:1px solid rgba(199,154,78,.4);
   background:rgba(0,0,0,.25);color:var(--ivory);font-family:inherit;font-size:14px}
 #startRules{background:none;border:none;color:var(--dim);font-family:inherit;font-size:13px;
   margin-top:20px;cursor:pointer;border-bottom:1px solid transparent;padding:4px 2px}
 #startRules:hover{color:var(--brass);border-color:var(--brass-dim)}
 .sver{position:absolute;bottom:calc(16px + env(safe-area-inset-bottom));font-size:11px;
   color:var(--brass-dim);letter-spacing:.15em}
-@media (max-height:700px){.stitle{font-size:34px}.ssub{margin-bottom:28px}.sdeco{margin-bottom:16px}}
+@media (max-height:700px){.stitle{font-size:40px}.ssub{margin-bottom:28px}.sdeco{margin-bottom:16px}}
 
 /* ─── 发牌动画：从桌心飞到各家 ─── */
 #dealfx{position:fixed;inset:0;pointer-events:none;z-index:8}
@@ -172,24 +172,6 @@ h1{
   82%{opacity:1}
   100%{transform:translate(var(--tx),var(--ty)) scale(.5) rotate(var(--rr));opacity:0}
 }
-
-/* 牌背花色：每局随机换一款 */
-.bk.b1{background:
-  repeating-linear-gradient(45deg,rgba(255,255,255,.10) 0 3px,transparent 3px 8px),
-  linear-gradient(160deg,#2E4676,#1C2C4E);border-color:#141F38}
-.bk.b2{background:
-  linear-gradient(135deg,rgba(255,255,255,.12) 25%,transparent 25%) 0 0/6px 6px,
-  linear-gradient(45deg,rgba(255,255,255,.12) 25%,transparent 25%) 0 0/6px 6px,
-  linear-gradient(160deg,#1E5C46,#123B2C);border-color:#0C271D}
-.bk.b3{background:
-  radial-gradient(rgba(255,220,180,.28) 1.1px,transparent 1.1px) 0 0/7px 7px,
-  linear-gradient(160deg,#6E2340,#4A162B);border-color:#330F1E}
-.bk.b4{background:
-  repeating-linear-gradient(-45deg,rgba(255,235,190,.16) 0 2px,transparent 2px 7px),
-  linear-gradient(160deg,#8A6428,#5E4218);border-color:#3E2C10}
-.bk.b5{background:
-  repeating-linear-gradient(0deg,rgba(255,255,255,.09) 0 4px,transparent 4px 9px),
-  linear-gradient(160deg,#1F5E66,#123E44);border-color:#0C2A2E}
 
 /* 牌堆 */
 .pile{position:relative;height:78px;width:120px}
@@ -266,15 +248,6 @@ button.act.primary{background:var(--brass);border-color:var(--brass);color:#2016
 button.act.danger{background:var(--red);border-color:var(--red);color:#FFF3E8;font-weight:600}
 button.act:disabled{opacity:.3;cursor:default}
 button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
-#handwrap{position:relative}
-#ebar{position:absolute;bottom:100%;left:0;right:0;z-index:20;display:none;
-  flex-wrap:wrap;gap:7px;justify-content:center;padding:9px 10px;margin-bottom:7px;
-  background:rgba(10,26,19,.94);border:1px solid rgba(199,154,78,.4);border-radius:13px;
-  box-shadow:0 6px 18px rgba(0,0,0,.5)}
-#ebar.on{display:flex;animation:bubin .18s ease-out}
-#ebar button{background:var(--paper);color:var(--ink);border:none;border-radius:14px;
-  padding:7px 13px;font-size:13px;font-family:inherit;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,.3)}
-#ebar button:active{transform:translateY(1px)}
 #etoast{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);z-index:30;
   background:var(--paper);color:var(--ink);padding:6px 15px;border-radius:12px;font-size:13px;
   box-shadow:0 4px 14px rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .25s}
@@ -317,7 +290,7 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
 @media (max-height:800px){
   header{padding:10px 0 8px}
   h1{font-size:25px}
-  #seats{margin:9px 0 4px;padding-bottom:52px}
+  #seats{margin:9px 0 4px;padding-bottom:42px}
   .seat{padding:6px 4px 5px}
   .ava{width:27px;height:27px;margin-bottom:2px}
   #stage{min-height:150px;padding:12px 12px;margin:4px 0 2px;gap:8px}
@@ -334,9 +307,9 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
 @media (max-height:700px){
   h1{font-size:22px}
   header{padding:8px 0 6px}
-  #seats{padding-bottom:40px;margin:7px 0 3px}
-  .bub{font-size:11px;line-height:1.35;padding:3px 8px;max-width:185px;max-height:2.9em;overflow:hidden}
-  #stage{min-height:104px;padding:8px 10px;gap:6px}
+  #seats{padding-bottom:34px;margin:7px 0 3px}
+  .bub{font-size:11px;line-height:1.35;padding:3px 8px;max-width:130px}
+  #stage{min-height:110px;padding:9px 10px;gap:6px}
   .plaque{font-size:18px;padding:6px 14px}
   .pile{height:62px;width:100px}
   .bk{width:36px;height:50px}
@@ -358,7 +331,7 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
 <div id="app">
   <header>
     <div class="brand">
-      <h1>苗伯说瞎话<span class="ver" id="ver"></span></h1>
+      <h1>说瞎话<span class="ver" id="ver"></span></h1>
       <div class="tools">
         <button id="emoteBtn" style="display:none">喊话</button>
         <button id="rulesBtn">规则</button>
@@ -374,7 +347,6 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
 
   <div id="etoast"></div>
 <div id="handwrap">
-    <div id="ebar"></div>
     <div class="label">你的手牌 <span id="handct"></span></div>
     <div id="handscroll"><div id="hand"></div></div>
     <div id="controls"></div>
@@ -384,7 +356,7 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
 
 <div id="startSheet">
   <div class="sdeco"><div class="bk"></div><div class="bk"></div><div class="bk"></div></div>
-  <div class="stitle">苗伯说瞎话</div>
+  <div class="stitle">说瞎话</div>
   <div class="srule"></div>
   <div class="ssub">一副牌 · 四个人 · 全凭一张嘴</div>
   <button id="startBtn">开 始 打 牌</button>
@@ -444,8 +416,9 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
 
 <div class="sheet" id="netSheet"><div class="panel">
   <div id="netHost" style="display:none">
-    <h2>开家里的牌桌</h2>
-    <p>让他们打开游戏点「联机 · 加入」就进来了，不用对暗号。人齐了开打，空位 AI 补。</p>
+    <h2>开房</h2>
+    <p>把房号念给他们，人齐了就开打。没坐满的位置由 AI 补。</p>
+    <div class="roomcode" id="roomCode">····</div>
     <div class="opt"><div class="q">你的名字</div>
       <input id="hostName" maxlength="8" placeholder="房主"></div>
     <div class="opt"><div class="q">你的头像</div><div class="avapick" id="hostAva"></div></div>
@@ -457,7 +430,9 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
     </div>
   </div>
   <div id="netJoin" style="display:none">
-    <h2>上桌</h2>
+    <h2>加入牌局</h2>
+    <div class="opt"><div class="q">房号（四位）</div>
+      <input id="joinCode" maxlength="4" placeholder="比如 7A3F" style="text-transform:uppercase"></div>
     <div class="opt"><div class="q">你的名字</div>
       <input id="joinName" maxlength="8" placeholder="怎么称呼"></div>
     <div class="opt"><div class="q">你的头像</div><div class="avapick" id="joinAva"></div></div>
@@ -467,6 +442,12 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
       <button class="act primary" id="joinGo" style="flex:1">加入</button>
     </div>
   </div>
+</div></div>
+
+<div class="sheet" id="emoteSheet"><div class="panel">
+  <h2>喊一嗓子</h2>
+  <div class="ranks" id="emoteGrid" style="grid-template-columns:repeat(2,1fr)"></div>
+  <button class="act" id="emoteCancel" style="width:100%;margin-top:12px">算了</button>
 </div></div>
 
 <div class="sheet" id="rankSheet"><div class="panel">
@@ -500,7 +481,7 @@ const nm=i=>i===mySeat?'你':NAMES[i];
 const isAI=i=>SEATK[i]==='ai';
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.29';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const VERSION='1.25';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
 const SET={wild:1,max:4,burn:1,ai:1,sound:1,salty:1};
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
      if(_s&&typeof _s==='object') for(const k in SET) if(typeof _s[k]==='number') SET[k]=_s[k];
@@ -670,7 +651,7 @@ function deal(){
   over=false;winner=null;logs=[];selected=new Set();fresh=new Set();outQueue=[];
   ECFG={wild:SET.wild,max:SET.max,burn:SET.burn};
   turn=Math.random()*4|0;          // 谁先出，抽签
-  tilt={}; bubble=null; rage=[0,0,0,0]; banterEpoch++; rollPileJit(); rollBack();
+  tilt={}; bubble=null; banterEpoch++; rollPileJit();
   known=[{},{},{},{}]; roundLeaderId=null; mood=['','idle','idle','idle'];
   Sfx.deal();
 }
@@ -715,9 +696,6 @@ function stage(html,stampText){
 }
 // drop=刚打出去几张。只有这几张播"落下"的动画，
 // 否则每次重画牌桌整堆牌都会重新落一遍，看着像在重新发牌。
-const BACKS=['','b1','b2','b3','b4','b5'];
-let BACK='';
-function rollBack(){ BACK=BACKS[Math.random()*BACKS.length|0]; }
 let PILE_JIT=[];
 function rollPileJit(){ PILE_JIT=Array.from({length:32},()=>({a:Math.random()*12-6,x:Math.random()*10-5,y:Math.random()*3})); }
 rollPileJit();
@@ -729,7 +707,7 @@ function pileHTML(drop){
   for(let i=0;i<s;i++){
     const jj=PILE_JIT[i%PILE_JIT.length];
     const a=jj.a, x=jj.x, y=i*2+jj.y;
-    h+='<div class="bk '+BACK+(i>=from?' drop':'')+'" style="transform:translate('+x+'px,'+y+'px) rotate('+a+'deg);z-index:'+i+'"></div>';
+    h+='<div class="bk'+(i>=from?' drop':'')+'" style="transform:translate('+x+'px,'+y+'px) rotate('+a+'deg);z-index:'+i+'"></div>';
   }
   return h+'<div class="pilect">'+pile.length+' 张</div></div>';
 }
@@ -929,7 +907,7 @@ const ROSTER=[
  {key:'tiezi',name:'铁子',ava:AVATARS.tiezi,
   persona:'你是铁子，东北人，四十来岁，大嗓门豪爽，最爱梭哈式的大吹特吹，抓人也痛快；上头了嗷嗷叫。一口东北话（哎呀妈呀、整、老铁、削你、瞅你咋地）。',
   prof:{passReal:.10,passBluff:.32,bigPlay:.78,truthMax:.60,junkMix:.42,
-   callBase:.13,callPerCard:.05,crowd:.07,sniper:0,counts:0,guard:.75,exitD:.55,speed:[450,950],tiltable:2,chatty:.62,
+   callBase:.13,callPerCard:.05,crowd:.07,sniper:0,counts:0,guard:.75,exitD:.35,speed:[450,950],tiltable:2,chatty:.62,
    talk:{
      play:['整！','瞅我的','来了老弟','干就完了'],bluff:['梭了！','整个大的','虚啥啊','就这么地'],
      pass:['歇一手','这轮不整','你们先造'],call:['瞅你咋地','我寻思你在吹','掀开看看'],
@@ -978,64 +956,6 @@ const ROSTER=[
      salty:{tilt:['顶你个肺！','扑街仔','丢，激死我'],caught:['丢，畀你捉到','扑街，蚀大了'],
        call:['呃你老母，翻开','吹咩啊你'],win:['扑街仔，畀我捉到啦'],lose:['丢，睇错你']}}}}
 ];
-/* ═══ 台词增补：只加不改，开局合并进各人的嘴 ═══ */
-const TALK_MORE={
- laoli:{play:['踏实','老规矩','不着急'],bluff:['闭眼跟一个','你就当我有'],
-  pass:['让让你们','不趟介浑水'],call:['我瞅你不对劲','别蒙我老头子','介牌有猫腻'],
-  caught:['嗨，露馅了','大意了大意了','栽跟头了'],clear:['瞅瞅，真的吧','老头子不骗人','我说话算话'],
-  win:['姜还是老的辣','我吃的盐比你吃的饭多','跑不了你'],lose:['看走眼喽','年纪大了眼神不济','嗨'],
-  tilt:['谁都甭理我','气性上来了','介牌没法打了'],threat:['要让他跑了啊','都精神点儿'],
-  last:['马上完事','就差一口气'],over:['先撤了啊','明儿再战'],
-  salty:{tilt:['操蛋的牌','气得我肝儿颤'],caught:['妈的，大意了'],call:['少他妈蒙我'],
-    win:['孙子，露馅了吧'],lose:['操，瞎了眼']}},
- wangjie:{play:['姐出手了','都让让','瞅准喽'],bluff:['就介么报','跟不跟？','姐说是嘛就是嘛'],
-  pass:['懒得陪你们','介轮没意思'],call:['姐的眼睛是尺','你介牌有味儿','演砸了吧'],
-  caught:['行啊你小子','姐今儿状态不行','栽在你手里'],clear:['长点记性','姐是那种人吗','服不服'],
-  win:['就介还想蒙姐','太嫩了','姐吃介碗饭的'],lose:['见鬼了今儿','算你小子行','走眼了'],
-  tilt:['别劝我','姐火儿了','谁也别拦着','介口气咽不下'],threat:['盯住他','别让他得逞'],
-  last:['姐要收网了'],over:['姐先赢为敬','散了散了'],
-  salty:{tilt:['姐他妈火儿了','一群王八羔子'],call:['你那损色儿藏不住'],
-    caught:['操，姐栽了'],win:['太他妈嫩了']}},
- xiaozhao:{play:['出'],bluff:['跟'],pass:['让'],call:['对不上','有假'],
-  caught:['嗯。','疏忽'],clear:['嗯','说了是真的'],win:['如我所料','都算着呢'],lose:['嗯？','有意思'],
-  tilt:['烦','别吵'],threat:['拦他'],last:['一张'],over:['结束'],
-  salty:{tilt:['操，烦'],call:['放屁'],lose:['妈的']}},
- tiezi:{play:['造！','再来一手','跟上跟上'],bluff:['大力出奇迹','跟我赌一把','就问你敢不敢'],
-  pass:['缓一口儿','让让风头'],call:['你介是虚的','掀了！','我瞅你飘了'],
-  caught:['哎妈呀翻车了','整挺好，被你逮着','大意失荆州'],clear:['虚啥，真的！','老铁没毛病','咋样'],
-  win:['我瞅出来的','介波稳','跑不了'],lose:['哎呀妈，亏了','算你狠'],
-  tilt:['上火了啊','整不明白了','跟你们拼了','嗷嗷造'],threat:['那谁要跑了','快堵他'],
-  last:['就差一哆嗦'],over:['齐活！','收摊喝酒去'],
-  salty:{tilt:['气得我嗷嗷的','削你们信不信'],caught:['我操，翻车了'],call:['吹牛逼掀了！'],win:['虚逼露馅了']}},
- chenjiaoshou:{play:['循序渐进','按部就班'],bluff:['权宜之计'],
-  pass:['以静制动','不争一时'],call:['概率上讲不通','疑点颇多','恕难苟同'],
-  caught:['百密一疏','汗颜','失之毫厘'],clear:['何必多疑','君子坦荡','清白自明'],
-  win:['逻辑使然','早有推断','数字不说谎'],lose:['误判矣','当复盘之'],
-  tilt:['成何体统！','斯文扫地'],threat:['诸位，此人将胜'],last:['胜负将分'],over:['幸甚','承让承让'],
-  salty:{tilt:['岂有此理！荒谬绝伦'],call:['一派胡言，翻开！']}},
- yaomei:{play:['看招','麻溜的','来嘛'],bluff:['豁就豁','虚啥子嘛','跟到起'],
-  pass:['歇口气','不来'],call:['翻开看嘛','幺妹不好骗','你眼神都不对'],
-  caught:['哎呀遭了','栽了栽了','算你凶哦'],clear:['冤枉人嗦','该你背','气不气'],
-  win:['眼睛尖不尖','早看穿你了','豁不到我的'],lose:['凶得很嘛','服气服气'],
-  tilt:['把老子惹毛了','不虚你','来嘛来嘛'],threat:['他要跑了，拦到！'],last:['马上赢了哈'],over:['安逸！','巴适得板'],
-  salty:{tilt:['龟儿的惹毛我了'],call:['豁鬼哦，翻开'],caught:['日的，栽了']}},
- fashu:{play:['照单出货','稳稳当当'],bluff:['小赌怡情','搏一搏'],
-  pass:['唔急唔急','留返啖气'],call:['盘数唔啱','你呃唔到我','睇穿你啦'],
-  caught:['失策失策','蚀了蚀了','畀你赚到'],clear:['真金不怕火','唔好乱讲','清清白白'],
-  win:['精过你啦','计到尽','食硬你'],lose:['亏一铺','算数算数'],
-  tilt:['搞乜鬼','激气！','唔忍了'],threat:['佢就嚟赢了'],last:['就快埋单'],over:['埋单！数钱'],
-  salty:{tilt:['扑街啦真系','激死人咩'],call:['呃鬼啊，翻开']}}
-};
-ROSTER.forEach(r=>{
-  const m=TALK_MORE[r.key]; if(!m) return;
-  const t=r.prof.talk;
-  for(const k in m){
-    if(k==='salty'){ t.salty=t.salty||{};
-      for(const sk in m.salty) t.salty[sk]=(t.salty[sk]||[]).concat(m.salty[sk]);
-    } else t[k]=(t[k]||[]).concat(m[k]);
-  }
-});
-
 let NAMES=['你','老李','王姐','小赵'], AVA=['',AVATARS.laoli,AVATARS.wangjie,AVATARS.xiaozhao];
 const PROFILE={}, PERSONA={};
 let PREF_CAST=(()=>{ try{ const v=JSON.parse(localStorage.getItem('sxh_cast')||'[]');
@@ -1095,7 +1015,7 @@ function humanAva(name){
     '<text x="24" y="31" text-anchor="middle" font-family="Songti SC,STSong,serif" font-size="18" fill="#F4EBD6">'+ch+'</text></svg>',
     post:'', f:null};
 }
-let tilt={}, bubble=null, rage=[0,0,0,0];
+let tilt={}, bubble=null;
 let known=[{},{},{},{}], roundLeaderId=null, humCaughtS=0, humHonestS=0;
 let mood=['','idle','idle','idle'];
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -1120,11 +1040,9 @@ function aiBanter(p,evText){
       max_tokens:60, temperature:1.2,
       messages:[
         {role:'system',content:PERSONA[p]+' 说话保持你自己的方言味儿。'+
-          (SET.salty&&(rage[p]||0)>=2
-            ? '你已经连背 '+rage[p]+' 堆牌，正急眼：骂街要够味儿——操、他妈的、妈了个巴子、王八羔子、孙子、傻逼玩意儿，随便用，就是牌桌上急眼的劲儿。骂牌骂局骂手气都行，别碰人家里人、别用歧视性字眼。'
-            : SET.salty&&(rage[p]||0)===1
-            ? '你刚背了一堆牌，有点来气，可以轻口（妈的、邪门 这个级别），别下重的。'
-            : '心平气和，别带脏字。')+
+          (SET.salty
+            ? '骂街要够味儿：操、他妈的、妈了个巴子、王八羔子、孙子、傻逼玩意儿、放你妈的屁，这个级别随便用，就是天津牌桌上急眼的劲儿。骂牌骂局骂手气都行，别碰人家里人、别用歧视性字眼。'
+            : '别带脏字。')+
           ' 你正在打扑克牌游戏「说瞎话」。根据刚发生的事说一句话，最多 14 个字，要像牌桌上脱口而出的，'+
           '可以翻旧账（下面给了你们的旧账）。只输出 JSON：{"talk":"..."}'},
         {role:'user',content:'【旧账】'+memSummary()+'\n【最近几手】'+(hist.join('；')||'刚开局')+
@@ -1186,7 +1104,6 @@ function aiPlan(p){
   const jokers=ECFG.wild?hand.filter(isJoker):[];
   const threat=[0,1,2,3].find(i=>i!==p&&hands[i].length<=2);   // 有人快跑了
 
-  const capT=4+(ECFG.wild?2:0);
   if(currentRank!==null){                       // 要不要过
     const real=hand.filter(c=>fits(c,currentRank)).length;
     let pp = real? P.passReal : P.passBluff;
@@ -1195,11 +1112,6 @@ function aiPlan(p){
     if(hand.length<=4) pp*=.3;
     if(threat!==undefined) pp*=.6;              // 有人要跑，不能歇着
     if(passStreak===2&&lastPlay&&hands[lastPlay.player].length<=4) pp*=.4;  // 再过一手就烧堆，等于白送他一轮先手
-    if(!real){                                   // 没真牌时的硬纪律：这点数还装得下几张（放在所有系数之后，不被稀释）
-      const after1=roundClaimed+1;
-      if(after1>capT)        pp=.98;             // 报不下了还吹是自杀
-      else if(after1>capT-2) pp=Math.max(pp,.88); // 人家刚甩了一大把，你跟一张谁信
-    }
     if(Math.random()<pp) return {act:'pass'};
   }
 
@@ -1231,7 +1143,6 @@ function aiPlan(p){
     let mix=hot?P.junkMix+.30:P.junkMix;
     if(pile.length<=4) mix+=.10;                // 堆小，掺一张假的便宜
     if(pile.length>12) mix*=.5;                 // 堆大，被逮着背不起
-    if(!lead&&roundClaimed+cards.length>=capT) mix*=.25;     // 这点数快报满了，别再掺
     if(Math.random()<mix&&cards.length<ECFG.max){
       const junk=hand.filter(c=>!cards.includes(c)&&!(ECFG.wild&&isJoker(c)))
                      .sort((x,y)=>by[rk(x)].length-by[rk(y)].length)[0];
@@ -1265,15 +1176,13 @@ function chat(p,kind,rate){
   let pool=P.talk[kind]||[];
   const S=P.talk.salty;
   if(SET.salty&&S&&S[kind]&&S[kind].length){
-    // 火气越大嘴越脏：没背过牌堆基本干净，背两三堆之后满嘴跑火车；手牌攒多了也焦躁
-    const heat=Math.min(.85,(rage[p]||0)*.3+Math.max(0,hands[p].length-13)*.04);
-    pool = Math.random()<heat ? S[kind] : pool;
+    pool = Math.random()<.75 ? S[kind] : pool;  // 开了荤口，四分之三说荤的
   }
   const line=pick(pool); if(!line) return;
   speak2(p,line);
 }
 function speak2(p,line){
-  bubble={p:p,text:String(line).slice(0,32),pop:true};  // 只弹气泡，不占日志；32 字封顶
+  bubble={p:p,text:String(line).slice(0,16),pop:true};  // 只弹气泡，不占日志；16 字封顶，最多两行
   render();
   if(NET&&NET.host&&NET.started) netAll({t:'talk',seat:p,text:bubble.text});
 }
@@ -1305,16 +1214,7 @@ function aiChallenge(p,P,hot){
   let prob=P.callBase + mine*P.callPerCard;     // 我攥着越多，他越可疑
   const before=Math.max(0,roundClaimed-k), room=Math.max(0,cap-mine-knownElse-k);
   if(before>room) prob+=P.crowd*Math.min(4,before-room);   // 这轮吹过头了，气氛可疑
-  // 这一手要是真的，这个点数全场的余量还剩多少
-  const slack=Math.max(0,cap-mine-knownElse-k);
-  if(k>=3){
-    if(slack<=0)      prob+=.18;    // 挤到刚好放下：所有真牌都得在他手里，可疑
-    else if(slack===1) prob+=.08;
-    else               prob*=.7;    // 宽裕的大把多半是真套，别瞎抓白背牌
-  }else{
-    prob+=.05*Math.max(0,2-slack);
-    if(before>=4) prob+=.12;                    // 大把之后还跟小的，往往是硬挤，重点盯
-  }
+  if(k>=3) prob+=.09*(k-2);
   if(left<=2) prob+=.15+(P.sniper?.10:0);       // 快出完的人，重点照顾
   else if(P.sniper&&left<=4) prob+=.06;
   if(q===mySeat&&SEATK[q]==='human'){           // 对本机真人看信用：惯犯多抓，老实人少抓（旧账也算）
@@ -1370,7 +1270,6 @@ async function presentReveal(ev){
   ev.gained.forEach(c=>fresh.add(c));
   cards.forEach(c=>{ const key=isJoker(c)?'j':rk(c); known[loser][key]=(known[loser][key]||0)+1; }); // 桌面见过的牌，全桌都记得到了谁手里
   Sfx.pickup(pn);
-  rage[loser]=(rage[loser]||0)+1;                       // 背一次牌堆，火气 +1
   if(isAI(loser)&&PROFILE[loser]&&PROFILE[loser].tiltable) tilt[loser]=PROFILE[loser].tiltable;  // 谁收了牌谁上头
   say(truth ? nm(p)+' 说的是真话 — '+nm(loser)+' 收走 '+pn+' 张'
             : nm(p)+' 真在骗人 — 收走 '+pn+' 张');
@@ -1414,13 +1313,14 @@ function loadPeerLib(){
 }
 const peerOpts=()=>window.__peerOpts||{};        // 测试时指到本地信令服务器
 const ROOMPFX='shuoxiahua-v1-';
-const FAMILY_ROOM='MIAOJIA';   // 全家固定一间房，不用念房号
+const newRoomCode=()=>{const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789';let c='';for(let i=0;i<4;i++)c+=A[Math.random()*A.length|0];return c;};
 const PROXY_PROF=(()=>null)();   // 掉线代打用的牌风，开局后填
 
 const EMOTES=['快点儿啊','哈哈哈哈哈','我不信','你俩串通了吧','好牌不怕翻','服了','稳住别慌','再来再来！'];
 let lastEmoteAt=0;
-function paintEbar(){
-  $('ebar').innerHTML=EMOTES.map((t,i)=>'<button data-i="'+i+'">'+t+'</button>').join('');
+function paintEmotes(){
+  $('emoteGrid').innerHTML=EMOTES.map((t,i)=>
+    '<button data-i="'+i+'" style="font-family:inherit;font-size:13.5px">'+t+'</button>').join('');
 }
 function selfToast(t){
   const el=$('etoast'); el.textContent='你：「'+t+'」'; el.classList.add('on');
@@ -1448,13 +1348,13 @@ function netFail(msg){
 /* ── 房主 ── */
 async function hostRoom(){
   await loadPeerLib();
-  const code=FAMILY_ROOM;
+  const code=newRoomCode();
   const peer=new Peer(ROOMPFX+code,peerOpts());
   NET={host:true,peer:peer,code:code,conns:[],started:false,waitRemote:null,waitSeat:-1};
   netStatus('正在开房…');
   peer.on('open',()=>{ netStatus(''); paintLobby(); });
   peer.on('error',e=>{
-    if(e.type==='unavailable-id') netFail('家里的牌桌已经开着了 —— 是不是另一台手机还开着房？关掉它再试');
+    if(e.type==='unavailable-id'){ try{peer.destroy();}catch(_){} hostRoom(); }
     else netFail(e.type==='network'?'连不上联机服务器':'联机出错：'+e.type);
   });
   peer.on('connection',conn=>{
@@ -1600,7 +1500,7 @@ async function clientStart(m){
   pile=Array(m.env.pileN).fill(-1);
   clientEnv(m.env);
   winner=null;logs=[];selected=new Set();fresh=new Set();outQueue=[];
-  tilt={};bubble=null;rage=[0,0,0,0];mood=['idle','idle','idle','idle'];known=[{},{},{},{}];banterEpoch++;rollPileJit();rollBack();
+  tilt={};bubble=null;mood=['idle','idle','idle','idle'];known=[{},{},{},{}];banterEpoch++;
   $('netSheet').classList.remove('on');
   $('overSheet').classList.remove('on');
   $('emoteBtn').style.display='inline';
@@ -1743,17 +1643,13 @@ document.querySelectorAll('.seg').forEach(seg=>{
   });
 });
 $('rulesBtn').onclick=()=>{paintRules();$('rulesSheet').classList.add('on');};
-$('emoteBtn').onclick=()=>{
-  if(!$('ebar').innerHTML) paintEbar();
-  $('ebar').classList.toggle('on');
-};
-$('ebar').addEventListener('click',e=>{
-  const b=e.target.closest('button'); if(!b) return;
-  $('ebar').classList.remove('on');
+$('emoteBtn').onclick=()=>{paintEmotes();$('emoteSheet').classList.add('on');};
+$('emoteCancel').onclick=()=>$('emoteSheet').classList.remove('on');
+$('emoteSheet').addEventListener('click',e=>{
+  if(e.target===$('emoteSheet')){ $('emoteSheet').classList.remove('on'); return; }
+  const b=e.target.closest('#emoteGrid button'); if(!b) return;
+  $('emoteSheet').classList.remove('on');
   sendEmote(+b.dataset.i);
-});
-document.addEventListener('click',e=>{      // 点别处收起
-  if(!e.target.closest('#ebar')&&!e.target.closest('#emoteBtn')) $('ebar').classList.remove('on');
 });
 $('rulesClose').onclick=()=>$('rulesSheet').classList.remove('on');
 function paintMem(){
@@ -1793,7 +1689,7 @@ $('againBtn').onclick=()=>{
 };
 
 $('ver').textContent='v'+VERSION;
-$('verFull').textContent='苗伯说瞎话 v'+VERSION;
+$('verFull').textContent='说瞎话 v'+VERSION;
 
 async function dealAnim(){
   if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -1806,7 +1702,7 @@ async function dealAnim(){
   for(let i=0;i<16;i++){
     const t=targets[i%targets.length]||targets[0];
     const el=document.createElement('div');
-    el.className='bk '+BACK;
+    el.className='bk';
     el.style.setProperty('--tx',(t.x-cx)+'px');
     el.style.setProperty('--ty',(t.y-cy)+'px');
     el.style.setProperty('--rr',((i*47)%44-22)+'deg');
@@ -1855,6 +1751,7 @@ document.addEventListener('click',e=>{
 function keepName(v){ try{localStorage.setItem('sxh_name',v);}catch(e){} }
 function paintLobby(){
   if(!NET||!NET.host) return;
+  $('roomCode').textContent=NET.code;
   const others=NET.conns.map(c=>c.pname);
   $('lobbyList').textContent = others.length? '你、'+others.join('、')+
     (others.length<3?'（还有 '+(3-others.length)+' 个空位，AI 补）':'（满员）') : '就你一个（其余 AI 补）';
@@ -1882,9 +1779,10 @@ $('hostGo').onclick=()=>{
 };
 $('hostCancel').onclick=()=>{ if(NET){try{NET.peer.destroy();}catch(e){}} NET=null; $('netSheet').classList.remove('on'); };
 $('joinGo').onclick=async ()=>{
-  const nm=($('joinName').value.trim()||'玩家').slice(0,8);
+  const code=$('joinCode').value.trim().toUpperCase(), nm=($('joinName').value.trim()||'玩家').slice(0,8);
+  if(code.length!==4){ $('netStatus').textContent='房号是四位'; return; }
   keepName(nm);
-  try{ await joinRoom(FAMILY_ROOM,nm); }catch(e){ $('netStatus').textContent=e.message; }
+  try{ await joinRoom(code,nm); }catch(e){ $('netStatus').textContent=e.message; }
 };
 $('joinCancel').onclick=()=>{ if(NET){try{NET.peer.destroy();}catch(e){}} NET=null; $('netSheet').classList.remove('on'); };
 $('startBtn').onclick=()=>{
