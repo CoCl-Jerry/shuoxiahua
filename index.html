@@ -155,7 +155,7 @@ h1{
 .avapick .ap.txt{display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:12px}
 .roomcode{font-family:Georgia,serif;font-size:38px;letter-spacing:.35em;text-indent:.35em;
   text-align:center;color:var(--brass);margin:6px 0 14px;text-shadow:0 2px 8px rgba(0,0,0,.4)}
-#hostName,#joinCode,#joinName{width:100%;padding:11px;border-radius:8px;border:1px solid rgba(199,154,78,.4);
+#hostName,#joinName{width:100%;padding:11px;border-radius:8px;border:1px solid rgba(199,154,78,.4);
   background:rgba(0,0,0,.25);color:var(--ivory);font-family:inherit;font-size:14px}
 #startRules{background:none;border:none;color:var(--dim);font-family:inherit;font-size:13px;
   margin-top:20px;cursor:pointer;border-bottom:1px solid transparent;padding:4px 2px}
@@ -450,9 +450,8 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
 
 <div class="sheet" id="netSheet"><div class="panel">
   <div id="netHost" style="display:none">
-    <h2>开房</h2>
-    <p>把房号念给他们。人齐了开打，空位 AI 补。</p>
-    <div class="roomcode" id="roomCode">····</div>
+    <h2>开家里的牌桌</h2>
+    <p>让他们打开游戏点「联机 · 加入」就进来了，不用对暗号。人齐了开打，空位 AI 补。</p>
     <div class="opt"><div class="q">你的名字</div>
       <input id="hostName" maxlength="8" placeholder="房主"></div>
     <div class="opt"><div class="q">你的头像</div><div class="avapick" id="hostAva"></div></div>
@@ -465,8 +464,6 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
   </div>
   <div id="netJoin" style="display:none">
     <h2>上桌</h2>
-    <div class="opt"><div class="q">房号（四位）</div>
-      <input id="joinCode" maxlength="4" placeholder="比如 7A3F" style="text-transform:uppercase"></div>
     <div class="opt"><div class="q">你的名字</div>
       <input id="joinName" maxlength="8" placeholder="怎么称呼"></div>
     <div class="opt"><div class="q">你的头像</div><div class="avapick" id="joinAva"></div></div>
@@ -509,7 +506,7 @@ const nm=i=>i===mySeat?'你':NAMES[i];
 const isAI=i=>SEATK[i]==='ai';
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.33';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const VERSION='1.32';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
 const SET={wild:1,max:4,burn:1,ai:1,sound:1,salty:1};
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
      if(_s&&typeof _s==='object') for(const k in SET) if(typeof _s[k]==='number') SET[k]=_s[k];
@@ -1425,7 +1422,8 @@ function loadPeerLib(){
 }
 const peerOpts=()=>window.__peerOpts||{};        // 测试时指到本地信令服务器
 const ROOMPFX='shuoxiahua-v1-';
-const newRoomCode=()=>{const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789';let c='';for(let i=0;i<4;i++)c+=A[Math.random()*A.length|0];return c;};
+// 全家固定的牌桌，但留四个槽位：僵尸注册（切后台没正常关的旧页面）占了一个就用下一个
+const SLOTS=['MIAOJIA1','MIAOJIA2','MIAOJIA3','MIAOJIA4'];
 addEventListener('pagehide',()=>{ if(NET&&NET.peer){ try{NET.peer.destroy();}catch(_){}} });
 const PROXY_PROF=(()=>null)();   // 掉线代打用的牌风，开局后填
 
@@ -1482,15 +1480,28 @@ function netFail(msg){
 }
 
 /* ── 房主 ── */
-async function hostRoom(){
+async function hostRoom(slotIdx,cycle){
+  slotIdx=slotIdx||0; cycle=cycle||0;
   await loadPeerLib();
-  const code=newRoomCode();
-  const peer=new Peer(ROOMPFX+code,peerOpts());
-  NET={host:true,peer:peer,code:code,conns:[],started:false,waitRemote:null,waitSeat:-1};
-  netStatus('正在开房…');
+  if(slotIdx>=SLOTS.length){
+    if(cycle<3){
+      netStatus('牌桌都被占着（残留的旧连接），稍等自动重试…');
+      NET={host:true,_t:setTimeout(()=>hostRoom(0,cycle+1),2500)};
+      return;
+    }
+    netFail('牌桌被占满了 —— 家里其他手机还开着房？关掉它们再试');
+    return;
+  }
+  const slot=SLOTS[slotIdx];
+  const peer=new Peer(ROOMPFX+slot,peerOpts());
+  NET={host:true,peer:peer,code:slot,conns:[],started:false,waitRemote:null,waitSeat:-1};
+  netStatus(slotIdx||cycle?'换个位置重开…':'正在开牌桌…');
   peer.on('open',()=>{ netStatus(''); paintLobby(); });
   peer.on('error',e=>{
-    if(e.type==='unavailable-id'){ try{peer.destroy();}catch(_){} if(NET&&NET.host) hostRoom(); }
+    if(e.type==='unavailable-id'){
+      try{peer.destroy();}catch(_){}
+      if(NET&&NET.host) hostRoom(slotIdx+1,cycle);   // 这个槽被占（多半是僵尸），试下一个
+    }
     else netFail(e.type==='network'?'连不上联机服务器':'联机出错：'+e.type);
   });
   peer.on('connection',conn=>{
@@ -1602,37 +1613,44 @@ function waitRemote(seat){
 }
 
 /* ── 客机 ── */
-async function joinRoom(code,name,round){
+async function joinRoom(_code,name,round){
   round=round||0;
   await loadPeerLib();
   const peer=new Peer(peerOpts());
   NET={host:false,peer:peer,q:Promise.resolve(),pendCards:null,started:false,adopted:false};
-  netStatus(round?'还没找到房间 '+code+'，重试中…（'+round+'）':'正在连接…');
+  netStatus(round?'牌桌还没开，等房主…（第 '+(round+1)+' 轮找）':'正在找家里的牌桌…');
   const onMsg=m=>{ NET.q=NET.q.then(()=>clientMsg(m)).catch(e=>{console.error(e); say('⚠ 出错：'+e.message); render(); clientAfter();}); };
-  const retry=()=>{
-    try{peer.destroy();}catch(_){}
-    if(!NET||NET.host||NET.adopted) return;
-    if(round<10){ NET._t=setTimeout(()=>{ if(NET&&!NET.host) joinRoom(code,name,round+1); },2500); }
-    else netFail('一直没找到房间 '+code+' —— 对一下房号，确认房主开着房');
-  };
   peer.on('error',e=>{
-    if(e.type==='peer-unavailable') retry();
-    else netFail(e.type==='network'?'连不上联机服务器':'联机出错：'+e.type);
+    if(e.type==='peer-unavailable') return;         // 某个槽没人，正常，探测继续
+    netFail(e.type==='network'?'连不上联机服务器':'联机出错：'+e.type);
   });
   peer.on('open',()=>{
-    const conn=peer.connect(ROOMPFX+code,{reliable:true});
-    NET.conn=conn;
-    const t=setTimeout(()=>{ if(NET&&!NET.adopted) retry(); },6000);   // 连上僵尸不应答也算失败
-    conn.on('open',()=>{ try{conn.send({t:'join',name:name,v:VERSION,ava:myAvaKey});}catch(_){}});
-    conn.on('data',m=>{
-      if(!NET||NET.host) return;
-      if(!NET.adopted){ NET.adopted=true; clearTimeout(t);
-        try{localStorage.setItem('sxh_room',code);}catch(_){}
-        conn.on('close',()=>{ if(NET&&!over&&NET.started) netFail('和房主断线了'); });
-        netStatus('已进门，等房主开局…');
-      }
-      onMsg(m);
+    const probes=[];
+    SLOTS.forEach(slot=>{
+      let conn;
+      try{ conn=peer.connect(ROOMPFX+slot,{reliable:true}); }catch(_){ return; }
+      const pr={conn:conn,t:setTimeout(()=>{ try{conn.close();}catch(_){}} ,3500)};
+      probes.push(pr);
+      conn.on('open',()=>{ try{conn.send({t:'join',name:name,v:VERSION,ava:myAvaKey});}catch(_){}});
+      conn.on('data',m=>{
+        if(!NET||NET.host) return;
+        if(!NET.adopted){                            // 第一个真正应答的房间就是活的
+          NET.adopted=true; clearTimeout(pr.t);
+          NET.conn=conn;
+          probes.forEach(o=>{ if(o.conn!==conn){ clearTimeout(o.t); try{o.conn.close();}catch(_){}} });
+          conn.on('close',()=>{ if(NET&&!over&&NET.started) netFail('和房主断线了'); });
+          netStatus('已进门，等房主开局…');
+          onMsg(m);
+        }else if(conn===NET.conn) onMsg(m);
+      });
     });
+    setTimeout(()=>{                                 // 这一轮四个槽都没人应，整体再来
+      if(NET&&!NET.host&&!NET.adopted){
+        try{peer.destroy();}catch(_){}
+        if(round<10){ NET._t=setTimeout(()=>{ if(NET&&!NET.host) joinRoom(null,name,round+1); },2200); }
+        else netFail('等了很久也没等到牌桌开门 —— 确认房主点了「联机 · 开房」，然后重试');
+      }
+    },4200);
   });
 }
 async function clientMsg(m){
@@ -1919,7 +1937,6 @@ document.addEventListener('click',e=>{
 function keepName(v){ try{localStorage.setItem('sxh_name',v);}catch(e){} }
 function paintLobby(){
   if(!NET||!NET.host) return;
-  $('roomCode').textContent=NET.code;
   const others=NET.conns.map(c=>c.pname);
   $('lobbyList').textContent = others.length? '你、'+others.join('、')+
     (others.length<3?'（还有 '+(3-others.length)+' 个空位，AI 补）':'（满员）') : '就你一个（其余 AI 补）';
@@ -1936,7 +1953,6 @@ $('joinBtn').onclick=()=>{
   Sfx.wake();
   $('netJoin').style.display='block'; $('netHost').style.display='none';
   $('joinName').value=savedName();
-  try{ $('joinCode').value=localStorage.getItem('sxh_room')||''; }catch(e){}
   paintAvaPick('joinAva');
   $('netSheet').classList.add('on');
 };
@@ -1948,10 +1964,9 @@ $('hostGo').onclick=()=>{
 };
 $('hostCancel').onclick=()=>{ if(NET){ if(NET._t)clearTimeout(NET._t); try{NET.peer.destroy();}catch(e){} } NET=null; $('netSheet').classList.remove('on'); };
 $('joinGo').onclick=async ()=>{
-  const code=$('joinCode').value.trim().toUpperCase(), nm=($('joinName').value.trim()||'玩家').slice(0,8);
-  if(code.length!==4){ $('netStatus').textContent='房号是四位'; return; }
+  const nm=($('joinName').value.trim()||'玩家').slice(0,8);
   keepName(nm);
-  try{ await joinRoom(code,nm); }catch(e){ $('netStatus').textContent=e.message; }
+  try{ await joinRoom(null,nm); }catch(e){ $('netStatus').textContent=e.message; }
 };
 $('joinCancel').onclick=()=>{ if(NET){ if(NET._t)clearTimeout(NET._t); try{NET.peer.destroy();}catch(e){} } NET=null; $('netSheet').classList.remove('on'); };
 $('startBtn').onclick=()=>{
