@@ -248,6 +248,10 @@ button.act.primary{background:var(--brass);border-color:var(--brass);color:#2016
 button.act.danger{background:var(--red);border-color:var(--red);color:#FFF3E8;font-weight:600}
 button.act:disabled{opacity:.3;cursor:default}
 button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+#etoast{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);z-index:30;
+  background:var(--paper);color:var(--ink);padding:6px 15px;border-radius:12px;font-size:13px;
+  box-shadow:0 4px 14px rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .25s}
+#etoast.on{opacity:1}
 #hint{font-size:12.5px;color:var(--dim);text-align:center;margin-top:9px;min-height:17px;line-height:1.45;
   max-height:3.1em;overflow:hidden}
 #hint b{color:var(--brass);font-weight:600}
@@ -329,6 +333,7 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
     <div class="brand">
       <h1>说瞎话<span class="ver" id="ver"></span></h1>
       <div class="tools">
+        <button id="emoteBtn" style="display:none">喊话</button>
         <button id="rulesBtn">规则</button>
         <button id="setBtn">设置</button>
       </div>
@@ -340,7 +345,8 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
   <div id="stage"></div>
   <div id="log"></div>
 
-  <div id="handwrap">
+  <div id="etoast"></div>
+<div id="handwrap">
     <div class="label">你的手牌 <span id="handct"></span></div>
     <div id="handscroll"><div id="hand"></div></div>
     <div id="controls"></div>
@@ -438,6 +444,12 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
   </div>
 </div></div>
 
+<div class="sheet" id="emoteSheet"><div class="panel">
+  <h2>喊一嗓子</h2>
+  <div class="ranks" id="emoteGrid" style="grid-template-columns:repeat(2,1fr)"></div>
+  <button class="act" id="emoteCancel" style="width:100%;margin-top:12px">算了</button>
+</div></div>
+
 <div class="sheet" id="rankSheet"><div class="panel">
   <h2>这一轮报什么点数</h2>
   <p id="rankHint"></p>
@@ -469,7 +481,7 @@ const nm=i=>i===mySeat?'你':NAMES[i];
 const isAI=i=>SEATK[i]==='ai';
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.24';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const VERSION='1.25';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
 const SET={wild:1,max:4,burn:1,ai:1,sound:1,salty:1};
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
      if(_s&&typeof _s==='object') for(const k in SET) if(typeof _s[k]==='number') SET[k]=_s[k];
@@ -1304,6 +1316,25 @@ const ROOMPFX='shuoxiahua-v1-';
 const newRoomCode=()=>{const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789';let c='';for(let i=0;i<4;i++)c+=A[Math.random()*A.length|0];return c;};
 const PROXY_PROF=(()=>null)();   // 掉线代打用的牌风，开局后填
 
+const EMOTES=['快点儿啊','哈哈哈哈哈','我不信','你俩串通了吧','好牌不怕翻','服了','稳住别慌','再来再来！'];
+let lastEmoteAt=0;
+function paintEmotes(){
+  $('emoteGrid').innerHTML=EMOTES.map((t,i)=>
+    '<button data-i="'+i+'" style="font-family:inherit;font-size:13.5px">'+t+'</button>').join('');
+}
+function selfToast(t){
+  const el=$('etoast'); el.textContent='你：「'+t+'」'; el.classList.add('on');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('on'),1600);
+}
+function sendEmote(i){
+  const now=Date.now();
+  if(now-lastEmoteAt<2500) return;          // 别刷屏
+  lastEmoteAt=now;
+  const t=EMOTES[i]; if(!t) return;
+  if(NET&&NET.host) speak2(mySeat,t);       // speak2 自带广播
+  else if(NET&&NET.conn){ try{NET.conn.send({t:'emote',i:i});}catch(e){} }
+  selfToast(t);
+}
 function netAll(m){ if(NET&&NET.host) NET.conns.forEach(c=>{try{c.send(m);}catch(e){}}); }
 function netStatus(t){ ['netStatus','netStatusH'].forEach(id=>{const el=$(id); if(el) el.textContent=t;}); }
 function netFail(msg){
@@ -1341,6 +1372,12 @@ function hostMsg(conn,m){
     conn.avaKey=AVATARS[m.ava]?m.ava:'';
     NET.conns.push(conn);
     lobbyBroadcast(); paintLobby();
+  }else if(m.t==='emote'&&NET.started){
+    const now=Date.now();
+    if(EMOTES[m.i]&&(!conn._lastEmote||now-conn._lastEmote>2500)){
+      conn._lastEmote=now;
+      speak2(conn.seat,EMOTES[m.i]);        // 盖章后广播给全桌
+    }
   }else if(m.t==='act'&&NET.started){
     if(NET.waitRemote&&conn.seat===NET.waitSeat&&m.act&&m.act.seat===conn.seat){
       const r=NET.waitRemote; NET.waitRemote=null; r(m.act);
@@ -1399,6 +1436,7 @@ function netSendStart(){
 function startNetGame(){
   if(!NET||!NET.host||NET.started) return;
   NET.started=true;
+  $('emoteBtn').style.display='inline';
   $('netSheet').classList.remove('on');
   $('startSheet')&&$('startSheet').remove();
   newGame();
@@ -1465,6 +1503,7 @@ async function clientStart(m){
   tilt={};bubble=null;mood=['idle','idle','idle','idle'];known=[{},{},{},{}];banterEpoch++;
   $('netSheet').classList.remove('on');
   $('overSheet').classList.remove('on');
+  $('emoteBtn').style.display='inline';
   const st=$('startSheet'); if(st) st.remove();
   // 看门狗：网络时序偶尔会把"该我出牌"的提示弄丢，5 秒一查，发现悬空就重新拉起
   if(!NET.guard) NET.guard=setInterval(()=>{
@@ -1604,6 +1643,14 @@ document.querySelectorAll('.seg').forEach(seg=>{
   });
 });
 $('rulesBtn').onclick=()=>{paintRules();$('rulesSheet').classList.add('on');};
+$('emoteBtn').onclick=()=>{paintEmotes();$('emoteSheet').classList.add('on');};
+$('emoteCancel').onclick=()=>$('emoteSheet').classList.remove('on');
+$('emoteSheet').addEventListener('click',e=>{
+  if(e.target===$('emoteSheet')){ $('emoteSheet').classList.remove('on'); return; }
+  const b=e.target.closest('#emoteGrid button'); if(!b) return;
+  $('emoteSheet').classList.remove('on');
+  sendEmote(+b.dataset.i);
+});
 $('rulesClose').onclick=()=>$('rulesSheet').classList.remove('on');
 function paintMem(){
   $('memLine').textContent = MEM.games
