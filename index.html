@@ -516,7 +516,7 @@ const nm=i=>i===mySeat?'你':NAMES[i];
 const isAI=i=>SEATK[i]==='ai';
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.42';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const VERSION='1.43';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
 const SET={wild:1,max:4,burn:1,ai:1,sound:1,salty:1,pace:3};
 const PACEF=()=>[1,.85,1.15,1.5][SET.pace]||1.5;   // 节奏：爽快/适中/悠着点，乘在 AI 思考和桌面停顿上
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
@@ -727,6 +727,26 @@ function render(){
   $('log').innerHTML=logs.map(t=>'<div>'+t+'</div>').join('');
   fresh.clear();
   for(const k in BUBS) BUBS[k].pop=false;   // 弹出动画只播一次
+  staggerBubs();
+}
+// 几个气泡同时在场且互相压着时，把右边的往下错开一层，谁的话都看得全
+function staggerBubs(){
+  const els=[...document.querySelectorAll('#seats .bub')];
+  if(els.length<2) return;
+  els.sort((a,b)=>a.getBoundingClientRect().left-b.getBoundingClientRect().left);
+  const placed=[];
+  els.forEach(el=>{
+    let r=el.getBoundingClientRect(), guard=0;
+    while(guard++<8){
+      const hit=placed.find(q=>r.left<q.right+5&&r.right>q.left-5&&r.top<q.bottom+5&&r.bottom>q.top-5);
+      if(!hit) break;
+      const dy=(parseFloat(el.dataset.dy||'0'))+(hit.bottom+6-r.top);
+      el.dataset.dy=dy;
+      el.style.top='calc(100% + '+(6+dy)+'px)';
+      r=el.getBoundingClientRect();
+    }
+    placed.push(r);
+  });
 }
 
 function stage(html,stampText){
