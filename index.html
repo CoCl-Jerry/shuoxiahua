@@ -65,6 +65,12 @@ h1{
   border:1px solid rgba(199,154,78,.22);background:rgba(0,0,0,.22);
   transition:border-color .3s,background .3s,transform .3s}
 .seat.active{border-color:var(--brass);background:rgba(199,154,78,.12);transform:translateY(-2px)}
+.mtag{position:absolute;top:-7px;right:-4px;z-index:6;font-size:9.5px;letter-spacing:.06em;
+  padding:2px 7px;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,.4)}
+.mtag.mad{background:var(--red);color:#FFE9E0;animation:madpulse 1.1s ease-in-out infinite}
+.mtag.glee{background:var(--brass);color:#20160A;font-weight:600}
+.mtag.oops{background:rgba(8,20,14,.85);color:var(--dim);border:1px solid rgba(199,154,78,.3)}
+@keyframes madpulse{50%{transform:scale(1.12)}}
 .seat .nm{font-size:13px;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 3px}
 .ava{width:34px;height:34px;border-radius:50%;overflow:hidden;margin:0 auto 3px;
   border:1px solid var(--brass-dim);box-shadow:0 2px 6px rgba(0,0,0,.4), inset 0 0 0 1px rgba(199,154,78,.2)}
@@ -131,6 +137,14 @@ h1{
   padding:10px 18px;border-radius:7px;border:1px solid rgba(199,154,78,.45);
   background:rgba(0,0,0,.25);color:var(--dim)}
 .netbtn:hover{color:var(--brass);border-color:var(--brass)}
+.castpick{display:flex;gap:9px;flex-wrap:wrap}
+.castpick .cp{width:52px;text-align:center;cursor:pointer}
+.castpick .cp .face{width:42px;height:42px;border-radius:50%;overflow:hidden;margin:0 auto 3px;
+  border:2px solid rgba(199,154,78,.25);background:#0F2A20;opacity:.75}
+.castpick .cp .face svg{width:100%;height:100%;display:block}
+.castpick .cp .cn{font-size:10.5px;color:var(--dim);letter-spacing:.03em}
+.castpick .cp.on .face{border-color:var(--brass);box-shadow:0 0 0 2px rgba(199,154,78,.35);opacity:1}
+.castpick .cp.on .cn{color:var(--brass)}
 .avapick{display:flex;gap:8px;flex-wrap:wrap}
 .avapick .ap{width:40px;height:40px;border-radius:50%;overflow:hidden;cursor:pointer;
   border:2px solid rgba(199,154,78,.3);background:#0F2A20}
@@ -160,7 +174,7 @@ h1{
 }
 
 /* 牌堆 */
-.pile{position:relative;height:66px;width:120px}
+.pile{position:relative;height:78px;width:120px}
 .pile .bk{position:absolute;left:50%;top:0;margin-left:-23px}
 .pile .bk.drop{animation:drop .32s ease-out backwards}
 @keyframes drop{from{transform:translateY(-34px) scale(1.06);opacity:0}}
@@ -171,7 +185,9 @@ h1{
     linear-gradient(160deg,#A83229,#7A231C);
   box-shadow:0 2px 5px rgba(0,0,0,.4);position:relative}
 .bk::after{content:"";position:absolute;inset:7px;border:1px solid rgba(240,220,180,.5);border-radius:2px}
-.pilect{font-size:11.5px;color:var(--dim);letter-spacing:.12em}
+.pilect{position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);z-index:9;
+  background:rgba(10,26,19,.88);border:1px solid var(--brass-dim);border-radius:10px;
+  padding:2px 11px;font-size:11px;color:var(--ivory);letter-spacing:.1em;white-space:nowrap}
 
 /* 明牌 */
 .card{width:46px;height:64px;border-radius:5px;background:linear-gradient(160deg,#FBF5E6,var(--paper));
@@ -275,7 +291,7 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
   .ava{width:27px;height:27px;margin-bottom:2px}
   #stage{min-height:150px;padding:12px 12px;margin:4px 0 2px;gap:8px}
   .bk{width:40px;height:56px}
-  .pile{height:56px;width:108px}
+  .pile{height:70px;width:108px}
   .pilect{font-size:11px}
   .note{font-size:11.5px}
   .plaque{font-size:22px;padding:7px 16px}
@@ -291,7 +307,7 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
   .bub{font-size:11px;line-height:1.35;padding:3px 8px;max-width:130px}
   #stage{min-height:110px;padding:9px 10px;gap:6px}
   .plaque{font-size:18px;padding:6px 14px}
-  .pile{height:48px;width:100px}
+  .pile{height:62px;width:100px}
   .bk{width:36px;height:50px}
   #log{min-height:22px;margin:5px 2px 2px}
   .ava{width:23px;height:23px}
@@ -368,6 +384,9 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
     <div class="seg" data-k="ai">
       <button data-v="1">开（要填 key）</button><button data-v="0">只用写好的词</button></div>
     <div class="tip">牌怎么打永远是本地说了算，大模型只负责翻牌和终局时现编台词，还会翻旧账。没网、没 key、超时，都自动用写好的词。</div></div>
+  <div class="opt"><div class="q">AI 对手 · 点将（选中谁谁上桌，不选或不够就随机补）</div>
+    <div class="castpick" id="castPick"></div>
+    <div class="tip">下一局生效。被真人挑走当头像的人物会自动让位。</div></div>
   <div class="opt"><div class="q">他仨嘴里干不干净</div>
     <div class="seg" data-k="salty">
       <button data-v="1">带脏字，过瘾</button><button data-v="0">文明点</button></div></div>
@@ -450,7 +469,7 @@ const nm=i=>i===mySeat?'你':NAMES[i];
 const isAI=i=>SEATK[i]==='ai';
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.19';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const VERSION='1.23';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
 const SET={wild:1,max:4,burn:1,ai:1,sound:1,salty:1};
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
      if(_s&&typeof _s==='object') for(const k in SET) if(typeof _s[k]==='number') SET[k]=_s[k];
@@ -618,8 +637,8 @@ function deal(){
   pile=[];currentRank=null;lastPlay=null;roundClaimed=0;passStreak=0;
   over=false;winner=null;logs=[];selected=new Set();fresh=new Set();outQueue=[];
   ECFG={wild:SET.wild,max:SET.max,burn:SET.burn};
-  turn=0;                          // 真人玩家开第一轮
-  tilt={}; bubble=null; banterEpoch++;
+  turn=Math.random()*4|0;          // 谁先出，抽签
+  tilt={}; bubble=null; banterEpoch++; rollPileJit();
   known=[{},{},{},{}]; roundLeaderId=null; mood=['','idle','idle','idle'];
   Sfx.deal();
 }
@@ -638,7 +657,10 @@ function render(){
   $('seats').innerHTML=[1,2,3].map(k=>(mySeat+k)%4).map(i=>{
     const n=hands[i].length;
     const bub=(bubble&&bubble.p===i)? '<div class="bub'+(bubble.pop?' pop':'')+'">'+esc(bubble.text)+'</div>' : '';
-    return '<div class="seat'+(turn===i?' active':'')+(n<=3?' low':'')+'">'+
+    const mt = tilt[i]? '<div class="mtag mad">上头</div>'
+             : mood[i]==='glee'? '<div class="mtag glee">得意</div>'
+             : mood[i]==='oops'? '<div class="mtag oops">栽了</div>' : '';
+    return '<div class="seat'+(turn===i?' active':'')+(n<=3?' low':'')+'">'+mt+
       '<div class="ava">'+avaSVG(i)+'</div>'+
       '<div class="nm">'+NAMES[i]+'</div>'+
       '<div class="ct">'+n+' 张</div>'+bub+'</div>';
@@ -661,16 +683,20 @@ function stage(html,stampText){
 }
 // drop=刚打出去几张。只有这几张播"落下"的动画，
 // 否则每次重画牌桌整堆牌都会重新落一遍，看着像在重新发牌。
+let PILE_JIT=[];
+function rollPileJit(){ PILE_JIT=Array.from({length:32},()=>({a:Math.random()*12-6,x:Math.random()*10-5,y:Math.random()*3})); }
+rollPileJit();
 function pileHTML(drop){
   if(!pile.length) return '';
   const s=Math.min(7,pile.length);
   const from = drop? Math.max(0,s-drop) : s;
   let h='<div class="pile">';
   for(let i=0;i<s;i++){
-    const a=((i*37)%11-5), x=((i*53)%9-4), y=i*2;
+    const jj=PILE_JIT[i%PILE_JIT.length];
+    const a=jj.a, x=jj.x, y=i*2+jj.y;
     h+='<div class="bk'+(i>=from?' drop':'')+'" style="transform:translate('+x+'px,'+y+'px) rotate('+a+'deg);z-index:'+i+'"></div>';
   }
-  return h+'</div><div class="pilect">桌上扣着 '+pile.length+' 张</div>';
+  return h+'<div class="pilect">'+pile.length+' 张</div></div>';
 }
 const claimHTML=(p,cnt,rank)=>
   '<div class="who">'+nm(p)+' 报</div><div class="plaque">'+CN[cnt]+' 个 <em>'+RANKS[rank]+'</em></div>';
@@ -684,8 +710,7 @@ function humanTurn(){
       stage('<div class="who">该你出牌</div><div class="plaque">你来定点数</div>');
       $('hint').textContent='';
     }else{
-      stage(claimHTML(lastPlay.player,lastPlay.cards.length,currentRank)+pileHTML()+
-            '<div class="note">该你了</div>');
+      stage(claimHTML(lastPlay.player,lastPlay.cards.length,currentRank)+pileHTML());
       let ev='';
       if(canCall()){                              // 只留情报，不留教学
         const cap=4+(ECFG.wild?2:0), k=lastPlay.cards.length;
@@ -920,20 +945,36 @@ const ROSTER=[
 ];
 let NAMES=['你','老李','王姐','小赵'], AVA=['',AVATARS.laoli,AVATARS.wangjie,AVATARS.xiaozhao];
 const PROFILE={}, PERSONA={};
+let PREF_CAST=(()=>{ try{ const v=JSON.parse(localStorage.getItem('sxh_cast')||'[]');
+  return Array.isArray(v)?v.filter(k=>typeof k==='string'):[]; }catch(e){ return []; } })();
+function savePrefCast(){ try{localStorage.setItem('sxh_cast',JSON.stringify(PREF_CAST));}catch(e){} }
 function pickCast(){
   const used=Object.values(HUMAN_AVAKEYS).filter(Boolean);
-  const pool=ROSTER.filter(r=>!used.includes(r.key));
-  for(let i=pool.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[pool[i],pool[j]]=[pool[j],pool[i]];}
+  const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
+  // 点将的先上桌（真人挑走脸的让位），不够再从其余人物里随机补
+  const pref=shuffle(ROSTER.filter(r=>PREF_CAST.includes(r.key)&&!used.includes(r.key)));
+  const rest=shuffle(ROSTER.filter(r=>!PREF_CAST.includes(r.key)&&!used.includes(r.key)));
+  const pool=pref.concat(rest);
   CASTKEY={};
   let k=0;
   for(let i=0;i<4;i++){
     if(SEATK[i]!=='ai'){ delete PROFILE[i]; delete PERSONA[i]; continue; }
     const c=pool[k++];
     NAMES[i]=c.name; AVA[i]=c.ava; CASTKEY[i]=c.key;
-    PROFILE[i]=c.prof; PERSONA[i]=c.persona;
+    PROFILE[i]=jitterProf(c.prof); PERSONA[i]=c.persona;
   }
 }
 let CASTKEY={};
+// 每局的"状态"：牌风参数在人设基准上抖一抖，今天的王姐和昨天的不完全一样
+function jitterProf(base){
+  const p=JSON.parse(JSON.stringify(base));
+  const J=()=>.8+Math.random()*.45;
+  ['passReal','passBluff','bigPlay','junkMix','callBase','callPerCard','crowd','chatty']
+    .forEach(k=>{ if(typeof p[k]==='number') p[k]=Math.min(.95,p[k]*J()); });
+  p.truthMax=Math.min(.98,Math.max(.4,p.truthMax*J()));
+  p.speed=[Math.round(p.speed[0]*J()),Math.round(p.speed[1]*J())].sort((a,b)=>a-b);
+  return p;
+}
 // 真人座位的头像：名字第一个字画进圆里
 function humanAva(name){
   const ch=esc((name||'人').slice(0,1));
@@ -992,7 +1033,6 @@ async function takeTurn(p){
   const plan=aiPlan(p);
   await sleep(ponderMs(p,plan));          // 想多久，看牌情
   const P=PROFILE[p], hot=!!tilt[p];
-  if(tilt[p]) tilt[p]--;
   if(plan.act==='call'){ chat(p, hot?'tilt':'call', .8); return {t:'call',seat:p}; }
   if(plan.act==='pass'){ chat(p, hot&&Math.random()<.5?'tilt':'pass', hot?.8:undefined); return {t:'pass',seat:p}; }
   const after=hands[p].length-plan.cards.length;
@@ -1162,6 +1202,7 @@ function aiChallenge(p,P,hot){
 /* ═══ 展示层：把引擎吐出的事件演出来（声音/台词/表情/记牌都在这层）═══ */
 function presentPlayed(ev){
   const p=ev.seat;
+  if(tilt[p]) tilt[p]--;                       // 出完这手，火气消一格
   for(const r in known[p]) known[p][r]=Math.max(0,known[p][r]-ev.n);  // 他出了牌，明牌可能被打掉
   say(nm(p)+' 报 '+ev.n+' 个 '+RANKS[ev.rank]+(ev.out?' —— 手牌出完了！':''));
   Sfx.play(ev.n);
@@ -1171,6 +1212,7 @@ function presentPlayed(ev){
 /* ═══ 翻牌 ═══ */
 async function presentReveal(ev){
   const p=ev.target, q=ev.by, cards=ev.cards, truth=ev.truth;
+  if(tilt[q]) tilt[q]--;
   bubble=null;
   say(nm(q)+' 喊了说瞎话');
   Sfx.call();
@@ -1477,10 +1519,10 @@ async function presentEvents(evs){
   for(const ev of evs){
     if(ev.e==='played'){ presentPlayed(ev); if(!over) await sleep(560); }
     else if(ev.e==='passed'){
+      if(tilt[ev.seat]) tilt[ev.seat]--;
       Sfx.pass();
       say(nm(ev.seat)+' 过');
-      stage(claimHTML(ev.claimSeat,ev.claimN,ev.rank)+pileHTML()+
-            '<div class="note"><b>'+nm(ev.seat)+'</b> 过了 · 轮到 '+nm((ev.seat+1)%4)+' 抓</div>');
+      stage(claimHTML(ev.claimSeat,ev.claimN,ev.rank)+pileHTML());
       render(); await sleep(720);
     }
     else if(ev.e==='burn'){ await presentBurn(ev); }
@@ -1496,17 +1538,15 @@ async function loop(){
     else if(SEATK[turn]==='remote'){
       stage((currentRank===null
         ? '<div class="who">轮到</div><div class="plaque">'+NAMES[turn]+'</div>'
-        : claimHTML(lastPlay.player,lastPlay.cards.length,currentRank)+pileHTML()+
-          '<div class="note">等 <b>'+NAMES[turn]+'</b> 出牌…</div>'));
-      $('hint').innerHTML='<span class="thinking">'+NAMES[turn]+' 在想…</span>';
+        : claimHTML(lastPlay.player,lastPlay.cards.length,currentRank)+pileHTML()));
+      $('hint').innerHTML='<span class="thinking">等 '+NAMES[turn]+' 出牌…</span>';
       action=await waitRemote(turn);
       $('hint').textContent='';
     }
     else{
       stage((currentRank===null
         ? '<div class="who">轮到</div><div class="plaque">'+NAMES[turn]+'</div>'
-        : claimHTML(lastPlay.player,lastPlay.cards.length,currentRank)+pileHTML()+
-          '<div class="note">轮到 <b>'+NAMES[turn]+'</b></div>'));
+        : claimHTML(lastPlay.player,lastPlay.cards.length,currentRank)+pileHTML()));
       $('hint').innerHTML = '<span class="thinking">'+NAMES[turn]+' 在想…</span>';
       action=await takeTurn(turn);
       $('hint').textContent='';
@@ -1564,7 +1604,18 @@ $('memReset').onclick=()=>{
   MEM.humanCaught=0;MEM.humanHonest=0;MEM.humanGoodCall=0;MEM.humanBadCall=0;
   saveMem();paintMem();Sfx.tick();
 };
-$('setBtn').onclick=()=>{paintSettings();paintMem();$('keyInput').value=KEY;$('setSheet').classList.add('on');};
+function paintCastPick(){
+  const el=$('castPick'); if(!el) return;
+  el.innerHTML=ROSTER.map(r=>'<div class="cp'+(PREF_CAST.includes(r.key)?' on':'')+'" data-k="'+r.key+'">'+
+    '<div class="face">'+r.ava.pre+r.ava.f.idle+r.ava.post+'</div><div class="cn">'+r.name+'</div></div>').join('');
+}
+$('castPick').addEventListener('click',e=>{
+  const cp=e.target.closest('.cp'); if(!cp) return;
+  const k=cp.dataset.k;
+  PREF_CAST = PREF_CAST.includes(k)? PREF_CAST.filter(x=>x!==k) : PREF_CAST.concat([k]);
+  savePrefCast(); Sfx.tick(); paintCastPick();
+});
+$('setBtn').onclick=()=>{paintSettings();paintMem();paintCastPick();$('keyInput').value=KEY;$('setSheet').classList.add('on');};
 $('keyInput').addEventListener('input',e=>{
   KEY=e.target.value.trim(); aiWarned=false;
   try{ localStorage.setItem('ds_key',KEY); }catch(err){}
@@ -1617,7 +1668,7 @@ async function newGame(){
   hands[mySeat].forEach(c=>fresh.add(c));               // 亮手牌时从下面滑进来
   render();
   dealing=false;
-  say('发牌完毕，你先出');
+  say('发牌完毕，'+nm(turn)+'先出');
   loop();
 }
 
