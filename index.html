@@ -516,7 +516,7 @@ const nm=i=>i===mySeat?'你':NAMES[i];
 const isAI=i=>SEATK[i]==='ai';
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.41';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const VERSION='1.42';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
 const SET={wild:1,max:4,burn:1,ai:1,sound:1,salty:1,pace:3};
 const PACEF=()=>[1,.85,1.15,1.5][SET.pace]||1.5;   // 节奏：爽快/适中/悠着点，乘在 AI 思考和桌面停顿上
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
@@ -947,8 +947,8 @@ const ROSTER=[
        call:['放屁，数不对','吹逼'],win:['傻逼'],lose:['操']}}}},
  {key:'tiezi',name:'铁子',ava:AVATARS.tiezi,
   persona:'你是铁子，东北人，四十来岁，大嗓门豪爽，最爱梭哈式的大吹特吹，抓人也痛快；上头了嗷嗷叫。一口东北话（哎呀妈呀、整、老铁、削你、瞅你咋地）。',
-  prof:{passReal:.10,passBluff:.32,bigPlay:.78,truthMax:.60,junkMix:.42,
-   callBase:.13,callPerCard:.05,crowd:.07,sniper:0,counts:0,guard:.75,exitD:.55,speed:[450,950],tiltable:2,chatty:.62,
+  prof:{passReal:.10,passBluff:.32,bigPlay:.78,truthMax:.75,junkMix:.32,
+   callBase:.13,callPerCard:.075,crowd:.07,sniper:0,counts:0,guard:.88,exitD:.80,speed:[450,950],tiltable:2,chatty:.62,
    talk:{
      play:['整！','瞅我的','来了老弟','干就完了'],bluff:['梭了！','整个大的','虚啥啊','就这么地'],
      pass:['歇一手','这轮不整','你们先造'],call:['瞅你咋地','我寻思你在吹','掀开看看'],
