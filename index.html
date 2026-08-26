@@ -102,7 +102,7 @@ h1{
   border:1px solid rgba(199,154,78,.3);
   background:radial-gradient(ellipse 80% 70% at 50% 40%, rgba(46,94,71,.55), rgba(6,20,14,.55));
   box-shadow:inset 0 0 34px rgba(0,0,0,.55), 0 6px 20px rgba(0,0,0,.3);
-  min-height:200px;padding:20px 16px;position:relative;overflow:hidden;
+  height:214px;padding:20px 16px;position:relative;overflow:hidden;   /* 钉死：有牌没牌一个大小 */
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
 }
 .who{font-size:12.5px;color:var(--dim);letter-spacing:.14em}
@@ -288,6 +288,10 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
 .tface{display:inline-block;width:24px;height:24px;border-radius:50%;overflow:hidden;vertical-align:-7px;margin-right:6px}
 .tface svg{width:100%;height:100%;display:block}
 #ebar button:active{transform:translateY(1px)}
+#ebar input{flex:1;min-width:0;padding:10px 12px;border-radius:9px;border:1px solid rgba(199,154,78,.4);
+  background:rgba(0,0,0,.35);color:var(--ivory);font-size:14px;font-family:inherit}
+#ebar input::placeholder{color:var(--dim)}
+#ebar button.go{background:var(--brass);color:#20160A;font-weight:600;border-radius:9px;padding:10px 18px}
 #etoast{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);z-index:30;
   background:var(--paper);color:var(--ink);padding:6px 15px;border-radius:12px;font-size:13px;
   box-shadow:0 4px 14px rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .25s}
@@ -333,7 +337,7 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
   #seats{margin:9px 0 4px;padding-bottom:52px}
   .seat{padding:6px 4px 5px}
   .ava{width:27px;height:27px;margin-bottom:2px}
-  #stage{min-height:150px;padding:12px 12px;margin:4px 0 2px;gap:8px}
+  #stage{height:174px;padding:12px 12px;margin:4px 0 2px;gap:8px}
   .bk{width:40px;height:56px}
   .pile{height:70px;width:108px}
   .pilect{font-size:11px}
@@ -349,7 +353,7 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
   header{padding:8px 0 6px}
   #seats{padding-bottom:40px;margin:7px 0 3px}
   .bub{font-size:11px;line-height:1.35;padding:3px 8px;max-width:185px}
-  #stage{min-height:104px;padding:8px 10px;gap:6px}
+  #stage{height:148px;padding:8px 10px;gap:6px}
   .plaque{font-size:18px;padding:6px 14px}
   .pile{height:62px;width:100px}
   .bk{width:36px;height:50px}
@@ -515,7 +519,7 @@ const nm=i=>i===mySeat?'你':NAMES[i];
 const isAI=i=>SEATK[i]==='ai';
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.55';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const VERSION='1.56';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
 const SET={wild:1,max:3,burn:1,ai:1,sound:1,salty:1,pace:3};
 const PACEF=()=>[1,.85,1.15,1.5][SET.pace]||1.5;   // 节奏：爽快/适中/悠着点，乘在 AI 思考和桌面停顿上
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
@@ -1502,10 +1506,40 @@ function emoFace(key,emo){       // 某人物做某表情的整张脸
   const A=AVATARS[key]; if(!A) return '';
   return A.pre+(A.f[emo]||A.f.idle)+A.post;
 }
+function dsChatOn(){ return (NET&&!NET.host) ? !!NET.dsOn : !!(SET.ai&&KEY); }
 function paintEbar(){
+  if(dsChatOn()){                              // 接上 DeepSeek：真对话框，AI 会接茬
+    $('ebar').innerHTML='<input id="chatIn" maxlength="30" placeholder="冲牌桌喊一句，他们会接茬…">'+
+      '<button class="go" id="chatGo">喊</button>';
+    $('chatGo').onclick=sendChat;
+    $('chatIn').onkeydown=e=>{ if(e.key==='Enter') sendChat(); };
+    setTimeout(()=>{ const i=$('chatIn'); if(i&&$('ebar').classList.contains('on')) i.focus(); },80);
+    return;
+  }
   $('ebar').innerHTML = myAvaKey
     ? EMOKEYS.map(k=>'<button class="emo" data-k="'+k+'">'+emoFace(myAvaKey,k)+'</button>').join('')
     : EMOKEYS.map(k=>'<button data-k="'+k+'">'+EMOTXT[k]+'</button>').join('');
+}
+function sendChat(){
+  const el=$('chatIn'); if(!el) return;
+  const t=el.value.trim().slice(0,30); if(!t) return;
+  const now=Date.now(); if(now-lastEmoteAt<2500) return;
+  lastEmoteAt=now; el.value='';
+  $('ebar').classList.remove('on');
+  selfToast(t);
+  if(NET&&!NET.host&&NET.conn){ try{NET.conn.send({t:'chat',txt:t});}catch(e){} return; }
+  humanChat(mySeat,t);
+}
+function humanChat(seat,t){                    // 主机侧：上泡、广播、AI 接茬，偶尔第二个人补刀
+  speak2(seat,t);
+  const others=[0,1,2,3].filter(isAI);
+  if(!others.length) return;
+  const g=others[Math.random()*others.length|0], myE=banterEpoch;
+  setTimeout(()=>{ if(myE===banterEpoch&&!over) aiBanter(g,'真人玩家 '+NAMES[seat]+' 冲全桌喊了句：「'+t+'」——你接他的话茬回一句'); },600+Math.random()*700);
+  if(others.length>1&&Math.random()<.35){
+    const rest=others.filter(x=>x!==g), g2=rest[Math.random()*rest.length|0];
+    setTimeout(()=>{ if(myE===banterEpoch&&!over) aiBanter(g2,'刚才 '+NAMES[seat]+' 冲牌桌喊：「'+t+'」，'+NAMES[g]+' 已经回过他了。你在旁边看戏，顺嘴再补一句'); },3000+Math.random()*1500);
+  }
 }
 function selfToast(t,avaKey,emo){
   const el=$('etoast');
@@ -1593,6 +1627,9 @@ function hostMsg(conn,m){
       showEmo(conn.seat,key,m.emo);
       netAll({t:'emo',seat:conn.seat,key:key,emo:m.emo});
     }
+  }else if(m.t==='chat'&&NET.started){
+    const now=Date.now(), t=String(m.txt||'').slice(0,30);
+    if(t&&(!conn._lastEmote||now-conn._lastEmote>2500)){ conn._lastEmote=now; humanChat(conn.seat,t); }
   }else if(m.t==='emote'&&NET.started){
     const now=Date.now();
     const t=String(m.txt||'').slice(0,12);
@@ -1652,7 +1689,7 @@ function netSendStart(){
   NET.conns.forEach(c=>{
     const avaKeys=[0,1,2,3].map(i=>SEATK[i]==='ai'?CASTKEY[i]:(HUMAN_AVAKEYS[i]||''));
     try{c.send({t:'start',v:VERSION,seat:c.seat,names:NAMES.slice(),seatk:SEATK.slice(),
-      castKeys:CASTKEY,avaKeys:avaKeys,ecfg:ECFG,hand:hands[c.seat],env:env,back:BACKS.indexOf(BACK)});}catch(e){}  // 牌背全桌统一，按房主抽的来
+      castKeys:CASTKEY,avaKeys:avaKeys,ecfg:ECFG,hand:hands[c.seat],env:env,back:BACKS.indexOf(BACK),ds:!!(SET.ai&&KEY)});}catch(e){}  // 牌背全桌统一；ds=房主接了 DeepSeek
   });
 }
 function startNetGame(){
@@ -1722,6 +1759,7 @@ async function clientStart(m){
   NET.started=true;
   mySeat=m.seat; SEATK=m.seatk; NAMES=m.names; ECFG=m.ecfg; CASTKEY=m.castKeys;
   BACK=BACKS[m.back]||'';   // 跟房主用同一款牌背
+  NET.dsOn=!!m.ds; $('ebar').innerHTML='';   // 喊话面板按房主的 DeepSeek 状态重画
   AVA=[null,null,null,null];
   for(let i=0;i<4;i++){
     const ak=(m.avaKeys&&m.avaKeys[i])||'';
@@ -1880,11 +1918,12 @@ document.querySelectorAll('.seg').forEach(seg=>{
 });
 $('rulesBtn').onclick=()=>{paintRules();$('rulesSheet').classList.add('on');};
 $('emoteBtn').onclick=()=>{
-  if(!$('ebar').innerHTML) paintEbar();
+  const opening=!$('ebar').classList.contains('on');
+  if(opening) paintEbar();
   $('ebar').classList.toggle('on');
 };
 $('ebar').addEventListener('click',e=>{
-  const b=e.target.closest('button'); if(!b) return;
+  const b=e.target.closest('button'); if(!b||!b.dataset.k) return;
   $('ebar').classList.remove('on');
   sendEmote(b.dataset.k);
 });
