@@ -515,7 +515,7 @@ const nm=i=>i===mySeat?'你':NAMES[i];
 const isAI=i=>SEATK[i]==='ai';
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.54';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const VERSION='1.55';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
 const SET={wild:1,max:3,burn:1,ai:1,sound:1,salty:1,pace:3};
 const PACEF=()=>[1,.85,1.15,1.5][SET.pace]||1.5;   // 节奏：爽快/适中/悠着点，乘在 AI 思考和桌面停顿上
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
@@ -1130,14 +1130,24 @@ function humanAva(name){
 }
 let tilt={}, rage=[0,0,0,0];
 // 每个座位一个气泡，各自计时：字越多挂得越久，别人说话不顶掉你的
-let BUBS={};
+let BUBS={}, BUBQ={};
 function bubSet(p,b,ms){
-  if(BUBS[p]&&BUBS[p].timer) clearTimeout(BUBS[p].timer);
+  const cur=BUBS[p], now=Date.now(), MIN=1600;
+  if(BUBQ[p]){ clearTimeout(BUBQ[p]); delete BUBQ[p]; }   // 已经有排队的：新话把它挤掉
+  if(cur&&cur.at&&now-cur.at<MIN){                        // 上一句还没看够：这句等等再上，别硬顶
+    BUBQ[p]=setTimeout(()=>{ delete BUBQ[p]; bubSet(p,b,ms); }, MIN-(now-cur.at));
+    return;
+  }
+  if(cur&&cur.timer) clearTimeout(cur.timer);
+  b.at=now;
   BUBS[p]=b;
   b.timer=setTimeout(()=>{ if(BUBS[p]===b){ delete BUBS[p]; render(); } },ms);
   render();
 }
-function bubClear(){ for(const k in BUBS){ if(BUBS[k].timer) clearTimeout(BUBS[k].timer); } BUBS={}; }
+function bubClear(){
+  for(const k in BUBS){ if(BUBS[k].timer) clearTimeout(BUBS[k].timer); } BUBS={};
+  for(const k in BUBQ){ clearTimeout(BUBQ[k]); } BUBQ={};
+}
 let known=[{},{},{},{}], roundLeaderId=null, humCaughtS=0, humHonestS=0;
 let mood=['','idle','idle','idle'];
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -1317,7 +1327,7 @@ function chat(p,kind,rate){
 }
 function speak2(p,line){
   const text=String(line).slice(0,60);   // 只弹气泡，不占日志；60 字封顶，长了竖着排
-  bubSet(p,{text:text,pop:true}, Math.min(7500, 2400+text.length*110));  // 字多多挂会儿，看得完
+  bubSet(p,{text:text,pop:true}, Math.min(9000, 3000+text.length*130));  // 字多多挂会儿，看得完
   if(NET&&NET.host&&NET.started) netAll({t:'talk',seat:p,text:text});
 }
 
