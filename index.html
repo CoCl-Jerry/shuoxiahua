@@ -106,7 +106,7 @@ h1{
   border:1px solid rgba(199,154,78,.3);
   background:radial-gradient(ellipse 80% 70% at 50% 40%, rgba(46,94,71,.55), rgba(6,20,14,.55));
   box-shadow:inset 0 0 34px rgba(0,0,0,.55), 0 6px 20px rgba(0,0,0,.3);
-  height:214px;padding:20px 16px;position:relative;overflow:hidden;   /* 钉死：有牌没牌一个大小 */
+  height:244px;flex:none;padding:20px 16px;position:relative;overflow:hidden;   /* 钉死且禁止 flex 压缩：牌桌永远一个大小 */
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
 }
 .who{font-size:12.5px;color:var(--dim);letter-spacing:.14em}
@@ -335,6 +335,7 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
 #winner{font-family:"Songti SC","STSong",serif;font-size:30px;letter-spacing:.16em;
   text-align:center;margin:8px 0 14px;text-indent:.16em}
 /* 矮屏幕（iPhone SE、小安卓这类）整体收紧，保证手牌和按钮always在屏幕里 */
+@media (max-height:850px){ #stage{height:214px} }
 @media (max-height:800px){
   header{padding:10px 0 8px}
   h1{font-size:25px}
@@ -372,6 +373,7 @@ button:focus-visible,.card:focus-visible{outline:2px solid var(--brass);outline-
   button.act.wide{padding:8px 6px;margin-bottom:5px}
   #hint{margin-top:4px}
 }
+@media (max-height:600px){ #stage{height:118px} .pile{height:56px} }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -523,7 +525,7 @@ const nm=i=>i===mySeat?'你':NAMES[i];
 const isAI=i=>SEATK[i]==='ai';
 
 /* ═══ 可调规则 ═══ */
-const VERSION='1.57';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
+const VERSION='1.58';   // 改了东西就往上加，手机上看标题旁边那个号，能确认刷到新版没有
 const SET={wild:1,max:2,burn:1,ai:1,sound:1,salty:1,pace:3};
 const PACEF=()=>[1,.85,1.15,1.5][SET.pace]||1.5;   // 节奏：爽快/适中/悠着点，乘在 AI 思考和桌面停顿上
 try{ const _s=JSON.parse(localStorage.getItem('sxh_set')||'null');
@@ -1103,7 +1105,8 @@ function assignSeats(){
     NAMES[st]=h.name;
     HUMAN_AVAKEYS[st]=h.ava||'';
     AVA[st]= h.ava? AVATARS[h.ava] : (h.me? null : humanAva(h.name));
-    if(h.me) mySeat=st; else h.conn.seat=st;
+    if(h.me) mySeat=st;
+    else { h.conn.seat=st; if(NET&&NET.tks&&h.conn.tk&&NET.tks[h.conn.tk]) NET.tks[h.conn.tk].seat=st; }
   });
 }
 function pickCast(){
@@ -1630,6 +1633,8 @@ function hostMsg(conn,m){
     conn.seat=NET.conns.length+1;
     conn.pname=String(m.name||'玩家').replace(/[<>&"]/g,'').slice(0,8)||'玩家';
     conn.avaKey=AVATARS[m.ava]?m.ava:'';
+    conn.tk=Math.random().toString(36).slice(2,10);        // 座位令牌：断线重连凭它认人
+    NET.tks=NET.tks||{}; NET.tks[conn.tk]={seat:conn.seat,name:conn.pname,ava:conn.avaKey};
     NET.conns.push(conn);
     lobbyBroadcast(); paintLobby();
   }else if(m.t==='emo'&&NET.started){
@@ -1640,6 +1645,23 @@ function hostMsg(conn,m){
       showEmo(conn.seat,key,m.emo);
       netAll({t:'emo',seat:conn.seat,key:key,emo:m.emo});
     }
+  }else if(m.t==='rejoin'&&NET.started){
+    const rec=NET.tks&&NET.tks[m.tk];
+    if(!rec){ try{conn.send({t:'full'});}catch(e){} return; }
+    if(m.v!==VERSION){ try{conn.send({t:'badver',v:VERSION});}catch(e){} return; }
+    const seat=rec.seat;
+    NET.conns.filter(c=>c.seat===seat&&c!==conn).forEach(c=>{try{c.close();}catch(e){}});   // 同座旧线关干净，别重复收事件
+    NET.conns=NET.conns.filter(c=>c.seat!==seat);
+    conn.seat=seat; conn.pname=rec.name; conn.avaKey=rec.ava; conn.tk=m.tk;
+    NET.conns.push(conn);
+    SEATK[seat]='remote'; delete PROFILE[seat]; delete PERSONA[seat];   // AI 代打交回真人
+    say('✓ '+NAMES[seat]+' 重连回来了'); render();
+    const env=envelope();                                   // 先发全量现状让他重建牌桌，再广播
+    const avaKeys=[0,1,2,3].map(i=>SEATK[i]==='ai'?CASTKEY[i]:(HUMAN_AVAKEYS[i]||''));
+    try{conn.send({t:'start',v:VERSION,seat:seat,names:NAMES.slice(),seatk:SEATK.slice(),
+      castKeys:CASTKEY,avaKeys:avaKeys,ecfg:ECFG,hand:hands[seat],env:env,
+      back:BACKS.indexOf(BACK),ds:!!(SET.ai&&KEY)});}catch(e){}
+    netAll({t:'talk',seat:seat,text:'我回来了'});
   }else if(m.t==='chat'&&NET.started){
     const now=Date.now(), t=String(m.txt||'').slice(0,30);
     if(t&&(!conn._lastEmote||now-conn._lastEmote>2500)){ conn._lastEmote=now; humanChat(conn.seat,t); }
@@ -1665,6 +1687,7 @@ function hostDrop(conn){
     return;
   }
   const st=conn.seat;
+  if(conn.tk&&NET.tks&&NET.tks[conn.tk]) NET.tks[conn.tk].seat=st;
   if(SEATK[st]==='remote'){
     SEATK[st]='ai';
     PROFILE[st]=JSON.parse(JSON.stringify(ROSTER[0].prof)); PROFILE[st].chatty=0;
@@ -1677,7 +1700,7 @@ function hostDrop(conn){
 }
 function lobbyBroadcast(){
   const names=[NET.myName].concat(NET.conns.map(c=>c.pname));
-  NET.conns.forEach(c=>c.send({t:'lobby',names:names,yourSeat:c.seat}));
+  NET.conns.forEach(c=>c.send({t:'lobby',names:names,yourSeat:c.seat,tk:c.tk}));
 }
 function envelope(){
   return {turn:turn,over:over,cnt:hands.map(h=>h.length),pileN:pile.length,
@@ -1753,20 +1776,51 @@ async function joinRoom(name){
       try{conn.send({t:'join',name:name,v:VERSION,ava:myAvaKey});}catch(_){}
     });
     conn.on('data',onMsg);
-    conn.on('close',()=>{ if(NET&&NET.peer===peer&&!over&&NET.started) netFail('和房主断线了'); });
+    conn.on('close',()=>{ if(NET&&NET.peer===peer&&!over&&NET.started){ try{peer.destroy();}catch(e){} clientRejoin(0); } });
   });
 }
 async function clientMsg(m){
   if(!NET) return;
-  if(m.t==='lobby'){ NET.joined=true; netStatus('已入座（'+m.names.join('、')+'）等房主开局…'); }
+  if(m.t!=='start'&&m.t!=='lobby'&&m.t!=='badver'&&m.t!=='full'&&(typeof mySeat!=='number'||!hands||!hands.length||!logs)) return;   // 白纸页面先等 start
+  if(m.t==='lobby'){ NET.joined=true;
+    if(m.tk){ RJTK=m.tk; try{localStorage.setItem('sxh_tk',m.tk);}catch(e){} }
+    netStatus('已入座（'+m.names.join('、')+'）等房主开局…'); }
   else if(m.t==='badver'){ netFail('版本不一致：房主 v'+m.v+'，你 v'+VERSION+'，都刷新到最新再来'); }
-  else if(m.t==='full'){ netFail('房间满了或已经开打'); }
+  else if(m.t==='full'){
+    const tk=RJTK||(function(){try{return localStorage.getItem('sxh_tk');}catch(e){return null;}})();
+    if(tk&&!NET.triedTk&&NET.conn){ NET.triedTk=1; try{NET.conn.send({t:'rejoin',tk:tk,v:VERSION});}catch(e){}
+      netStatus('牌局开着——正在按老座位接回去…'); return; }
+    netFail('房间满了或已经开打');
+  }
   else if(m.t==='talk'){ speak2(m.seat,m.text); }
   else if(m.t==='emo'){ showEmo(m.seat,m.key,m.emo); }
   else if(m.t==='talkless'){ say('⚠ '+m.name+' 掉线了，AI 代打'); render(); }
   else if(m.t==='nak'){ say('⚠ '+m.msg); render(); clientTurn(); }
   else if(m.t==='start'){ await clientStart(m); }
   else if(m.t==='ev'&&NET.started){ clientApply(m.env,m.evs); await presentEvents(m.evs); clientAfter(); }
+}
+let RJTK=null;                                 // 本座的重连令牌
+function clientRejoin(round){
+  if(over) return;
+  const tk=RJTK||(function(){try{return localStorage.getItem('sxh_tk');}catch(e){return null;}})();
+  if(!tk) return netFail('和房主断线了');
+  if(round>=15) return netFail('重连了半天没接上——房主那边可能也断了');
+  say('⚠ 掉线了，正在重连…（第 '+(round+1)+' 次）'); render();
+  const peer=new Peer(peerOpts());
+  NET={host:false,peer:peer,q:Promise.resolve(),pendCards:null,started:true,joined:true,rejoining:true};
+  const onMsg=m=>{ NET.q=NET.q.then(()=>clientMsg(m)).catch(e=>{console.error(e); say('⚠ 出错：'+e.message); render(); clientAfter();}); };
+  let done=false;
+  const again=()=>{ if(done||!NET||NET.peer!==peer) return; done=true;
+    try{peer.destroy();}catch(e){} setTimeout(()=>{ if(!over) clientRejoin(round+1); },3000); };
+  peer.on('error',again);
+  peer.on('open',()=>{
+    if(!NET||NET.peer!==peer) return;
+    const conn=peer.connect(ROOMPFX+FIXROOM,{reliable:true});
+    NET.conn=conn;
+    conn.on('open',()=>{ try{conn.send({t:'rejoin',tk:tk,v:VERSION});}catch(e){} });
+    conn.on('data',onMsg);
+    conn.on('close',()=>{ if(!over&&NET&&NET.started) again(); });
+  });
 }
 async function clientStart(m){
   NET.started=true;
